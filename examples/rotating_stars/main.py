@@ -16,19 +16,11 @@ scene = anim.scene()
 animator = None
 
 star_anim = animation.animation(current_star, options)
-step_names = [] # list(map(lambda i: i[1][1], sorted(stepper.steps.items())))
-
-control_dock, control_layout = create_dock("Play Controls")
-
-step_name_list = create_list("Current Step", step_names, control_layout)
-step_button = create_button("Step", control_layout)
-play_button = create_button("Play", control_layout)
-stop_button = create_button("Stop", control_layout)
-reset_button = create_button("Reset", control_layout)
-add_stretch(control_layout)
 
 anim_dock, anim_layout = create_dock("Animation Controls")
 
+play_button = create_button("Play", anim_layout)
+stop_button = create_button("Stop", anim_layout)
 delay_box = create_number_range_slider("Animation speed (ms)", 0, 100, timer_delay, anim_layout)
 add_stretch(anim_layout)
 
@@ -47,28 +39,21 @@ draw_dots_option = create_option("Draw dots", draw_layout, options.draw_dots)
 draw_inner_option = create_option("Draw inner circles", draw_layout, options.draw_inner_circles)
 draw_outer_option = create_option("Draw outer circle", draw_layout, options.draw_outer_circle)
 draw_star_option = create_option("Draw the star", draw_layout, options.draw_star)
+add_stretch(draw_layout)
 
 window = create_main_window("Rotating Stars", scene.get_widget())
-add_dock(window, control_dock)
 add_dock(window, anim_dock)
 add_dock(window, star_dock)
 add_dock(window, draw_dock)
 
 
 def advance_step():
-    scene.reset()
-    shots = star_anim.animate_all()
-    anim.shot.play_all(shots, scene, animator)
-    scene.ensure_all_contents_fit()
-
-@reset_button.clicked.connect
-def on_reset():
-    #stepper.reset()
-    pass
-
-@step_button.clicked.connect
-def on_step():
-    advance_step()
+    global playing
+    if playing:
+        scene.reset()
+        shots = star_anim.animate_all()
+        anim.shot.play_all(shots, scene, animator)
+        scene.ensure_all_contents_fit()
 
 @play_button.clicked.connect
 def on_play():

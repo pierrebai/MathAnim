@@ -11,6 +11,7 @@ class animation():
     def __init__(self, star, options, *args, **kwargs):
         self.star = star
         self.options = options
+        self.circle_rotation_pos = 0
         self.reset()
 
 
@@ -100,8 +101,8 @@ class animation():
     # Animator base class function overrides
 
     def reset(self):
-        self.circle_rotation_pos = 0.
         self.circle_rotation_pos_steps = 1000 // max(self.star.skip, 1)
+        self.circle_rotation_pos = (self.circle_rotation_pos + 1) % (self.circle_rotation_pos_steps * self.star.sides)
         self._gen_all_dots_pos()
         self._gen_star_points()
         
