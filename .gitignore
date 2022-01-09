@@ -1,0 +1,6 @@
+/.vscode
+*.py[co]
+*.profile
+*.exe
+*.spec
+build/*
