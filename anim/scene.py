@@ -1,52 +1,62 @@
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView
-from PyQt5.QtCore import QMarginsF, QRectF, Qt
+from .actor import actor
 
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem
+from PyQt5.QtCore import QMarginsF, QRectF, Qt
 
 class scene:
     """
     Scene containing scene items using Qt graphics scene and graphics items.
     """
 
-    def __init__(self, margin = 10):
+    def __init__(self, margin: int = 10) -> None:
         """
         Creates the scene (QGraphicsScene) and the view (QGraphicsView).
         Sets some useful default: anchored in teh center, no scrollbars,
         antialiasing and smooth pixmap transforms.
         """
         self.default_margin = margin
+
+        self.scene = QGraphicsScene()
+        self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
+
         self.view = QGraphicsView()
         self.view.setInteractive(False)
         self.view.setResizeAnchor(QGraphicsView.AnchorViewCenter)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.reset()
+        self.view.setScene(self.scene)
 
-    def get_widget(self):
+        self.adjust_view_to_fit(margin)
+
+    def reset(self, margin: int = None) -> None:
+        """
+        Resets to a new scene and resets the view with the given margin
+        or the default margin.
+        """
+        pass
+        
+    def get_widget(self) -> QGraphicsView:
         """
         Retrieves the view (QGraphicsView).
         """
         return self.view
 
-    def add_item(self, item):
+    def add_item(self, item: QGraphicsItem) -> None:
         self.scene.addItem(item)
 
-    def reset(self, margin = None):
-        """
-        Resets to a new scene and resets the view with the given margin
-        or the default margin.
-        """
-        self.scene = QGraphicsScene()
+    def add_actor(self, actor: actor) -> None:
+        self.add_item(actor.item)
 
-        self.view.setScene(self.scene)
-        self.view.resetTransform()
-        self.view.resetCachedContent()
-        self.view.setSceneRect(QRectF())
+    def remove_item(self, item: QGraphicsItem) -> None:
+        if item.scene() == self.scene:
+            self.scene.removeItem(item)
 
-        self.adjust_view_to_fit(margin)
-        
-    def ensure_all_contents_fit(self, margin = None):
+    def remove_actor(self, actor: actor) -> None:
+        self.remove_item(actor.item)
+
+    def ensure_all_contents_fit(self, margin: int = None) -> None:
         """
         If the scene contents does not fit the view then call adjust_view_to_fit()
         with the given margin or the default margin.
@@ -56,7 +66,7 @@ class scene:
         if viewOrigin.x() >= sceneOrigin.x() or viewOrigin.y() >= sceneOrigin.y():
             self.adjust_view_to_fit(margin)
 
-    def adjust_view_to_fit(self, margin = None):
+    def adjust_view_to_fit(self, margin: int = None) -> None:
         """
         Fits the whole contents of the scene with the given margin
         or the default margin all around.

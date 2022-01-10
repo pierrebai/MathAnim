@@ -2,18 +2,18 @@ from PyQt5.QtCore import QTimer, Qt, QMargins
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
-import sys
 from typing import Tuple, Union
 
 IntOrFloat = Union[int, float]
 
-def create_app():
+def create_app() -> QApplication:
     """
     Creates and returns the QApplication with the command-line arguments.
     """
+    import sys
     return QApplication(sys.argv)
 
-def start_app(app: QApplication, window: QMainWindow):
+def start_app(app: QApplication, window: QMainWindow) -> None:
     """
     Starts the given application with the given main window.
     """
@@ -55,7 +55,7 @@ def create_list(title: str, contents: list, layout: QLayout, enabled = False) ->
     layout.addWidget(widget)
     return widget
 
-def select_in_list(name: str, widget: QListWidget):
+def select_in_list(name: str, widget: QListWidget) -> None:
     """
     Selects the item with the given text in the list widget.
     """
@@ -165,7 +165,7 @@ def create_number_range_slider(title: str, low: int, high: int, value: int, layo
     slider.valueChanged.connect(text.setValue)
     return text
 
-def create_option(title: str, layout: QLayout, state = True):
+def create_option(title: str, layout: QLayout, state = True) -> QCheckBox:
     """
     Creates and returns an option widget (QCheckBox) with teh given title in the given layout.
     Optionally set the current state, which defaults to True.
@@ -175,7 +175,7 @@ def create_option(title: str, layout: QLayout, state = True):
     layout.addWidget(widget)
     return widget
 
-def add_stretch(layout: QLayout):
+def add_stretch(layout: QLayout) -> None:
     """
     Adds a stretcheable zone to a layout.
     """
@@ -191,11 +191,11 @@ def create_main_window(title: str, central_widget) -> QMainWindow:
     window.setCentralWidget(central_widget)
     return window
 
-def add_dock(window: QMainWindow, dock: QDockWidget):
+def add_dock(window: QMainWindow, dock: QDockWidget, area = Qt.LeftDockWidgetArea) -> None:
     """
-    Adds a dockable widget to the given main window in the left area.
+    Adds a dockable widget to the given main window in the given area, left area by default.
     """
-    window.addDockWidget(Qt.LeftDockWidgetArea, dock)
+    window.addDockWidget(area, dock)
 
 def create_timer(interval: int) -> QTimer:
     """
@@ -204,3 +204,34 @@ def create_timer(interval: int) -> QTimer:
     timer = QTimer()
     timer.setInterval(interval)
     return timer
+
+def create_options_ui(scene, animation, animator) -> Tuple[QDockWidget, QVBoxLayout]:
+    dock, layout = create_dock("Options")
+    for option in animation.options:
+        option.create_ui(scene, animation, animator, layout)
+    add_stretch(layout)
+    return dock, layout
+
+def _connect_actor_ui(ui, animation, name):
+    @ui.stateChanged.connect
+    def on_changed(state):
+        for actor in animation.actors:
+            if actor.name == name:
+                actor.show(bool(state))
+
+def create_actors_ui(animation) -> Tuple[QDockWidget, QVBoxLayout]:
+    dock, layout = create_dock("Draw")
+    uis = {}
+    for actor in animation.actors:
+        name = actor.name
+        if name in uis:
+            ui = uis[name]
+        else:
+            ui = create_option(f"Draw {actor.name}", layout, actor.shown)
+            uis[name] = ui
+        # Note: connect must be out of the loop due to how variables
+        #       are captured in inner functions.
+        _connect_actor_ui(ui, animation, name)
+    add_stretch(layout)
+    return dock, layout
+

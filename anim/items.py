@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QBrush, QColor, QPen, QPolygonF
 from PyQt5.QtCore import QRectF, QPointF, QLineF
-from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsPolygonItem, QGraphicsLineItem, QGraphicsEllipseItem
+from PyQt5.QtWidgets import QGraphicsRectItem, QGraphicsPolygonItem, QGraphicsLineItem, QGraphicsEllipseItem, QGraphicsItem
 
 
 """
@@ -46,42 +46,41 @@ arrow_polygon = QPolygonF([
     QPointF(tile_size / 2 - 1, tile_size - 1), QPointF(tile_size / 2 - 1, 4), 
 ])
 
-def create_cross(color: QColor = red_color):
-    item = QGraphicsPolygonItem(cross_polygon)
-    item.setBrush(QBrush(color))
-    item.setPen(QPen(color.darker(130)))
+def _prepare_item(item: QGraphicsItem, pen: QPen, brush_color: QColor, parent: QGraphicsItem) -> QGraphicsItem:
+    item.setPen(pen)
+    item.setBrush(QBrush(brush_color))
+    if parent:
+        if isinstance(parent, QGraphicsItem):
+            item.setParentItem(parent)
+        else:
+            item.setParentItem(parent.item)
     return item
 
-def create_arrow(rotation_angle, color: QColor = black_color):
+def create_cross(color: QColor = red_color, parent: QGraphicsItem = None) -> QGraphicsItem:
+    item = QGraphicsPolygonItem(cross_polygon)
+    return _prepare_item(item, QPen(color.darker(130)), color, parent)
+
+def create_arrow(rotation_angle, color: QColor = black_color, parent: QGraphicsItem = None) -> QGraphicsItem:
     item = QGraphicsPolygonItem(arrow_polygon)
-    item.setPen(no_pen)
     item.setTransformOriginPoint(tile_size / 2, tile_size / 2)
     item.setRotation(rotation_angle)
-    item.setBrush(QBrush(color))
-    return item
+    return _prepare_item(item, no_pen, color, parent)
 
-def create_circle(radius, color: QColor = dark_blue_color, thickness = line_width):
+def create_circle(radius, color: QColor = dark_blue_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsItem:
     item = QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
-    item.setPen(QPen(color, thickness))
-    item.setBrush(no_brush)
     item.setTransformOriginPoint(0, 0)
-    return item
+    return _prepare_item(item, QPen(color, thickness), no_color, parent)
 
-def create_disk(radius = dot_size, color: QColor = gray_color):
+def create_disk(radius = dot_size, color: QColor = gray_color, parent: QGraphicsItem = None) -> QGraphicsItem:
     item = QGraphicsEllipseItem(-radius, -radius, radius * 2, radius * 2)
-    item.setPen(QPen(no_color, 0))
-    item.setBrush(color)
     item.setTransformOriginPoint(0, 0)
-    return item
+    return _prepare_item(item, no_pen, color, parent)
 
-def create_line(line: QLineF, color: QColor = green_color, thickness = line_width):
+def create_line(line: QLineF, color: QColor = green_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsItem:
     item = QGraphicsLineItem(line)
-    item.setPen(QPen(color, thickness))
     item.setTransformOriginPoint(line.p1())
-    return item
+    return _prepare_item(item, QPen(color, thickness), no_color, parent)
 
-def create_polygon(pts, color: QColor = dark_gray_color, thickness = line_width):
+def create_polygon(pts, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsItem:
     item = QGraphicsPolygonItem(QPolygonF(pts))
-    item.setPen(QPen(color, thickness))
-    item.setBrush(no_color)
-    return item
+    return _prepare_item(item, QPen(color, thickness), no_color, parent)

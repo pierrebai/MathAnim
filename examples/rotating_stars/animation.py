@@ -3,245 +3,279 @@ import anim
 from PyQt5.QtGui import QTransform, QPolygonF
 from PyQt5.QtCore import QPointF, QLineF
 
-class animation():
-    """
-    animator using a Qt graphics scene to show step-by-step changes.
-    """
-
-    def __init__(self, star, options, *args, **kwargs):
-        self.star = star
-        self.options = options
+class animation(anim.animation):
+    def __init__(self, scene: anim.scene, sides: int = 7, skip: int = 3, ratio = 0.9) -> None:
+        super().__init__("Rotating Stars", "Mathologer 3-4-7 Miracle: rotating interlinked polygons following a star trajectory.")
+        self.sides_option = anim.option("Number of branches", "", sides, 2, 20)
+        self.skip_option = anim.option("Star branch skip", "", skip, 1, 100)
+        self.ratio_option = anim.option("Percent of radius", "", int(ratio * 100), 0, 100)
+        self.add_options(self.sides_option)
+        self.add_options(self.skip_option)
+        self.add_options(self.ratio_option)
         self.circle_rotation_pos = 0
-        self.reset()
+        self.reset(scene)
+
+    @property
+    def sides(self):
+        return self.sides_option.value
+
+    @property
+    def skip(self):
+        return min(self.skip_option.value, self.sides - 1)
+
+    @property
+    def inner_circle_ratio(self):
+        return float(self.skip) / float(self.sides)
+
+    @property
+    def inner_count(self):
+        return self.sides - self.skip
+
+    @property
+    def dots_count(self):
+        return self.skip
+
+    @property
+    def inner_circle_dot_ratio(self):
+        return float(self.ratio_option.value) / 100.
+
+    def reset(self, scene: anim.scene) -> None:
+        super().reset(scene)
+        self.circle_rotation_pos_steps = 1000 // max(self.skip, 1)
+        self.circle_rotation_pos = (self.circle_rotation_pos + 1) % (self.circle_rotation_pos_steps * self.sides)
+        self.generate_actors(scene)
+        self.generate_shots()
+
+    def generate_actors(self, scene: anim.scene) -> None:
+        self._gen_star(scene)
+        self._gen_outer_circle(scene)
+        self._gen_inner_circles(scene)
+        self._gen_dots(scene)
+        self._gen_inner_circle_polygons(scene)
+        self._gen_inter_circle_polygons(scene)
+
+    def generate_shots(self) -> None:
+        self._anim_outer_circle()
+        self._anim_inner_circle()
+        self._anim_inner_circle_dot()
+        self._anim_star()
+        self._anim_other_inner_circle_dots()
+        self._anim_inner_circle_polygon()
+        self._anim_other_inner_circles()
+        self._anim_inter_circle_polygons()
+        self._anim_all()
+
+    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        self.reset(scene)
+        anim.shot.play_all(self.shots, scene, animator)
 
 
     #################################################################
     #
     # Helper functions
 
-    def _get_outer_angle(self, rot_pos: int, rot_steps: int):
-        if rot_steps:
-            return 360. * float(rot_pos) / float(rot_steps)
-        return 0.
-
     def _get_anti_skip_ratio(self):
-        if self.star.sides != self.star.skip:
-            return 1. / float(self.star.sides - self.star.skip)
+        if self.inner_count:
+            return 1. / float(self.inner_count)
         return 1.
 
-    def _get_inner_center(self, which_inner: int, rot_pos: int, rot_steps: int):
+    def _gen_inner_center(self, which_inner: int):
         """
-        Calculate the center position of an inner circle.
+        Generate the position of the center of an inner circle.
         """
-        inner_center = QPointF(1. - self.star.inner_circle_ratio, 0)
-        if self.star.sides != self.star.skip:
-            outer_angle = self._get_outer_angle(rot_pos, rot_steps)
-            angle = 360. * which_inner * self._get_anti_skip_ratio()
-            inner_center = QTransform().rotate(angle + outer_angle).map(inner_center)
-        return inner_center
+        inner_center = QPointF(1. - self.inner_circle_ratio, 0) * anim.items.outer_size
+        angle = 360. * which_inner * self._get_anti_skip_ratio()
+        return QTransform().rotate(angle).map(inner_center)
 
-    def _gen_all_dots_for_rot(self, rot_pos: int, rot_steps: int):
+    def _gen_dot_pos(self, which_inner: int, which_dot: int):
         """
-        Generate all positions for all dots on all inner circle.
-        Fills a 2D array called inner_dots_pos indexed by inner circle
-        and dots.
+        Generate the position of a dot on an inner circle.
         """
-        outer_angle = self._get_outer_angle(rot_pos, rot_steps)
-        ratio = float(self.star.skip) * self._get_anti_skip_ratio()
-        inner_angle = -outer_angle / ratio
-        dots_pos = []
-        inner_count = self.star.sides - self.star.skip
-        for which_inner in range(0, inner_count):
-            dots_pos.append(list())
-            inner_center = self._get_inner_center(which_inner, rot_pos, rot_steps)
-            for which_dot in range(0, self.star.skip):
-                dot_pos = QPointF(self.star.inner_circle_ratio * self.star.inner_circle_dot_ratio, 0)
-                dot_angle = 360.0 * which_dot / float(max(self.star.skip, 1))
-                dot_pos = QTransform().rotate(dot_angle + inner_angle).map(dot_pos)
-                dot_pos += inner_center
-                dot_pos *= anim.items.outer_size
-                dots_pos[which_inner].append(dot_pos)
-        return dots_pos
+        dot_pos = QPointF(self.inner_circle_ratio * self.inner_circle_dot_ratio, 0) * anim.items.outer_size
+        dot_angle = 360.0 * which_dot / float(max(self.skip, 1))
+        return QTransform().rotate(dot_angle).map(dot_pos)
 
-    def _gen_all_dots_pos(self):
-        """
-        Generate all positions for all dots on all inner circle.
-        Fills a 2D array called inner_dots_pos indexed by inner circle
-        and dots.
-        """
-        self.inner_dots_pos = self._gen_all_dots_for_rot(self.circle_rotation_pos, self.circle_rotation_pos_steps)
 
-    def _gen_dot(self, scene: anim.scene, which_dot: int, which_inner: int):
-        dot_pos = self.inner_dots_pos[which_inner][which_dot]
-        dot = anim.items.create_disk(anim.items.dot_size, anim.items.orange_color)
-        dot.setPos(dot_pos)
-        scene.add_item(dot)
+    #################################################################
+    #
+    # Actors.
 
-    def _gen_star_points(self):
+    def _gen_star(self, scene: anim.scene):
         """
         Create the star by rotating the inner circle leaving a trail
         formed by the dot on the inner circle, forming the star.
         Keep it in the animator to avoid re-recreating on each frame.
         """
-        star_segments = 240 // max(self.star.skip, 1)
-        all_pos = []
-        for i in range(star_segments * self.star.skip + 1):
-            new_pos = self._gen_all_dots_for_rot(i, star_segments)
-            if len(new_pos) and len(new_pos[0]):
-                new_point = new_pos[0][0]
-                all_pos.append(new_point)
-        if len(all_pos):
-            self.star_points = all_pos
-        else:
-            self.star_points = None
+        # star_segments = 240 // max(self.skip, 1)
+        # pts = []
+        # for i in range(star_segments * self.skip + 1):
+        #     new_pos = self._gen_dot_pos(0, 0, i, star_segments)
+        #     pts.append(new_pos)
+        pts = []
+        for which_dot in range(self.dots_count):
+            new_pos = self._gen_dot_pos(0, which_dot)
+            pts.append(new_pos)
+        poly = anim.items.create_polygon(pts, anim.items.dark_gray_color)
+        self.star = anim.actor("star", "The star that the dots on the inner circle follow.", poly)
+        self.add_actors(self.star, scene)
 
+    def _gen_outer_circle(self, scene: anim.scene):
+        circle = anim.items.create_circle(anim.items.outer_size + anim.items.line_width, anim.items.dark_blue_color, anim.items.line_width * 2)
+        circle.setPos(0, 0)
+        self.outer_circle = anim.actor("outer circle", "", circle)
+        self.add_actors(self.outer_circle, scene)
 
-    #################################################################
-    #
-    # Animator base class function overrides
+    def _gen_inner_circles(self, scene: anim.scene):
+        self.inner_circles = []
+        for which_inner in range(self.inner_count):
+            circle = anim.items.create_disk(self.inner_circle_ratio * anim.items.outer_size)
+            circle.setPos(self._gen_inner_center(which_inner))
+            self.inner_circles.append(anim.actor("inner circle", "", circle))
+        self.add_actors(self.inner_circles, scene)
 
-    def reset(self):
-        self.circle_rotation_pos_steps = 1000 // max(self.star.skip, 1)
-        self.circle_rotation_pos = (self.circle_rotation_pos + 1) % (self.circle_rotation_pos_steps * self.star.sides)
-        self._gen_all_dots_pos()
-        self._gen_star_points()
-        
-    def generate_outer_circle(self):
-        """
-        Draw the outer circle inside which the star will be made.
-        """
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            color = anim.items.dark_blue_color if self.options.draw_outer_circle else anim.items.no_color
-            circle = anim.items.create_circle(anim.items.outer_size + anim.items.line_width, color, anim.items.line_width * 2)
-            circle.setPos(0, 0)
-            scene.add_item(circle)
+    def _gen_dots(self, scene: anim.scene):
+        self.inner_dots = []
+        for which_inner in range(0, self.inner_count):
+            self.inner_dots.append(list())
+            for which_dot in range(0, self.dots_count):
+                dot = anim.items.create_disk(anim.items.dot_size, anim.items.orange_color, self.inner_circles[which_inner])
+                dot.setPos(self._gen_dot_pos(which_inner, which_dot))
+                self.inner_dots[which_inner].append(anim.actor("inner circle dot", "", dot))
+        self.add_actors(self.inner_dots)
 
-        return anim.shot("Draw the outer circle", prep_anim)
-
-    def generate_inner_circle(self, which_inner: int = 0):
-        """
-        Draw the inner circle with a radius a fraction of the outer circle.
-        That fraction is given as the ratio.
-        """
-        if not self.options.draw_inner_circles:
-            return None
-
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            inner_center = self._get_inner_center(which_inner, self.circle_rotation_pos, self.circle_rotation_pos_steps)
-            circle = anim.items.create_disk(self.star.inner_circle_ratio * anim.items.outer_size)
-            circle.setPos(inner_center * anim.items.outer_size)
-            scene.add_item(circle)
-
-        return anim.shot("Draw the inner circle", prep_anim)
-
-    def generate_inner_circle_dot(self, which_inner: int = 0):
-        """
-        Draw the dot on the inner circle at the radius ratio given.
-        The ratio should be between 0 and 1.
-        """
-        if not self.options.draw_dots:
-            return None
-
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            self._gen_dot(scene, 0, which_inner)
-
-        return anim.shot("Draw the dot on the inner circle", prep_anim)
-
-    def generate_star(self):
-        """
-        Draw the star by rotating the inner circle leaving a trail
-        formed by the dot on the inner circle, forming the star.
-        """
-        if not self.options.draw_star:
-            return None
-
-        if not self.star_points:
-            return None
-
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            poly = anim.items.create_polygon(self.star_points, anim.items.dark_gray_color)
-            scene.add_item(poly)
-
-        return anim.shot("Draw the star", prep_anim)
-
-    def generate_other_inner_circle_dots(self, which_inner: int = 0):
-        """
-        Draw the other dots on the inner circle that are added
-        when the circle passes over the star's spikes.
-        """
-        if not self.options.draw_dots:
-            return None
-
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            for which_dot in range(1, self.star.skip):
-                self._gen_dot(scene, which_dot, which_inner)
-
-        return anim.shot("Draw the other dots on the inner circle", prep_anim)
-
-    def generate_inner_circle_polygon(self, which_inner: int = 0):
+    def _gen_inner_circle_polygons(self, scene: anim.scene):
         """
         Draw the polygon generated by the inner circle dots.
         """
-        if not self.options.draw_intra_circle_polygons:
-            return None
+        self.inner_polygons = []
+        for which_inner in range(0, self.inner_count):
+            pts = []
+            for which_dot in range(0, self.dots_count):
+                pts.append(self._gen_dot_pos(which_inner, which_dot))
+            poly = anim.items.create_polygon(pts, anim.items.green_color, anim.items.line_width, self.inner_circles[which_inner])
+            self.inner_polygons.append(anim.actor("inner polygon", "", poly))
+        self.add_actors(self.inner_polygons)
 
-        def prep_anim(scene: anim.scene, animator: anim.animator):
-            for which_dot in range(0, self.star.skip):
-                p1 = self.inner_dots_pos[which_inner][which_dot]
-                p2 = self.inner_dots_pos[which_inner][(which_dot + 1) % self.star.skip]
-                line = anim.items.create_line(QLineF(p1, p2))
-                scene.add_item(line)
-
-        return anim.shot("Draw the inner circle polygon", prep_anim)
-
-    def generate_other_inner_circles(self, starting_from: int = 1):
-        """
-        Draw the additional inner circles and their dots and polygon.
-        """
-        shots = []
-        def append_valid(shot):
-            if not shot:
-                return
-            shots.append(shot)
-
-        count = self.star.sides - self.star.skip
-        for which_inner in range(starting_from, count):
-            append_valid(self.generate_inner_circle(which_inner))
-            append_valid(self.generate_inner_circle_dot(which_inner))
-            append_valid(self.generate_other_inner_circle_dots(which_inner))
-            append_valid(self.generate_inner_circle_polygon(which_inner))
-
-        return shots
-
-    def generate_inter_circle_polygons(self):
+    def _gen_inter_circle_polygons(self, scene: anim.scene):
         """
         Draw the polygon generated by the corresponding dots
         in all inner circles.
         """
-        if not self.options.draw_inter_circle_polygons:
-            return None
+        self.inter_polygons = []
+        for which_dot in range(0, self.dots_count):
+            pts = []
+            for which_inner in range(0, self.inner_count):
+                pts.append(self._gen_dot_pos(which_inner, which_dot) + self._gen_inner_center(which_inner))
+            poly = anim.items.create_polygon(pts, anim.items.blue_color)
+            self.inter_polygons.append(anim.actor("outer polygon", "", poly))
+        self.add_actors(self.inter_polygons, scene)
 
+
+    #################################################################
+    #
+    # Shots
+
+    def _anim_outer_circle(self):
+        """
+        Draw the outer circle inside which the star will be made.
+        """
         def prep_anim(scene: anim.scene, animator: anim.animator):
-            count = self.star.sides - self.star.skip
-            for which_dot in range(0, self.star.skip):
-                for which_inner in range(0, count):
-                    p1 = self.inner_dots_pos[which_inner][which_dot]
-                    p2 = self.inner_dots_pos[(which_inner + 1) % count][which_dot]
-                    line = anim.items.create_line(QLineF(p1, p2), anim.items.blue_color)
-                    scene.add_item(line)
+            pass
+            # anim.reveal_with_opacity(animator, self.outer_circle)
 
-        return anim.shot("Draw the inter-circle polygons", prep_anim)
+        self.add_shots(anim.shot("Draw the outer circle", "", prep_anim))
 
-    def animate_all(self):
+    def _anim_inner_circle(self, which_inner: int = 0):
+        """
+        Draw the inner circle with a radius a fraction of the outer circle.
+        That fraction is given as the ratio.
+        """
+        circle = self.inner_circles[which_inner]
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            pass
+            # anim.reveal_with_opacity(animator, circle)
+
+        self.add_shots(anim.shot("Draw the inner circle", "", prep_anim))
+
+    def _prep_anim_dot(self, scene: anim.scene, animator: anim.animator, which_dot: int, which_inner: int):
+        dot = self.inner_dots[which_inner][which_dot]
+        # anim.reveal_with_opacity(animator, dot)
+
+    def _anim_inner_circle_dot(self, which_inner: int = 0):
+        """
+        Draw the dot on the inner circle at the radius ratio given.
+        The ratio should be between 0 and 1.
+        """
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            self._prep_anim_dot(scene, animator, 0, which_inner)
+
+        self.add_shots(anim.shot("Draw the dot on the inner circle", "", prep_anim))
+
+    def _anim_star(self):
+        """
+        Draw the star by rotating the inner circle leaving a trail
+        formed by the dot on the inner circle, forming the star.
+        """
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            pass
+            # anim.reveal_with_opacity(animator, self.star)
+
+        self.add_shots(anim.shot("Draw the star", "", prep_anim))
+
+    def _anim_other_inner_circle_dots(self, which_inner: int = 0):
+        """
+        Draw the other dots on the inner circle that are added
+        when the circle passes over the star's spikes.
+        """
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            for which_dot in range(1, self.dots_count):
+                self._prep_anim_dot(scene, animator, which_dot, which_inner)
+
+        self.add_shots(anim.shot("Draw the other dots on the inner circle", "", prep_anim))
+
+    def _anim_inner_circle_polygon(self, which_inner: int = 0):
+        """
+        Draw the polygon generated by the inner circle dots.
+        """
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            poly = self.inner_polygons[which_inner]
+            pass
+            # anim.reveal_with_opacity(animator, poly)
+
+        self.add_shots(anim.shot("Draw the inner circle polygon", "", prep_anim))
+
+    def _anim_other_inner_circles(self):
+        """
+        Draw the additional inner circles and their dots and polygon.
+        """
+        for which_inner in range(1, self.inner_count):
+            self._anim_inner_circle(which_inner)
+            self._anim_inner_circle_dot(which_inner)
+            self._anim_other_inner_circle_dots(which_inner)
+            self._anim_inner_circle_polygon(which_inner)
+
+    def _anim_inter_circle_polygons(self):
+        """
+        Draw the polygon _animd by the corresponding dots
+        in all inner circles.
+        """
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            for which_dot in range(0, self.dots_count):
+                poly = self.inter_polygons[which_dot]
+                # anim.reveal_with_opacity(animator, poly)
+
+        self.add_shots(anim.shot("Draw the inter-circle polygons", "", prep_anim))
+
+    def _anim_all(self):
         """
         Animate all the inner circles and their polygons.
         """
-        self.circle_rotation_pos = (self.circle_rotation_pos + 1) % (self.circle_rotation_pos_steps * self.star.sides)
+        def prep_anim(scene: anim.scene, animator: anim.animator):
+            for which_inner in range(self.inner_count):
+                circle = self.inner_circles[which_inner]
+                outer_angle = 360. * self.sides
+                inner_angle = outer_angle / self.inner_circle_ratio
+                anim.rotate(animator, circle, inner_angle, 0.)
+                anim.rotate_around(animator, circle, 0., outer_angle, 0., 0.)
 
-        return [
-            self._gen_all_dots_pos(),
-            self.generate_outer_circle(),
-            self.generate_other_inner_circles(0),
-            self.generate_star(),
-            self.generate_inter_circle_polygons(),
-        ]
+        self.add_shots(anim.shot("Animate all", "", prep_anim))
