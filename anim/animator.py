@@ -4,17 +4,16 @@ from PyQt5.QtWidgets import QGraphicsItem
 
 class animator:
     """
-    Animate items over the anim_duration time. This is a single animation shot.
+    Animate items in a shot.
     
     This can be repeated over and over to create a sequence of animations,
-    creating a shot-by-shot demonstration.
+    creating a shot-by-shot demonstration. Each shot sets its duration in
+    seconds.
 
-    The actual animation duration can be shorter or longer that the given
-    anim_duration. That duration is only used as a baseline default duration.
-    When items are animated, a duration fraction can be given that scales
-    the default duration. A fraction below 1 is shorter, a fraction over one
-    is longer. So to get a single animation can be made 3x longer than the
-    default by giving 3 as the animation fraction in animate().
+    The actual animation duration can be made shorter or longer via an
+    animation_speedup. As such. the shot duration is only used as a baseline
+    default duration. The speedup divides the duration, so a speedup of 2 plays
+    the animations twice as fast.
 
     The typical usage is to given a anim_done_callback when creating the
     animator that sets up the next animation shot. In each animation shot,
@@ -26,15 +25,14 @@ class animator:
     different durations without having to calculate the exact chain of durations.
     """
 
-    def __init__(self, anim_duration, anim_done_callback = None):
+    def __init__(self, anim_done_callback = None):
         """
         Creates an animator with the given default anmation duration
         and the optional animation-done callback. This callback is called
         once all animations added in animate() are done.
         """
         self.anim_done_callback = anim_done_callback
-        self.anim_duration = anim_duration
-        self.anim_duration_speedup = 1.
+        self.anim_speedup = 1.
         self.anims = set()
         self.anim_group = QParallelAnimationGroup()
 
@@ -43,7 +41,7 @@ class animator:
     #
     # Animations
 
-    def animate_value(self, start_value, end_value, on_changed, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
+    def animate_value(self, start_value, end_value, on_changed, on_finished = None, duration = 1.) -> QAbstractAnimation:
         """
         Animate the given scene item value.
 
@@ -60,9 +58,9 @@ class animator:
         anim.setEndValue(QVariant(end_value))
         if on_changed:
             anim.valueChanged.connect(on_changed)
-        return self.animate(anim, on_finished, duration_fraction)
+        return self.animate(anim, on_finished, duration)
 
-    def animate(self, anim: QAbstractAnimation, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
+    def animate(self, anim: QAbstractAnimation, on_finished = None, duration = 1.) -> QAbstractAnimation:
         """
         Add the given animation (QAbstractAnimation) the given scene item.
 
@@ -75,7 +73,7 @@ class animator:
         When all animations that were added are done, the class anim_done_callback is called.
         """
         self.anims.add(anim)
-        anim.setDuration(max(1., self.anim_duration * duration_fraction * self.anim_duration_speedup))
+        anim.setDuration(max(1., duration * 1000. / max(0.001, self.anim_speedup)))
         if on_finished:
             anim.finished.connect(on_finished)
         anim.finished.connect(lambda: self._remove_anim(anim))

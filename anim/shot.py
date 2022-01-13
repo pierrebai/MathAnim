@@ -17,10 +17,10 @@ class shot(named):
 
         - A cleanup_anim function receiving the same scene and animator.
     """
-    def __init__(self, name: str, description: str, actors, prep_anim: callable = None, cleanup_anim: callable = None):
+    def __init__(self, name: str, description: str, prep_anim: callable = None, cleanup_anim: callable = None):
         super().__init__(name, description)
         self.reset()
-        self.add_anim(actors, prep_anim, cleanup_anim)
+        self.add_anim(prep_anim, cleanup_anim)
 
     def reset(self) -> None:
         """
@@ -35,33 +35,23 @@ class shot(named):
     def show(self, shown: bool) -> None:
         self.shown = shown
 
-    def add_anim(self, actors, prep_anim: callable, cleanup_anim: callable = None) -> None:
+    def add_anim(self, prep_anim: callable, cleanup_anim: callable = None) -> None:
         """
         Add an animation to the shot. The animation is made up of:
             - An optional prepare_anim function receiving the scene and animator.
             - An optional cleanup_anim function receiving the same scene and animator.
         """
-        if isinstance(actors, actor):
-            actors = [actors]
         if prep_anim:
-            self.prepare_anims.append((actors, prep_anim))
+            self.prepare_anims.append(prep_anim)
         if cleanup_anim:
-            self.cleanup_anims((actors, cleanup_anim))
+            self.cleanup_anims.append(cleanup_anim)
 
     def shot_done(self) -> None:
         """
         Cleanup all animations by calling their cleanup_anim function.
         """
-        for actors, cleanup in self.cleanup_anims:
+        for cleanup in self.cleanup_anims:
             cleanup(self.scene, self.animator)
-
-    @staticmethod
-    def _prepare_actors(actors):
-        if isinstance(actors, actor):
-            actors.prepare()
-        else:
-            for a in actors:
-                shot._prepare_actors(a)
 
     def play(self, scene: scene, animator: animator) -> None:
         """
@@ -71,21 +61,7 @@ class shot(named):
             return
         self.scene = scene
         self.animator = animator
-        for actors, prep  in self.prepare_anims:
-            shot._prepare_actors(actors)
+        for prep  in self.prepare_anims:
             prep(scene, animator)
 
 
-    @staticmethod
-    def play_all(shots, scene: scene, animator: animator) -> None:
-        """
-        Play all shots by calling their play function.
-        shots can contain sub-list of shots and can contain None.
-        The sub-list are also played, the None are skipped.
-        """
-        for s in shots:
-            if type(s) is shot:
-                s.play(scene, animator)
-            elif s:
-                shot.play_all(s, scene, animator)
-        animator.play()

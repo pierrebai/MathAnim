@@ -16,9 +16,6 @@ class actor(named):
     def reset(self) -> None:
         self.show(True)
 
-    def prepare(self) -> None:
-        self.item.update_geometry()
-
     def show(self, shown: bool) -> None:
         self.item.setVisible(shown)
 
