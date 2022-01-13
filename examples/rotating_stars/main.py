@@ -3,10 +3,6 @@ import anim
 
 app = anim.ui.create_app()
 
-anim_speed = 20
-current_shot = -1
-playing = False
-
 scene = anim.scene()
 animator = anim.animator()
 star_anim = animation.animation(scene)
@@ -16,7 +12,7 @@ anim_dock, anim_layout = anim.ui.create_dock("Animation Controls")
 
 play_button = anim.ui.create_button("Play", anim_layout)
 stop_button = anim.ui.create_button("Stop", anim_layout)
-speed_box = anim.ui.create_number_range_slider("Animation speed", 1, 100, anim_speed, anim_layout)
+speed_box = anim.ui.create_number_range_slider("Animation speed", 1, 100, int(animator.anim_speedup * 20), anim_layout)
 anim.ui.add_stretch(anim_layout)
 
 options_dock, _ = anim.ui.create_options_ui(scene, star_anim, animator)
@@ -27,37 +23,23 @@ anim.ui.add_dock(window, anim_dock)
 anim.ui.add_dock(window, options_dock)
 anim.ui.add_dock(window, draw_dock)
 
-def play_next_shot():
-    global playing
-    if playing:
-        global current_shot
-        current_shot = (current_shot + 1) % len(star_anim.shots)
-        shot = star_anim.shots[current_shot]
-        shot.play(scene, animator)
-        scene.ensure_all_contents_fit()
-        animator.play()
-
 @play_button.clicked.connect
 def on_play():
-    global playing
-    if not playing:
-        playing = True
-        global current_shot
-        current_shot = -1
-        play_next_shot()
+    star_anim.play(scene, animator)
 
 @stop_button.clicked.connect
 def on_stop():
-    global playing
-    playing = False
-    animator.stop()
+    star_anim.stop(animator)
 
 @speed_box.valueChanged.connect
 def on_delay_changed(value):
-    global anim_speed
-    anim_speed = int(value)
-    animator.anim_speedup = anim_speed / 20.
+    animator.anim_speedup = int(value) / 20.
 
+def play_next_shot():
+    if star_anim.current_shot == len(star_anim.shots) - 1:
+        star_anim.play_current_shot(scene, animator)
+    else:
+        star_anim.play_next_shot(scene, animator)
 
 animator.anim_done_callback = play_next_shot
 

@@ -1,3 +1,4 @@
+from operator import is_not
 from .named import named
 from .actor import actor
 from .animator import animator
@@ -8,9 +9,11 @@ from .scene import scene
 class animation(named):
     def __init__(self, name: str, description: str) -> None:
         super().__init__(name, description)
+        self.options = options()
         self.actors = set()
         self.shots = []
-        self.options = options()
+        self.current_shot = -1
+        self.playing = False
 
     def reset(self, scene: scene) -> None:
         """
@@ -70,3 +73,31 @@ class animation(named):
         Override in sub-classes to react to option changes.
         """
         pass
+
+    def play(self, scene: scene, animator: animator, start_at_shot = 0) -> None:
+        if self.playing:
+            return
+        self.playing = True
+        if not start_at_shot is None:
+            self.current_shot = start_at_shot - 1
+        self.play_next_shot(scene, animator)
+
+    def play_next_shot(self, scene: scene, animator: animator) -> None:
+        self.current_shot = self.current_shot + 1
+        self.play_current_shot(scene, animator)
+
+    def play_current_shot(self, scene: scene, animator: animator) -> None:
+        if not self.playing or not self.shots:
+            return
+        self.current_shot = self.current_shot % len(self.shots)
+        shot = self.shots[self.current_shot]
+        shot.play(scene, animator)
+        # TODO: maybe move these to shot.play()
+        scene.ensure_all_contents_fit()
+        animator.play()
+
+    def stop(self, animator: animator) -> None:
+        if not self.playing:
+            return
+        self.playing = False
+        animator.stop()

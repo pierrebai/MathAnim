@@ -45,10 +45,19 @@ class animation(anim.animation):
     def animation_speedup(self):
         return self.inner_count
 
+    @property
+    def reveal_duration(self):
+        return 0.3
+
     def reset(self, scene: anim.scene) -> None:
+        was_last = (self.current_shot == len(self.shots) - 1)
         super().reset(scene)
         self.generate_actors(scene)
         self.generate_shots()
+        if was_last:
+            self.current_shot = len(self.shots) - 1
+        else:
+            self.current_shot = 0
 
     def generate_actors(self, scene: anim.scene) -> None:
         self._gen_points()
@@ -71,7 +80,12 @@ class animation(anim.animation):
         self._anim_all()
 
     def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        # The reset function regenerate the actors, anims and shots,
+        # which will make the animator pick up the new animations on the fly.
         self.reset(scene)
+        # Stopping the animator only triggers its anim_done_callback,
+        # which in the main triggers the next shot to be played.
+        animator.stop()
 
 
     #################################################################
@@ -181,7 +195,8 @@ class animation(anim.animation):
         def prep_anim(scene: anim.scene, animator: anim.animator):
             self._hide_all_actors()
             circle = self.outer_circle
-            anim.reveal_item(animator, circle)
+            reveal = anim.reveal_item(circle)
+            animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the outer circle", "", prep_anim))
 
@@ -192,7 +207,8 @@ class animation(anim.animation):
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
             circle = self.inner_circles[which_inner]
-            anim.reveal_item(animator, circle)
+            reveal = anim.reveal_item(circle)
+            animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the inner circle", "", prep_anim))
 
@@ -203,7 +219,8 @@ class animation(anim.animation):
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
             dot = self.inner_dots[which_inner][0]
-            anim.reveal_item(animator, dot)
+            reveal = anim.reveal_item(dot)
+            animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the dot on the inner circle", "", prep_anim))
 
@@ -214,7 +231,8 @@ class animation(anim.animation):
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
             star = self.star
-            anim.reveal_item(animator, star)
+            reveal = anim.reveal_item(star)
+            animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the star", "", prep_anim))
 
@@ -226,7 +244,8 @@ class animation(anim.animation):
         def prep_anim(scene: anim.scene, animator: anim.animator):
             dots = [self.inner_dots[which_inner][which_dot] for which_dot in range(1, self.dots_count)]
             for dot in dots:
-                anim.reveal_item(animator, dot)
+                reveal = anim.reveal_item(dot)
+                animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the other dots on the inner circle", "", prep_anim))
 
@@ -236,7 +255,8 @@ class animation(anim.animation):
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
             poly = self.inner_polygons[which_inner]
-            anim.reveal_item(animator, poly)
+            reveal = anim.reveal_item(poly)
+            animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the inner circle polygon", "", prep_anim))
 
@@ -258,7 +278,8 @@ class animation(anim.animation):
         def prep_anim(scene: anim.scene, animator: anim.animator):
             polys = [self.inter_polygons[which_dot] for which_dot in range(0, self.dots_count)]
             for poly in polys:
-                anim.reveal_item(animator, poly)
+                reveal = anim.reveal_item(poly)
+                animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the inter-circle polygons", "", prep_anim))
 
@@ -267,13 +288,15 @@ class animation(anim.animation):
         Animate all the inner circles and their polygons.
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
-            outer_angle = 360. * self.sides
+            outer_angle = 360. * 2.
             inner_angle = outer_angle / self.inner_circle_ratio
             for which_inner in range(self.inner_count):
                 center = self.inner_centers[which_inner]
-                anim.rotate_around(animator, center, anim.point(0., 0.), 0., outer_angle, 10. * self.animation_speedup)
+                rot_center = anim.rotate_point_around(center, anim.point(0., 0.))
+                animator.animate_value(0., outer_angle, 2. * self.animation_speedup, rot_center)
                 for which_dot in range(self.dots_count):
                     dot = self.inner_dots_pos[which_inner][which_dot]
-                    anim.rotate_around(animator, dot, anim.point(0., 0.), inner_angle, 0., 10. * self.animation_speedup)
+                    rot_dot = anim.rotate_point_around(dot, anim.point(0., 0.))
+                    animator.animate_value(inner_angle, 0., 2. * self.animation_speedup, rot_dot)
 
         self.add_shots(anim.shot("Animate all", "", prep_anim))

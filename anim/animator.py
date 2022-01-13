@@ -41,7 +41,7 @@ class animator:
     #
     # Animations
 
-    def animate_value(self, start_value, end_value, on_changed, on_finished = None, duration = 1.) -> QAbstractAnimation:
+    def animate_value(self, start_value, end_value, duration, on_changed, on_finished = None) -> QAbstractAnimation:
         """
         Animate the given scene item value.
 
@@ -58,9 +58,9 @@ class animator:
         anim.setEndValue(QVariant(end_value))
         if on_changed:
             anim.valueChanged.connect(on_changed)
-        return self.animate(anim, on_finished, duration)
+        return self.animate(anim, duration, on_finished)
 
-    def animate(self, anim: QAbstractAnimation, on_finished = None, duration = 1.) -> QAbstractAnimation:
+    def animate(self, anim: QAbstractAnimation, duration, on_finished = None) -> QAbstractAnimation:
         """
         Add the given animation (QAbstractAnimation) the given scene item.
 
