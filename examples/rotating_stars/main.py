@@ -17,8 +17,10 @@ anim.ui.add_stretch(anim_layout)
 
 options_dock, _ = anim.ui.create_options_ui(scene, star_anim, animator)
 draw_dock, _ = anim.ui.create_actors_ui(star_anim)
+shots_dock, _ = anim.ui.create_shots_ui(star_anim)
 
 window = anim.ui.create_main_window("Rotating Stars", scene.get_widget())
+anim.ui.add_dock(window, shots_dock)
 anim.ui.add_dock(window, anim_dock)
 anim.ui.add_dock(window, options_dock)
 anim.ui.add_dock(window, draw_dock)

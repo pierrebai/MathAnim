@@ -235,3 +235,13 @@ def create_actors_ui(animation) -> Tuple[QDockWidget, QVBoxLayout]:
     add_stretch(layout)
     return dock, layout
 
+def create_shots_ui(animation) -> Tuple[QDockWidget, QVBoxLayout]:
+    dock, layout = create_dock("Shots")
+    uis = {}
+    ui = create_list("Animation shots", [shot.name for shot in animation.shots], layout)
+    def on_shot_changed(scene, animator, shot):
+        select_in_list(shot.name, ui)
+    animation.on_shot_changed = on_shot_changed
+    add_stretch(layout)
+    return dock, layout
+

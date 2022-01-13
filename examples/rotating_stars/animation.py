@@ -3,9 +3,9 @@ import anim
 class animation(anim.animation):
     def __init__(self, scene: anim.scene, sides: int = 7, skip: int = 3, ratio = 0.9) -> None:
         super().__init__("Rotating Stars", "Mathologer 3-4-7 Miracle: rotating interlinked polygons following a star trajectory.")
-        self.sides_option = anim.option("Number of branches", "", sides, 2, 20)
-        self.skip_option = anim.option("Star branch skip", "", skip, 1, 100)
-        self.ratio_option = anim.option("Percent of radius", "", int(ratio * 100), 0, 100)
+        self.sides_option = anim.option("Number of branches", "Number of branches on the star that the dots follows.", sides, 2, 20)
+        self.skip_option = anim.option("Star branch skip", "How many branches are skipped to go from one branch to the next.", skip, 1, 100)
+        self.ratio_option = anim.option("Percent of radius", "The position of the dots as a percentage of the radius of the circle they are on.", int(ratio * 100), 0, 100)
         self.add_options(self.sides_option)
         self.add_options(self.skip_option)
         self.add_options(self.ratio_option)

@@ -14,6 +14,7 @@ class animation(named):
         self.shots = []
         self.current_shot = -1
         self.playing = False
+        self.on_shot_changed = None
 
     def reset(self, scene: scene) -> None:
         """
@@ -92,9 +93,10 @@ class animation(named):
         self.current_shot = self.current_shot % len(self.shots)
         shot = self.shots[self.current_shot]
         shot.play(scene, animator)
-        # TODO: maybe move these to shot.play()
         scene.ensure_all_contents_fit()
         animator.play()
+        if self.on_shot_changed:
+            self.on_shot_changed(scene, animator, shot)
 
     def stop(self, animator: animator) -> None:
         if not self.playing:

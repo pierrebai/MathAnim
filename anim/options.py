@@ -19,37 +19,43 @@ class option(named):
             return None
         return maker(self, scene, animation, animator, layout)
 
+def _add_ui_description(ui: QWidget, option: option) -> None:
+    if not option.description:
+        return
+    ui.setToolTip(option.description)
+    
 def _create_int_ui(option: option, scene, animation, animator, layout: QLayout) -> None:
-    # TODO: add description as tooltip.
     ui = create_number_range_slider(option.name, option.low_value, option.high_value, option.value, layout)
+    _add_ui_description(ui, option)
     @ui.valueChanged.connect
     def on_changed(value):
         option.value = int(value)
         animation.option_changed(scene, animator, option)
 
 def _create_float_ui(option: option, scene, animation, animator, layout: QLayout) -> None:
-    # TODO: add description as tooltip.
     ui = create_number_text(option.name, option.low_value, option.high_value, option.value, layout)
+    _add_ui_description(ui, option)
     @ui.valueChanged.connect
     def on_changed(value):
         option.value = float(value)
         option.animation.option_changed(scene, animator, option)
 
 def _create_bool_ui(option: option, scene, animation, animator, layout: QLayout) -> None:
-    # TODO: add description as tooltip.
     ui = create_option(option.name, layout, option.value)
+    _add_ui_description(ui, option)
     @ui.stateChanged.connect
     def on_changed(state):
         option.value = bool(state)
         option.animation.option_changed(scene, animator, option)
 
 def _create_list_ui(option: option, scene, animator, layout: QLayout) -> None:
-    # TODO: add description as tooltip.
     ui = create_list(option.name, option.low_value, layout)
+    _add_ui_description(ui, option)
     # TODO: list change reaction.
 
 def _create_text_ui(option: option, scene, animation, animator, layout: QLayout) -> None:
     ui = create_text(option.name, option.description, option.value, layout)
+    _add_ui_description(ui, option)
     @ui.textChanged.connect
     def on_changed(value):
         option.value = str(value)
