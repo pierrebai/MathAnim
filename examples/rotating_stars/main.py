@@ -3,17 +3,31 @@ import anim
 
 app = anim.ui.create_app()
 
-anim_duration = 30
+anim_speed = 20
 playing = False
+
+def set_anim_speed(speed: int):
+    global anim_speed
+    anim_speed = speed
+    animator.anim_duration = get_animation_duration()
+    if playing:
+        animator.stop()
+        anim.shot.play_all(star_anim.shots, scene, animator)
+        scene.ensure_all_contents_fit()
+
+
+def get_animation_duration():
+    return max(1000, (100 - anim_speed) * 1000)
+
 scene = anim.scene()
-animator = anim.animator(anim_duration * 1000.)
+animator = anim.animator(get_animation_duration())
 star_anim = animation.animation(scene)
 
 anim_dock, anim_layout = anim.ui.create_dock("Animation Controls")
 
 play_button = anim.ui.create_button("Play", anim_layout)
 stop_button = anim.ui.create_button("Stop", anim_layout)
-duration_box = anim.ui.create_number_range_slider("Animation duration (s)", 1, 180, anim_duration, anim_layout)
+speed_box = anim.ui.create_number_range_slider("Animation speed", 1, 100, anim_speed, anim_layout)
 anim.ui.add_stretch(anim_layout)
 
 options_dock, _ = anim.ui.create_options_ui(scene, star_anim, animator)
@@ -43,13 +57,9 @@ def on_stop():
     playing = False
     animator.stop()
 
-@duration_box.valueChanged.connect
+@speed_box.valueChanged.connect
 def on_delay_changed(value):
-    animator.anim_duration = int(value) * 1000.
-    if playing:
-        animator.stop()
-        anim.shot.play_all(star_anim.shots, scene, animator)
-        scene.ensure_all_contents_fit()
+    set_anim_speed(int(value))
 
 animator.anim_done_callback = advance_step
 

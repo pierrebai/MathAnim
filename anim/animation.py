@@ -1,5 +1,6 @@
 from .named import named
 from .actor import actor
+from .animator import animator
 from .shot import shot
 from .options import option, options
 from .scene import scene
@@ -20,7 +21,7 @@ class animation(named):
         self.actors = set()
         self.shots = []
 
-    def add_actors(self, actors, scene: scene = None) -> None:
+    def add_actors(self, actors, scene: scene) -> None:
         """
         Add actors that participates in the animation.
         Having a list of actors allows turning them on and off.
@@ -30,8 +31,7 @@ class animation(named):
         """
         if isinstance(actors, actor):
             self.actors.add(actors)
-            if scene:
-                scene.add_actor(actors)
+            scene.add_actor(actors)
         else:
             for a in actors:
                 self.add_actors(a, scene)
@@ -64,7 +64,7 @@ class animation(named):
             for opt in options:
                 self.add_options(opt)
 
-    def option_changed(self, scene: scene, option: option) -> None:
+    def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         """
         Called when an option value is changed.
         Override in sub-classes to react to option changes.

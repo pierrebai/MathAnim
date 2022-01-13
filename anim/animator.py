@@ -14,13 +14,13 @@ class animator:
     When items are animated, a duration fraction can be given that scales
     the default duration. A fraction below 1 is shorter, a fraction over one
     is longer. So to get a single animation can be made 3x longer than the
-    default by giving 3 as the animation fraction in add_anim().
+    default by giving 3 as the animation fraction in animate().
 
     The typical usage is to given a anim_done_callback when creating the
     animator that sets up the next animation shot. In each animation shot,
-    add_anim() is called multiple times to specify which item gets animated.
+    animate() is called multiple times to specify which item gets animated.
 
-    Since add_anim() also takes a per-animated-item on_finished callback,
+    Since animate() also takes a per-animated-item on_finished callback,
     it is also possible to add new animation items when a given item is done.
     This can be useful if you want to chain animations of different items with
     different durations without having to calculate the exact chain of durations.
@@ -30,7 +30,7 @@ class animator:
         """
         Creates an animator with the given default anmation duration
         and the optional animation-done callback. This callback is called
-        once all animations added in add_anim() are done.
+        once all animations added in animate() are done.
         """
         self.anim_done_callback = anim_done_callback
         self.anim_duration = anim_duration
@@ -43,7 +43,7 @@ class animator:
     #
     # Animations
 
-    def add_anim_value(self, item: QGraphicsItem, start_value, end_value, on_changed, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
+    def animate_value(self, start_value, end_value, on_changed, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
         """
         Animate the given scene item value.
 
@@ -60,9 +60,9 @@ class animator:
         anim.setEndValue(QVariant(end_value))
         if on_changed:
             anim.valueChanged.connect(on_changed)
-        return self.add_anim(anim, on_finished, duration_fraction)
+        return self.animate(anim, on_finished, duration_fraction)
 
-    def add_anim(self, anim: QAbstractAnimation, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
+    def animate(self, anim: QAbstractAnimation, on_finished = None, duration_fraction = 1.) -> QAbstractAnimation:
         """
         Add the given animation (QAbstractAnimation) the given scene item.
 
@@ -82,11 +82,14 @@ class animator:
         self.anim_group.addAnimation(anim)
         return anim
 
-    def all_anim_added(self):
+    def play(self):
         self.anim_group.start()
 
     def stop(self):
         self.anim_group.stop()
+        self.anim_group.clear()
+        self.anims.clear()
+        self.check_all_anims_done()
 
     def _remove_anim(self, anim: QAbstractAnimation) -> None:
         self.anims.remove(anim)
