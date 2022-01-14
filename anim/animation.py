@@ -1,4 +1,3 @@
-from operator import is_not
 from .named import named
 from .actor import actor
 from .animator import animator

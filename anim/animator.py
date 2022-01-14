@@ -1,5 +1,4 @@
-from PyQt5.QtCore import QEasingCurve, QVariant, QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup
-from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtCore import QVariant, QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup
 
 
 class animator:

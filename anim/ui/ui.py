@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QTimer, Qt, QMargins
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIntValidator, QDoubleValidator
 
@@ -204,44 +204,3 @@ def create_timer(interval: int) -> QTimer:
     timer = QTimer()
     timer.setInterval(interval)
     return timer
-
-def create_options_ui(scene, animation, animator) -> Tuple[QDockWidget, QVBoxLayout]:
-    dock, layout = create_dock("Options")
-    for option in animation.options:
-        option.create_ui(scene, animation, animator, layout)
-    add_stretch(layout)
-    return dock, layout
-
-def _connect_actor_ui(ui, animation, name):
-    @ui.stateChanged.connect
-    def on_changed(state):
-        for actor in animation.actors:
-            if actor.name == name:
-                actor.show(bool(state))
-
-def create_actors_ui(animation) -> Tuple[QDockWidget, QVBoxLayout]:
-    dock, layout = create_dock("Draw")
-    uis = {}
-    for actor in animation.actors:
-        name = actor.name
-        if name in uis:
-            ui = uis[name]
-        else:
-            ui = create_option(f"Draw {actor.name}", layout, actor.shown)
-            uis[name] = ui
-        # Note: connect must be out of the loop due to how variables
-        #       are captured in inner functions.
-        _connect_actor_ui(ui, animation, name)
-    add_stretch(layout)
-    return dock, layout
-
-def create_shots_ui(animation) -> Tuple[QDockWidget, QVBoxLayout]:
-    dock, layout = create_dock("Shots")
-    uis = {}
-    ui = create_list("Animation shots", [shot.name for shot in animation.shots], layout)
-    def on_shot_changed(scene, animator, shot):
-        select_in_list(shot.name, ui)
-    animation.on_shot_changed = on_shot_changed
-    add_stretch(layout)
-    return dock, layout
-

@@ -1,5 +1,7 @@
 import anim
 
+from anim.ui import get_shown_actors_by_names, apply_shown_to_actors
+
 class animation(anim.animation):
     def __init__(self, scene: anim.scene, sides: int = 7, skip: int = 3, ratio = 0.9) -> None:
         super().__init__("Rotating Stars", "Mathologer 3-4-7 Miracle: rotating interlinked polygons following a star trajectory.")
@@ -51,9 +53,14 @@ class animation(anim.animation):
 
     def reset(self, scene: anim.scene) -> None:
         was_last = (self.current_shot == len(self.shots) - 1)
+        shown_by_names = get_shown_actors_by_names(self)
+
         super().reset(scene)
+
         self.generate_actors(scene)
+        apply_shown_to_actors(self, shown_by_names)
         self.generate_shots()
+
         if was_last:
             self.current_shot = len(self.shots) - 1
         else:
@@ -288,8 +295,8 @@ class animation(anim.animation):
         Animate all the inner circles and their polygons.
         """
         def prep_anim(scene: anim.scene, animator: anim.animator):
-            outer_angle = 360. * 2.
-            inner_angle = outer_angle / self.inner_circle_ratio
+            outer_angle = 360.
+            inner_angle = outer_angle #/ self.inner_circle_ratio
             for which_inner in range(self.inner_count):
                 center = self.inner_centers[which_inner]
                 rot_center = anim.rotate_point_around(center, anim.point(0., 0.))
