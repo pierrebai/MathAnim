@@ -1,9 +1,12 @@
-from .point import point
+from ..point import point
 
 from PyQt5.QtWidgets import QGraphicsLineItem
 from PyQt5.QtCore import QLineF
 
 class line(QGraphicsLineItem):
+    """
+    A line graphics item that is dynamically updated when the two end-points move.
+    """
     def __init__(self, p1: point, p2: point, parent = None):
         super().__init__(parent)
         self.p1 = p1
@@ -13,6 +16,9 @@ class line(QGraphicsLineItem):
         self.update_geometry()
 
     def update_geometry(self):
+        """
+        Updates the line geometry after the points moved.
+        """
         current_line = QLineF(self.p1, self.p2)
         if current_line != self.line():
             self.prepareGeometryChange()

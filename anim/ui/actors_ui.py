@@ -29,18 +29,24 @@ def _get_actors_by_names(animation: animation) -> Dict[str, List[actor]]:
 
 def get_shown_actors_by_names(animation: animation) -> Dict[str, bool]:
     """
-    Return a dict of shown / not shown flags indexed by actor names.
+    Returns a dict of shown / not shown flags indexed by actor names.
     """
     return {
         name: actors[0].shown for name, actors in _get_actors_by_names(animation).items()
     }
 
 def apply_shown_to_actors(animation: animation, shown_by_names: Dict[str, bool]) -> None:
+    """
+    Applies a preserved shown actors dictionary on the given animation actors.
+    """
     for actor in animation.actors:
         if actor.name in shown_by_names:
             actor.show(shown_by_names[actor.name])
 
 def create_actors_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:
+    """
+    Creates the UI to control which actors are shown.
+    """
     dock, layout = create_dock("Draw Options")
     shown_by_names = get_shown_actors_by_names(animation)
     for name, shown in shown_by_names.items():

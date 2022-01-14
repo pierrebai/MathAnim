@@ -6,6 +6,9 @@ from PyQt5.QtWidgets import QDockWidget, QVBoxLayout
 from typing import Tuple
 
 def create_shots_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:
+    """
+    Creates the UI showning the list of animation steps (animation shots).
+    """
     dock, layout = create_dock("Animation Steps")
     ui = create_list("Steps", [shot.name for shot in animation.shots], layout)
     def on_shot_changed(scene, animator, shot):

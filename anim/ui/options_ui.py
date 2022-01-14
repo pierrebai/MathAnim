@@ -9,6 +9,9 @@ from PyQt5.QtWidgets import *
 from typing import Tuple
 
 def _add_ui_description(ui: QWidget, option: option) -> None:
+    """
+    Adds the option description as a tooltip on the UI.
+    """
     if not option.description:
         return
     ui.setToolTip(option.description)
@@ -59,6 +62,9 @@ _ui_makers = {
 }
 
 def create_option_ui(option: option, scene: scene, animation: animation, animator: animator, layout) -> None:
+    """
+    Create the UI for a single option.
+    """
     try:
         maker = _ui_makers[type(option.value)]
     except:
@@ -66,6 +72,9 @@ def create_option_ui(option: option, scene: scene, animation: animation, animato
     return maker(option, scene, animation, animator, layout)
 
 def create_options_ui(scene: scene, animation: animation, animator: animator) -> Tuple[QDockWidget, QVBoxLayout]:
+    """
+    Creates the UI to control the animation options.
+    """
     dock, layout = create_dock("Animation Options")
     for option in animation.options:
         create_option_ui(option, scene, animation, animator, layout)

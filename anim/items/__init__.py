@@ -1,2 +1,2 @@
 from .items import *
-from .point import relative_point
+from ..point import relative_point

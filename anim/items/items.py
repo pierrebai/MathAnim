@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QGraphicsItem
 from .circle import circle
 from .line import line
 from .polygon import polygon
-from .point import point
+from ..point import point
 
 from typing import List
 
@@ -73,21 +73,33 @@ def create_arrow(rotation_angle, color: QColor = black_color, parent: QGraphicsI
     return item
 
 def create_circle(center: point, radius: float, color: QColor = dark_blue_color, thickness = line_width, parent: QGraphicsItem = None) -> circle:
+    """
+    Creates a dynamic circle of the given color and thicknes.
+    """
     item = circle(center, radius)
     _prepare_item(item, QPen(color, thickness), no_color, parent)
     return item
 
 def create_disk(center: point, radius: float, color: QColor = gray_color, parent: QGraphicsItem = None) -> circle:
+    """
+    Creates a dynamic filled disk of the given color.
+    """
     item = circle(center, radius)
     _prepare_item(item, no_pen, color, parent)
     return item
 
 def create_line(p1: point, p2: point, color: QColor = green_color, thickness = line_width, parent: QGraphicsItem = None) -> line:
+    """
+    Creates a dynamic line of the given color and thicknes.
+    """
     item = line(p1, p2)
     _prepare_item(item, QPen(color, thickness), no_color, parent)
     return item
 
 def create_polygon(pts: List[point], color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> polygon:
+    """
+    Create a dynamic polygon of the giuven color and line thhicknes.
+    """
     item = polygon(pts)
     _prepare_item(item, QPen(color, thickness), no_color, parent)
     return item
