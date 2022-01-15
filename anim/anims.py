@@ -1,7 +1,8 @@
-from PySide6.QtGui import QTransform
 from .actor import actor
 from . import point
 from . import trf
+
+from PySide6.QtCore import QPointF
 
 ##########################################
 # Point animations.
@@ -37,3 +38,15 @@ def rotate_item(item):
     if isinstance(item, actor):
         item = item.item
     return lambda angle: item.setRotation(angle)
+
+def _move_item(item, pt: QPointF):
+    item.setPos(pt)
+
+def move_item(item):
+    """
+    Returns a function that animate the rotation of the actor or item around its own center.
+    The returned function only takes the angle in degrees.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    return lambda pt: _move_item(item, pt)

@@ -1,5 +1,5 @@
 from PySide6.QtGui import QBrush, QColor, QPen
-from PySide6.QtWidgets import QGraphicsItem
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
 
 from .circle import circle
 from .line import line
@@ -62,7 +62,7 @@ def _prepare_item(item: QGraphicsItem, pen: QPen, brush_color: QColor, parent: Q
 
 def create_cross(color: QColor = red_color, parent: QGraphicsItem = None) -> polygon:
     item = polygon(cross_points)
-    _prepare_item(item, QPen(color.darker(130)), color, parent)
+    _prepare_item(item, QPen(color.darker(130), 1), color, parent)
     return item
 
 def create_arrow(rotation_angle, color: QColor = black_color, parent: QGraphicsItem = None) -> polygon:
@@ -94,6 +94,13 @@ def create_line(p1: point, p2: point, color: QColor = green_color, thickness = l
     """
     item = line(p1, p2)
     _prepare_item(item, QPen(color, thickness), no_color, parent)
+    return item
+
+def create_rect(x: point, y: point, width: float, height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsRectItem:
+    # TODO: rectanle dynamic item, a version taking two corners.
+    item = QGraphicsRectItem(0, 0, width, height)
+    item.setPos(x, y)
+    _prepare_item(item, QPen(black_color, thickness), color, parent)
     return item
 
 def create_polygon(pts: List[point], color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> polygon:

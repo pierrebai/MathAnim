@@ -69,14 +69,6 @@ class animation(anim.animation):
         self._anim_inter_circle_polygons()
         self._anim_all()
 
-    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
-        # The reset function regenerate the actors, anims and shots,
-        # which will make the animator pick up the new animations on the fly.
-        self.reset(scene)
-        # Stopping the animator only triggers its shot_ended,
-        # which in the main triggers the next shot to be played.
-        animator.stop()
-
 
     #################################################################
     #

@@ -111,10 +111,17 @@ class animation(named):
 
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         """
-        Called when an option value is changed.
+        Called when an option value is changed. By default it resets the animation
+        (calls reset) and continue the animation with the new settings.
+        
         Override in sub-classes to react to option changes.
         """
-        pass
+        # The reset function regenerate the actors, anims and shots,
+        # which will make the animator pick up the new animations on the fly.
+        self.reset(scene)
+        # Stopping the animator only triggers its shot_ended,
+        # which in the main triggers the next shot to be played.
+        animator.stop()
 
     def play(self, scene: scene, animator: animator, start_at_shot_index = 0) -> None:
         if self.playing:
