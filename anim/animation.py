@@ -16,6 +16,7 @@ class animation(named):
         self.actors = set()
         self.shots = []
         self.current_shot_index = -1
+        self.loop = False
         self.playing = False
         self.on_shot_changed = None
 
@@ -28,6 +29,7 @@ class animation(named):
 
         for actor in self.actors:
             scene.remove_actor(actor)
+        scene.scene.clear()
         self.actors = set()
         self.shots = []
 
@@ -133,7 +135,7 @@ class animation(named):
 
     def play_all(self, scene: scene, animator: animator) -> None:
         def shot_ended(ended_shot: shot, ended_scene: scene, ended_animator: animator):
-            if not self.playing or self.current_shot_index == len(self.shots) - 1:
+            if not self.playing or (not self.loop and self.current_shot_index == len(self.shots) - 1):
                 animator.shot_ended.disconnect(shot_ended)
                 self.stop(ended_animator)
             else:

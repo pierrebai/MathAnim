@@ -12,6 +12,7 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
 
     play_button = create_button("Play", anim_layout)
     stop_button = create_button("Stop", anim_layout)
+    reset_button = create_button("Reset", anim_layout)
     speed_box = create_number_range_slider("Animation speed", 1, 100, int(animator.anim_speedup * 20), anim_layout)
     add_stretch(anim_layout)
 
@@ -32,6 +33,14 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     @stop_button.clicked.connect
     def on_stop():
         animation.stop(animator)
+
+    @reset_button.clicked.connect
+    def on_reset():
+        was_playing = animation.playing
+        animation.stop(animator)
+        animation.reset(scene)
+        if was_playing:
+            animation.play_all(scene, animator)
 
     @speed_box.valueChanged.connect
     def on_delay_changed(value):

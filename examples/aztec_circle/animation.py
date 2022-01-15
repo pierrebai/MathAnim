@@ -12,8 +12,13 @@ class animation(anim.animation):
         super().__init__("Aztec Circle", "")
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
+        self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
 
-        self.generator = sequence_tile_generator(7, "r")
+        self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option])
+
+        self.scene = scene
+        self.animator: anim.animator = None
+        self.loop = True
 
         self.reset(scene)
 
@@ -27,18 +32,17 @@ class animation(anim.animation):
 
     @property
     def skip_animations(self) -> bool:
-        return self.size > 60 # TODO: add option
+        return self.size > self.animate_limit_option.value
 
     def reset(self, scene: anim.scene):
-        self.scene = scene
-        self.animator: anim.animator = None
-        self.anim_duration_speedup = 1.
+        self.anim_duration = 1.
         self.size = 1
         self.items = []
         self.new_items = []
         self.show_boundary = False
-        self.generator.reset()
-        self.az = aztec(0, self.generator, self)
+        self.cross = None
+        self.arrow = None
+        self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
         super().reset(scene)
 
     def generate_actors(self, scene: anim.scene) -> None:
@@ -47,22 +51,40 @@ class animation(anim.animation):
         self.cross.item.setOpacity(0.)
         self.add_actors(self.cross, scene)
 
-        self.arrows_for_tiles = [
-            [ anim.actor("arrow", "", anim.items.create_arrow(-90.)), anim.actor("arrow", "", anim.items.create_arrow(90.)) ],
-            [ anim.actor("arrow", "", anim.items.create_arrow(0.)), anim.actor("arrow", "", anim.items.create_arrow(180.)) ],
-        ]
-        for arrows in self.arrows_for_tiles:
-            for arrow in arrows:
-                arrow.item.setZValue(100.)
-                arrow.item.setOpacity(0.)
-        self.add_actors(self.arrows_for_tiles, scene)
+        self.arrow = anim.actor("arrow", "", self.create_arrow_for_tile(None))
+        self.arrow.item.setZValue(100.)
+        self.arrow.item.setOpacity(0.)
+        self.add_actors(self.arrow, scene)
 
     def generate_shots(self) -> None:
-        #self._anim_intial_circle()
         self._anim_increase_size()
         self._anim_remove_collisions()
         self._anim_move_tiles()
         self._anim_fill_holes()
+
+    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        if option == self.seed_option or option == self.tiles_sequence_option:
+            self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
+
+
+    #################################################################
+    #
+    # Actors
+
+    def create_cross(self):
+        cross = anim.items.create_cross()
+        if self.cross:
+            cross.setVisible(self.cross.shown)
+        return cross
+
+    tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
+
+    def create_arrow_for_tile(self, tile):
+        angle = animation.tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
+        arrow = anim.items.create_arrow(angle)
+        if self.arrow:
+            arrow.setVisible(self.arrow.shown)
+        return arrow
 
 
     #################################################################
@@ -88,12 +110,7 @@ class animation(anim.animation):
     def _anim_fill_holes(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.az.fill_holes()
-        
-        def cleanup_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
-            if self.playing:
-                self.play_all(scene, animator)
-
-        self.add_shots(anim.shot("Fill holes", "", prep_anim, cleanup_anim))
+        self.add_shots(anim.shot("Fill holes", "", prep_anim))
 
 
     #################################################################
@@ -122,7 +139,7 @@ class animation(anim.animation):
         width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
         height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
         item = anim.items.create_rect(x, y, width, height, animation.tile_to_color(tile), 1)
-        self.add_actors(anim.actor("Tile", "", item), self.scene)
+        self.scene.scene.addItem(item)
         return item
 
     def reallocate(self, az, old_amount: int, new_amount: int):
@@ -138,57 +155,65 @@ class animation(anim.animation):
             else:
                 self.boundary.setRect(coord, coord, width, width)
         self.size = size
-        self.anim_duration_speedup = 1. / math.sqrt(size / 4)
+        self.anim_duration = 1. / math.sqrt(size / 4)
 
     def collision(self, az, x, y):
+        if self.skip_animations:
+            item = self.items[x][y]
+            if item:
+                self.scene.scene.removeItem(item)
+            return
+
         center = self.center
         tile = az.tiles()[x][y] if az else None
-        self.cross.item.setPos(*self.middle_pos_to_scene(x - center, y - center, tile))
+        cross = self.create_cross()
+        cross.setPos(*self.middle_pos_to_scene(x - center, y - center, tile))
+        self.scene.scene.addItem(cross)
 
         item = self.items[x][y]
+        if not item:
+            return
 
-        self.animator.animate_value(1., 0., self.anim_duration_speedup,
-            anim.anims.reveal_item(self.cross),
-            lambda: self._collision_anim_done(item))
+        self.animator.animate_value(0., 1., self.anim_duration,
+            anim.anims.reveal_item(cross),
+            lambda: self.scene.scene.removeItem(cross))
 
-    def _collision_anim_done(self, item):
-        self.scene.scene.removeItem(item)
+        self.animator.animate_value(1., 0.5, self.anim_duration,
+            anim.anims.reveal_item(item),
+            lambda: self.scene.scene.removeItem(item))
 
     def collisions_done(self, az):
         self.animator.check_all_anims_done()
 
-    def tile_to_arrow(self, tile):
-        return self.arrows_for_tiles[tile.is_horizontal][tile.is_positive] if tile else None
-
     def move(self, az, x1, y1, x2, y2):
-        if self.skip_animations:
-            center = self.center
-            item = self.items[x1][y1]
-            item.setPos(*self.pos_to_scene(x2 - center, y2 - center))
-            self.new_items[x2][y2] = item
-
         center = self.center
-        tile = az.tiles()[x1][y1] if az else None
-        arrow = self.tile_to_arrow(tile)
-        if arrow and arrow.shown:
-            arrow.item.setPos(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
-            arrow.item.setOpacity(1.)
+        item = self.items[x1][y1]
+        if not item:
+            return
+        self.new_items[x2][y2] = item
+
+        if self.skip_animations:
+            item.setPos(*self.pos_to_scene(x2 - center, y2 - center))
+            return
+
+        if self.arrow.shown:
+            tile = az.tiles()[x1][y1] if az else None
+            arrow = self.create_arrow_for_tile(tile)
+            arrow.setPos(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
+            arrow.setOpacity(1.)
+            self.scene.scene.addItem(arrow)
             self.animator.animate_value(
                 QPointF(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
                 QPointF(*self.middle_pos_to_scene(x2 - center, y2 - center, tile)),
-                self.anim_duration_speedup,
-                anim.anims.move_item(arrow.item),
-                lambda: arrow.item.setOpacity(0.)
+                self.anim_duration,
+                anim.anims.move_item(arrow),
+                lambda: self.scene.scene.removeItem(arrow)
             )
 
-        item = self.items[x1][y1]
-        if not item:
-            raise Exception()
-        self.new_items[x2][y2] = item
         self.animator.animate_value(
             QPointF(*self.pos_to_scene(x1 - center, y1 - center)),
             QPointF(*self.pos_to_scene(x2 - center, y2 - center)),
-            self.anim_duration_speedup,
+            self.anim_duration,
             anim.anims.move_item(item)
         )
 
@@ -201,10 +226,11 @@ class animation(anim.animation):
         self.new_items[x][y] = item
 
         if self.skip_animations:
-            return
-
-        item.setOpacity(0.)
-        self.animator.animate_value(0., 1., self.anim_duration_speedup, anim.anims.reveal_item(item))
+            item.setOpacity(1.)
+            self.animator.animate_value(1., 1., 0.001, anim.anims.reveal_item(item))
+        else:
+            item.setOpacity(0.)
+            self.animator.animate_value(0., 1., self.anim_duration, anim.anims.reveal_item(item))
 
     def fills_done(self, az):
         self.items, self.new_items = self.new_items, self.items

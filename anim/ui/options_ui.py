@@ -30,7 +30,7 @@ def _create_float_ui(option: option, scene: scene, animation: animation, animato
     @ui.valueChanged.connect
     def on_changed(value):
         option.value = float(value)
-        option.animation.option_changed(scene, animator, option)
+        animation.option_changed(scene, animator, option)
 
 def _create_bool_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_option(option.name, layout, option.value)
@@ -38,7 +38,7 @@ def _create_bool_ui(option: option, scene: scene, animation: animation, animator
     @ui.stateChanged.connect
     def on_changed(state):
         option.value = bool(state)
-        option.animation.option_changed(scene, animator, option)
+        animation.option_changed(scene, animator, option)
 
 def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
     ui = create_list(option.name, option.low_value, layout)
@@ -51,7 +51,7 @@ def _create_text_ui(option: option, scene: scene, animation: animation, animator
     @ui.textChanged.connect
     def on_changed(value):
         option.value = str(value)
-        option.animation.option_changed(scene, animator, option)
+        animation.option_changed(scene, animator, option)
 
 _ui_makers = {
     int: _create_int_ui,
