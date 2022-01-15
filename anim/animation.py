@@ -5,6 +5,10 @@ from .shot import shot
 from .options import option, options
 from .scene import scene
 
+from collections import defaultdict
+from typing import Dict, List
+
+
 class animation(named):
     def __init__(self, name: str, description: str) -> None:
         super().__init__(name, description)
@@ -17,12 +21,25 @@ class animation(named):
 
     def reset(self, scene: scene) -> None:
         """
-        Clears the actors and shots.
+        Clears the actors and shots and recreates them.
         """
+        was_last = (self.current_shot_index == len(self.shots) - 1)
+        shown_by_names = self.get_shown_actors_by_names()
+
         for actor in self.actors:
             scene.remove_actor(actor)
         self.actors = set()
         self.shots = []
+
+        self.generate_actors(scene)
+        self.apply_shown_to_actors(shown_by_names)
+        self.generate_shots()
+        scene.ensure_all_contents_fit()
+
+        if was_last:
+            self.current_shot_index = len(self.shots) - 1
+        else:
+            self.current_shot_index = 0
 
     def add_actors(self, actors, scene: scene) -> None:
         """
@@ -38,6 +55,31 @@ class animation(named):
         else:
             for a in actors:
                 self.add_actors(a, scene)
+
+    def get_actors_by_names(self) -> Dict[str, List[actor]]:
+        """
+        Returns a dict of actor lists indexed by the actor name.
+        """
+        actors_by_names = defaultdict(list)
+        for actor in self.actors:
+            actors_by_names[actor.name].append(actor)
+        return actors_by_names
+
+    def get_shown_actors_by_names(self) -> Dict[str, bool]:
+        """
+        Returns a dict of shown / not shown flags indexed by actor names.
+        """
+        return {
+            name: actors[0].shown for name, actors in self.get_actors_by_names().items()
+        }
+
+    def apply_shown_to_actors(self, shown_by_names: Dict[str, bool]) -> None:
+        """
+        Applies a preserved shown actors dictionary on the given animation actors.
+        """
+        for actor in self.actors:
+            if actor.name in shown_by_names:
+                actor.show(shown_by_names[actor.name])
 
     def add_shots(self, shots) -> None:
         """

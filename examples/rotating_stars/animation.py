@@ -1,7 +1,5 @@
 import anim
 
-from anim.ui import get_shown_actors_by_names, apply_shown_to_actors
-
 class animation(anim.animation):
     def __init__(self, scene: anim.scene, sides: int = 7, skip: int = 3, ratio = 0.9) -> None:
         super().__init__("Rotating Stars", "Mathologer 3-4-7 Miracle: rotating interlinked polygons following a star trajectory.")
@@ -50,22 +48,6 @@ class animation(anim.animation):
     @property
     def reveal_duration(self):
         return 0.3
-
-    def reset(self, scene: anim.scene) -> None:
-        was_last = (self.current_shot_index == len(self.shots) - 1)
-        shown_by_names = get_shown_actors_by_names(self)
-
-        super().reset(scene)
-
-        self.generate_actors(scene)
-        apply_shown_to_actors(self, shown_by_names)
-        self.generate_shots()
-        scene.ensure_all_contents_fit()
-
-        if was_last:
-            self.current_shot_index = len(self.shots) - 1
-        else:
-            self.current_shot_index = 0
 
     def generate_actors(self, scene: anim.scene) -> None:
         self._gen_points()
