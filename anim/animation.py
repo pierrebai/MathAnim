@@ -11,7 +11,7 @@ class animation(named):
         self.options = options()
         self.actors = set()
         self.shots = []
-        self.current_shot = -1
+        self.current_shot_index = -1
         self.playing = False
         self.on_shot_changed = None
 
@@ -74,23 +74,33 @@ class animation(named):
         """
         pass
 
-    def play(self, scene: scene, animator: animator, start_at_shot = 0) -> None:
+    def play(self, scene: scene, animator: animator, start_at_shot_index = 0) -> None:
         if self.playing:
             return
         self.playing = True
-        if not start_at_shot is None:
-            self.current_shot = start_at_shot - 1
+        if not start_at_shot_index is None:
+            self.current_shot_index = start_at_shot_index - 1
         self.play_next_shot(scene, animator)
 
+    def play_all(self, scene: scene, animator: animator) -> None:
+        def shot_ended(ended_shot: shot, ended_scene: scene, ended_animator: animator):
+            if not self.playing or self.current_shot_index == len(self.shots) - 1:
+                animator.shot_ended.disconnect(shot_ended)
+                self.stop(ended_animator)
+            else:
+                self.play_next_shot(ended_scene, ended_animator)
+        animator.shot_ended.connect(shot_ended)
+        self.play(scene, animator)
+
     def play_next_shot(self, scene: scene, animator: animator) -> None:
-        self.current_shot = self.current_shot + 1
+        self.current_shot_index = self.current_shot_index + 1
         self.play_current_shot(scene, animator)
 
     def play_current_shot(self, scene: scene, animator: animator) -> None:
         if not self.playing or not self.shots:
             return
-        self.current_shot = self.current_shot % len(self.shots)
-        shot = self.shots[self.current_shot]
+        self.current_shot_index = self.current_shot_index % len(self.shots)
+        shot = self.shots[self.current_shot_index]
         animator.play(shot, scene)
         if self.on_shot_changed:
             self.on_shot_changed(scene, animator, shot)

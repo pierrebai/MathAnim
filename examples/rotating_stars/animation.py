@@ -52,7 +52,7 @@ class animation(anim.animation):
         return 0.3
 
     def reset(self, scene: anim.scene) -> None:
-        was_last = (self.current_shot == len(self.shots) - 1)
+        was_last = (self.current_shot_index == len(self.shots) - 1)
         shown_by_names = get_shown_actors_by_names(self)
 
         super().reset(scene)
@@ -60,11 +60,12 @@ class animation(anim.animation):
         self.generate_actors(scene)
         apply_shown_to_actors(self, shown_by_names)
         self.generate_shots()
+        scene.ensure_all_contents_fit()
 
         if was_last:
-            self.current_shot = len(self.shots) - 1
+            self.current_shot_index = len(self.shots) - 1
         else:
-            self.current_shot = 0
+            self.current_shot_index = 0
 
     def generate_actors(self, scene: anim.scene) -> None:
         self._gen_points()
