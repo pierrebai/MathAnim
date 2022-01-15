@@ -96,6 +96,7 @@ class animator(QObject):
             prep(shot, scene, self)
         scene.ensure_all_contents_fit()
         self.anim_group.start()
+        self.check_all_anims_done()
 
     def stop(self) -> None:
         self.anim_group.stop()

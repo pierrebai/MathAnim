@@ -235,12 +235,9 @@ class animation(anim.animation):
         """
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             dots = [self.inner_dots[which_inner][which_dot] for which_dot in range(1, self.dots_count)]
-            if dots:
-                for dot in dots:
-                    reveal = anim.reveal_item(dot)
-                    animator.animate_value(0., 1., self.reveal_duration, reveal)
-            else:
-                animator.check_all_anims_done()
+            for dot in dots:
+                reveal = anim.reveal_item(dot)
+                animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the other dots on the inner circle", "", prep_anim))
 
@@ -272,12 +269,9 @@ class animation(anim.animation):
         """
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             polys = [self.inter_polygons[which_dot] for which_dot in range(0, self.dots_count)]
-            if polys:
-                for poly in polys:
-                    reveal = anim.reveal_item(poly)
-                    animator.animate_value(0., 1., self.reveal_duration, reveal)
-            else:
-                animator.check_all_anims_done()
+            for poly in polys:
+                reveal = anim.reveal_item(poly)
+                animator.animate_value(0., 1., self.reveal_duration, reveal)
 
         self.add_shots(anim.shot("Draw the inter-circle polygons", "", prep_anim))
 
