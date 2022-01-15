@@ -1,7 +1,7 @@
 from ..point import point
 
-from PyQt5.QtWidgets import QGraphicsLineItem
-from PyQt5.QtCore import QLineF
+from PySide6.QtWidgets import QGraphicsLineItem
+from PySide6.QtCore import QLineF
 
 class line(QGraphicsLineItem):
     """

@@ -2,7 +2,7 @@ from .ui import *
 from ..actor import actor
 from ..animation import animation
 
-from PyQt5.QtWidgets import *
+from PySide6.QtWidgets import *
 
 from typing import Tuple, Dict, List
 from collections import defaultdict

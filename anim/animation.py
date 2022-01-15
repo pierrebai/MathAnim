@@ -91,9 +91,7 @@ class animation(named):
             return
         self.current_shot = self.current_shot % len(self.shots)
         shot = self.shots[self.current_shot]
-        shot.play(scene, animator)
-        scene.ensure_all_contents_fit()
-        animator.play()
+        animator.play(shot, scene)
         if self.on_shot_changed:
             self.on_shot_changed(scene, animator, shot)
 

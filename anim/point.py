@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QPointF
+from PySide6.QtCore import QPointF
 
 class point(QPointF):
     """

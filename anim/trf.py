@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QTransform
-from PyQt5.QtCore import QPointF
+from PySide6.QtGui import QTransform
+from PySide6.QtCore import QPointF
 
 def rotate_around(pt: QPointF, center: QPointF, angle: float) -> QPointF:
     """

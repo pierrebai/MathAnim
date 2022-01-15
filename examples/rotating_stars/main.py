@@ -1,6 +1,8 @@
 import animation
 import anim
 
+from PySide6.QtCore import Slot
+
 app = anim.ui.create_app()
 
 scene = anim.scene()
@@ -37,13 +39,11 @@ def on_stop():
 def on_delay_changed(value):
     animator.anim_speedup = int(value) / 20.
 
-def play_next_shot():
-    if star_anim.current_shot == len(star_anim.shots) - 1:
-        star_anim.play_current_shot(scene, animator)
-    else:
+def play_next_shot(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+    if star_anim.playing:
         star_anim.play_next_shot(scene, animator)
 
-animator.anim_done_callback = play_next_shot
+animator.shot_ended.connect(play_next_shot)
 
 anim.ui.start_app(app, window)
 

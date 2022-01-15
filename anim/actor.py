@@ -1,6 +1,6 @@
 from .named import named
 
-from PyQt5.QtWidgets import QGraphicsItem
+from PySide6.QtWidgets import QGraphicsItem
 
 class actor(named):
     """

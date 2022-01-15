@@ -1,7 +1,5 @@
 from anim.actor import actor
 from .named import named
-from .scene import scene
-from .animator import animator
 
 class shot(named):
     """
@@ -12,10 +10,10 @@ class shot(named):
 
     The shot is made of a collection of animations. Each animation is:
 
-        - A prepare_anim function receiving the scene and animator.
+        - A prepare_anim function receiving the shot, scene and animator.
           The prepare_anim function adds animation to the animator.
 
-        - A cleanup_anim function receiving the same scene and animator.
+        - A cleanup_anim function receiving the same shot, scene and animator.
     """
     def __init__(self, name: str, description: str, prep_anim: callable = None, cleanup_anim: callable = None):
         super().__init__(name, description)
@@ -28,8 +26,6 @@ class shot(named):
         """
         self.prepare_anims = []
         self.cleanup_anims = []
-        self.scene = None
-        self.animator = None
         self.shown = True
 
     def show(self, shown: bool) -> None:
@@ -45,23 +41,4 @@ class shot(named):
             self.prepare_anims.append(prep_anim)
         if cleanup_anim:
             self.cleanup_anims.append(cleanup_anim)
-
-    def shot_done(self) -> None:
-        """
-        Cleanup all animations by calling their cleanup_anim function.
-        """
-        for cleanup in self.cleanup_anims:
-            cleanup(self.scene, self.animator)
-
-    def play(self, scene: scene, animator: animator) -> None:
-        """
-        Prepare all animations by calling their prepare_anim function.
-        """
-        if not self.shown:
-            return
-        self.scene = scene
-        self.animator = animator
-        for prep  in self.prepare_anims:
-            prep(scene, animator)
-
 

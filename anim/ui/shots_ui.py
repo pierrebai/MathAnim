@@ -1,7 +1,7 @@
 from .ui import create_dock, create_list, select_in_list, add_stretch
 from ..animation import animation
 
-from PyQt5.QtWidgets import QDockWidget, QVBoxLayout
+from PySide6.QtWidgets import QDockWidget, QVBoxLayout
 
 from typing import Tuple
 

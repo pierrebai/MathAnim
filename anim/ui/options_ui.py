@@ -4,7 +4,7 @@ from ..animator import animator
 from ..options import option
 from ..scene import scene
 
-from PyQt5.QtWidgets import *
+from PySide6.QtWidgets import *
 
 from typing import Tuple
 

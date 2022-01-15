@@ -1,7 +1,7 @@
 from ..point import point
 
-from PyQt5.QtWidgets import QGraphicsPolygonItem
-from PyQt5.QtGui import QPolygonF
+from PySide6.QtWidgets import QGraphicsPolygonItem
+from PySide6.QtGui import QPolygonF
 
 from typing import List
 

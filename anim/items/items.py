@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QBrush, QColor, QPen
-from PyQt5.QtWidgets import QGraphicsItem
+from PySide6.QtGui import QBrush, QColor, QPen
+from PySide6.QtWidgets import QGraphicsItem
 
 from .circle import circle
 from .line import line

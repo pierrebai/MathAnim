@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIntValidator, QDoubleValidator
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtWidgets import *
+from PySide6.QtGui import QIntValidator, QDoubleValidator
 
 from typing import Tuple, Union
 

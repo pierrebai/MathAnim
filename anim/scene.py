@@ -1,8 +1,8 @@
 from .actor import actor
 
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem
-from PyQt5.QtCore import QMarginsF, QRectF, Qt
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem
+from PySide6.QtCore import QMarginsF, QRectF, Qt
 
 class scene:
     """

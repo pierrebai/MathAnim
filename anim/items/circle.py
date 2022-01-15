@@ -1,7 +1,7 @@
 from ..point import point
 
-from PyQt5.QtWidgets import QGraphicsEllipseItem
-from PyQt5.QtCore import QRectF
+from PySide6.QtWidgets import QGraphicsEllipseItem
+from PySide6.QtCore import QRectF
 
 class circle(QGraphicsEllipseItem):
     """

@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QTransform
+from PySide6.QtGui import QTransform
 from .actor import actor
 from . import point
 from . import trf
