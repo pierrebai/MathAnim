@@ -21,7 +21,7 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     draw_dock, _ = create_actors_ui(animation)
     shots_dock, _ = create_shots_ui(animation)
 
-    window = create_main_window("Rotating Stars", scene.get_widget())
+    window = create_main_window(animation.name, scene.get_widget())
     add_dock(window, shots_dock)
     add_dock(window, anim_dock)
     add_dock(window, options_dock)
