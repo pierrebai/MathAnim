@@ -11,6 +11,7 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     anim_dock, anim_layout = create_dock("Animation Controls")
 
     play_button = create_button("Play", anim_layout)
+    step_button = create_button("Step", anim_layout)
     stop_button = create_button("Stop", anim_layout)
     reset_button = create_button("Reset", anim_layout)
     speed_box = create_number_range_slider("Animation speed", 1, 100, int(animator.anim_speedup * 20), anim_layout)
@@ -29,6 +30,11 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     @play_button.clicked.connect
     def on_play():
         animation.play_all(scene, animator)
+
+    @step_button.clicked.connect
+    def on_step():
+        if not animation.playing:
+            animation.play_next_shot(scene, animator)
 
     @stop_button.clicked.connect
     def on_stop():

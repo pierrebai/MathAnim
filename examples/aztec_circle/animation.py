@@ -86,6 +86,20 @@ class animation(anim.animation):
             arrow.setVisible(self.arrow.shown)
         return arrow
 
+    tile_colors = [ [anim.items.orange_color, anim.items.red_color], [anim.items.blue_color, anim.items.green_color] ]
+
+    @staticmethod
+    def tile_to_color(tile):
+        return animation.tile_colors[tile.is_horizontal][tile.is_positive]
+
+    def create_scene_tile(self, x: int, y: int, tile):
+        x, y = self.pos_to_scene(x, y)
+        width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
+        height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
+        item = anim.items.create_rect(x, y, width, height, animation.tile_to_color(tile), 1)
+        self.scene.add_item(item)
+        return item
+
 
     #################################################################
     #
@@ -95,22 +109,44 @@ class animation(anim.animation):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.az.increase_size()
             self.animator = animator
-        self.add_shots(anim.shot("Grow diamond", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Grow diamond",
+            "Prepare the diamond\n"
+            "to grow by increasing\n"
+            "the imaginary boundary\n"
+            "inside which it is drawn.",
+            prep_anim))
 
     def _anim_remove_collisions(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.az.remove_collisions()
-        self.add_shots(anim.shot("Remove collisions", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Remove collisions",
+            "Mark and remove the tiles\n"
+            "that will collide when moved.",
+            prep_anim))
 
     def _anim_move_tiles(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.az.move_tiles()
-        self.add_shots(anim.shot("Move tiles", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Move tiles",
+            "Move all remaining tiles\n"
+            "in the direction matching\n"
+            "their tile color.",
+            prep_anim))
 
     def _anim_fill_holes(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.az.fill_holes()
-        self.add_shots(anim.shot("Fill holes", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Fill holes",
+            "Fill the holes created by\n"
+            "the moved tiles with new\n"
+            "tiles generated randomly\n"
+            "following the recipe you\n"
+            "give in the tiles sequence.",
+            prep_anim))
 
 
     #################################################################
@@ -127,20 +163,6 @@ class animation(anim.animation):
             else:
                 y += 0.5
         return (x * anim.items.tile_size, y * anim.items.tile_size)
-
-    tile_colors = [ [anim.items.orange_color, anim.items.red_color], [anim.items.blue_color, anim.items.green_color] ]
-
-    @staticmethod
-    def tile_to_color(tile):
-        return animation.tile_colors[tile.is_horizontal][tile.is_positive]
-
-    def create_scene_tile(self, x: int, y: int, tile):
-        x, y = self.pos_to_scene(x, y)
-        width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
-        height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
-        item = anim.items.create_rect(x, y, width, height, animation.tile_to_color(tile), 1)
-        self.scene.add_item(item)
-        return item
 
     def reallocate(self, az, old_amount: int, new_amount: int):
         skip, self.items, self.new_items = aztec.reallocate_data(old_amount, new_amount, self.items, self.new_items)

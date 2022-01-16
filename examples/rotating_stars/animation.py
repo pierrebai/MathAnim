@@ -182,7 +182,12 @@ class animation(anim.animation):
             reveal = anim.reveal_item(circle)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the outer circle", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw the outer circle",
+            "This is the ounter circle\n"
+            "insides which the smaller ones\n"
+            "will rotate.",
+            prep_anim))
 
     def _anim_inner_circle(self, which_inner: int = 0):
         """
@@ -194,7 +199,11 @@ class animation(anim.animation):
             reveal = anim.reveal_item(circle)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the inner circle", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw an inner circle",
+            "This is one of the inner circle that\n"
+            "rotates inside the outer circle.",
+            prep_anim))
 
     def _anim_inner_circle_dot(self, which_inner: int = 0):
         """
@@ -206,7 +215,13 @@ class animation(anim.animation):
             reveal = anim.reveal_item(dot)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the dot on the inner circle", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw an inner-circle dot",
+            "This dot on a circle is one\n"
+            "of the corners of a polygon\n"
+            "that will rotate, following\n"
+            "the circle is it placed on.",
+            prep_anim))
 
     def _anim_star(self):
         """
@@ -218,7 +233,14 @@ class animation(anim.animation):
             reveal = anim.reveal_item(star)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the star", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw the star",
+            "This is the star shape that is\n"
+            "formed by the path that one dot\n"
+            "on the inner circle follows as\n"
+            "this inner circle rotates inside\n"
+            "the outer one.",
+            prep_anim))
 
     def _anim_other_inner_circle_dots(self, which_inner: int = 0):
         """
@@ -231,7 +253,13 @@ class animation(anim.animation):
                 reveal = anim.reveal_item(dot)
                 animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the other dots on the inner circle", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw the other inner-circle dots",
+            "Place the other inner-circle dots\n"
+            "at the corners of the polygon which\n"
+            "will follow the inner circle in its\n"
+            "rotation.",
+            prep_anim))
 
     def _anim_inner_circle_polygon(self, which_inner: int = 0):
         """
@@ -242,7 +270,12 @@ class animation(anim.animation):
             reveal = anim.reveal_item(poly)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the inner circle polygon", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw the inner-circle polygon",
+            "This is the polygon that will\n"
+            "follow the inner circle in its\n"
+            "rotation.",
+            prep_anim))
 
     def _anim_other_inner_circles(self):
         """
@@ -265,7 +298,15 @@ class animation(anim.animation):
                 reveal = anim.reveal_item(poly)
                 animator.animate_value(0., 1., self.reveal_duration, reveal)
 
-        self.add_shots(anim.shot("Draw the inter-circle polygons", "", prep_anim))
+        self.add_shots(anim.shot(
+            "Draw the inter-circle polygons",
+            "These are the polygons formed\n"
+            "by linking the corresponding\n"
+            "dots on each inner circle.\n"
+            "They will also rotate when\n"
+            "the inner circles rotate and\n"
+            "surprisingly not deform.",
+            prep_anim))
 
     def _anim_all(self):
         """
@@ -287,4 +328,9 @@ class animation(anim.animation):
             if self.playing:
                 animator.play(shot, scene)
 
-        self.add_shots(anim.shot("Animate all", "", prep_anim, cleanup_anim))
+        self.add_shots(anim.shot(
+            "Animate all",
+            "Rotate the inner circle inside\n"
+            "the outer one dragging along\n"
+            "the polygons in a curious dance.",
+            prep_anim, cleanup_anim))

@@ -43,6 +43,7 @@ class animation(named):
         else:
             self.current_shot_index = 0
         scene.set_title(self.shots[self.current_shot_index].name)
+        scene.set_description(self.shots[self.current_shot_index].description)
 
     def add_actors(self, actors, scene: scene) -> None:
         """
@@ -149,14 +150,23 @@ class animation(named):
         self.play_current_shot(scene, animator)
 
     def play_current_shot(self, scene: scene, animator: animator) -> None:
-        if not self.playing or not self.shots:
+        if not self.shots:
             return
+
+        if not self.playing:
+            self.playing = True
+            def shot_ended(ended_shot: shot, ended_scene: scene, ended_animator: animator):
+                animator.shot_ended.disconnect(shot_ended)
+                self.stop(ended_animator)
+            animator.shot_ended.connect(shot_ended)
+
         self.current_shot_index = self.current_shot_index % len(self.shots)
-        shot = self.shots[self.current_shot_index]
-        scene.set_title(shot.name)
-        animator.play(shot, scene)
+        current_shot = self.shots[self.current_shot_index]
+        scene.set_title(current_shot.name)
+        scene.set_description(current_shot.description)
+        animator.play(current_shot, scene)
         if self.on_shot_changed:
-            self.on_shot_changed(scene, animator, shot)
+            self.on_shot_changed(scene, animator, current_shot)
 
     def stop(self, animator: animator) -> None:
         if not self.playing:
