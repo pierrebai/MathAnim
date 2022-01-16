@@ -1,5 +1,6 @@
 from .actor import actor
-from .items import no_pen
+from .items import no_pen, create_pointing_arrow
+from .point import point
 
 from PySide6.QtGui import QPainter, QFont
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem, QGraphicsSimpleTextItem, QGraphicsRectItem
@@ -79,6 +80,10 @@ class scene:
         self.descriptionBox.setPen(no_pen)
         self.scene.addItem(self.descriptionBox)
 
+        arrow = create_pointing_arrow(point(0, 0), point(0, 0))
+        self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
+        self.add_actor(self.pointing_arrow)
+
     def set_title(self, title: str) -> None:
         self.title.setText(title)
         self.ensure_all_contents_fit()
@@ -92,6 +97,7 @@ class scene:
         self.scene.removeItem(self.titleBox)
         self.scene.removeItem(self.description)
         self.scene.removeItem(self.descriptionBox)
+        self.scene.removeItem(self.pointing_arrow.item)
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
@@ -99,6 +105,7 @@ class scene:
         self.scene.addItem(self.titleBox)
         self.scene.addItem(self.description)
         self.scene.addItem(self.descriptionBox)
+        self.scene.addItem(self.pointing_arrow.item)
         return actors_rect
 
     def _size_text_boxes(self):

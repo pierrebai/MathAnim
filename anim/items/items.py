@@ -1,9 +1,12 @@
 from PySide6.QtGui import QBrush, QColor, QPen
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
 
+from anim.items.pointing_arrow import pointing_arrow
+
 from .circle import circle
 from .line import line
 from .polygon import polygon
+from .pointing_arrow import pointing_arrow
 from ..point import point
 
 from typing import List
@@ -33,6 +36,8 @@ dark_green_color    = green_color.darker(130)
 dark_cyan_color     = cyan_color.darker(130)
 dark_gray_color     = gray_color.darker(130)
 dark_red_color      = red_color.darker(130)
+
+pale_blue_color     = blue_color.lighter(130); pale_blue_color.setAlpha(120)
 
 no_pen   = QPen(no_color, 0)
 no_brush = QBrush(no_color)
@@ -96,8 +101,16 @@ def create_line(p1: point, p2: point, color: QColor = green_color, thickness = l
     _prepare_item(item, QPen(color, thickness), no_color, parent)
     return item
 
+def create_pointing_arrow(tail: point, head: point, color: QColor = pale_blue_color, parent: QGraphicsItem = None) -> line:
+    """
+    Creates a dynamic pointing arrow of the given color.
+    """
+    item = pointing_arrow(tail, head)
+    _prepare_item(item, color, color, parent)
+    return item
+
 def create_rect(x: point, y: point, width: float, height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsRectItem:
-    # TODO: rectanle dynamic item, a version taking two corners.
+    # TODO: rectangle dynamic item, a version taking two corners.
     item = QGraphicsRectItem(0, 0, width, height)
     item.setPos(x, y)
     _prepare_item(item, QPen(black_color, thickness), color, parent)

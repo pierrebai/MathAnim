@@ -4,9 +4,12 @@ from .animator import animator
 from .shot import shot
 from .options import option, options
 from .scene import scene
+from . import anims
 
 from collections import defaultdict
 from typing import Dict, List
+
+from PySide6.QtCore import QPointF
 
 
 class animation(named):
@@ -34,6 +37,7 @@ class animation(named):
         self.shots = []
 
         self.generate_actors(scene)
+        self.add_actors(scene.pointing_arrow, scene)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
         scene.ensure_all_contents_fit()
@@ -126,6 +130,19 @@ class animation(named):
         # Stopping the animator only triggers its shot_ended,
         # which in the main triggers the next shot to be played.
         animator.stop()
+
+    def anim_pointing_arrow(self, head_point: QPointF, scene: scene, animator: animator):
+        """
+        Animate the pointing arrow to point to the new point of interest.
+        """
+        tail_pos = QPointF(scene.pointing_arrow.item.tail)
+        desc_rect = scene.descriptionBox.sceneBoundingRect()
+        desc_pos = (desc_rect.topLeft() + desc_rect.bottomLeft()) * 0.5
+        animator.animate_value(tail_pos, desc_pos, self.reveal_duration / 3, anims.move_point(scene.pointing_arrow.item.tail))
+
+        head_pos = QPointF(scene.pointing_arrow.item.head)
+        what_pos = QPointF(head_point)
+        animator.animate_value(head_pos, what_pos, self.reveal_duration / 3, anims.move_point(scene.pointing_arrow.item.head))
 
     def play(self, scene: scene, animator: animator, start_at_shot_index = 0) -> None:
         if self.playing:

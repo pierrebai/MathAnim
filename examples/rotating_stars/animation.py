@@ -1,4 +1,7 @@
 import anim
+from anim.scene import scene
+
+from PySide6.QtCore import QPointF
 
 class animation(anim.animation):
     def __init__(self, scene: anim.scene, sides: int = 7, skip: int = 3, ratio = 0.9) -> None:
@@ -179,8 +182,9 @@ class animation(anim.animation):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self._hide_all_actors()
             circle = self.outer_circle
-            reveal = anim.reveal_item(circle)
-            animator.animate_value(0., 1., self.reveal_duration, reveal)
+            animator.animate_value(0., 1., self.reveal_duration, anim.reveal_item(circle))
+            animator.animate_value(0., 1., self.reveal_duration, anim.reveal_item(scene.pointing_arrow))
+            self.anim_pointing_arrow(circle.item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw the outer circle",
@@ -198,6 +202,7 @@ class animation(anim.animation):
             circle = self.inner_circles[which_inner]
             reveal = anim.reveal_item(circle)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
+            self.anim_pointing_arrow(circle.item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw an inner circle",
@@ -214,6 +219,7 @@ class animation(anim.animation):
             dot = self.inner_dots[which_inner][0]
             reveal = anim.reveal_item(dot)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
+            self.anim_pointing_arrow(dot.item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw an inner-circle dot",
@@ -232,6 +238,7 @@ class animation(anim.animation):
             star = self.star
             reveal = anim.reveal_item(star)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
+            self.anim_pointing_arrow(star.item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw the star",
@@ -252,6 +259,8 @@ class animation(anim.animation):
             for dot in dots:
                 reveal = anim.reveal_item(dot)
                 animator.animate_value(0., 1., self.reveal_duration, reveal)
+            if dots:
+                self.anim_pointing_arrow(dots[0].item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw the other inner-circle dots",
@@ -269,6 +278,7 @@ class animation(anim.animation):
             poly = self.inner_polygons[which_inner]
             reveal = anim.reveal_item(poly)
             animator.animate_value(0., 1., self.reveal_duration, reveal)
+            self.anim_pointing_arrow(poly.item.boundingRect().center(), scene, animator)
 
         self.add_shots(anim.shot(
             "Draw the inner-circle polygon",
@@ -323,6 +333,11 @@ class animation(anim.animation):
                     dot = self.inner_dots_pos[which_inner][which_dot]
                     rot_dot = anim.rotate_point_around(dot, anim.point(0., 0.))
                     animator.animate_value(0., -inner_angle, 2. * self.animation_speedup, rot_dot)
+
+            outer_circle_rect = self.outer_circle.item.boundingRect()
+            outer_circle_radius = outer_circle_rect.width() / 2.75
+            outer_circle_corner = outer_circle_rect.center() + QPointF(outer_circle_radius, -outer_circle_radius)
+            self.anim_pointing_arrow(outer_circle_corner, scene, animator)
 
         def cleanup_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             if self.playing:

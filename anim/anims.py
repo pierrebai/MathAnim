@@ -17,6 +17,13 @@ def rotate_point_around(point: point, center: point):
     """
     return lambda angle: _rotate_point_around(point, center, angle)
 
+def move_point(point: point):
+    """
+    Returns a function that animate the movement of the point to a destination point.
+    The returned function only takes the position as parameter.
+    """
+    return lambda pt: point.set_point(pt)
+
 
 ##########################################
 # Actor / item animations.
@@ -41,8 +48,8 @@ def rotate_item(item):
 
 def move_item(item):
     """
-    Returns a function that animate the rotation of the actor or item around its own center.
-    The returned function only takes the angle in degrees as parameter.
+    Returns a function that animate the movement of the actor or item to a destination point.
+    The returned function only takes the position as parameter.
     """
     if isinstance(item, actor):
         item = item.item
