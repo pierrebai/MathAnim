@@ -36,9 +36,16 @@ choose the number of sides of the polygon.
 The modules comes with many examples. Currently, there are two, but
 more will be added later. The examples are:
 
-- Aztec Circle, based on this [Mathologer video](https://www.youtube.com/watch?v=Yy7Q8IWNfHM) ![Aztec Circle](https://github.com/pierrebai/MathAnim/blob/main/examples/aztec_circle/Aztec-Circle.png "Aztec Circle")
+### Aztec Circle
+Based on this [Mathologer video](https://www.youtube.com/watch?v=Yy7Q8IWNfHM)
+
+![Aztec Circle](https://github.com/pierrebai/MathAnim/blob/main/examples/aztec_circle/Aztec-Circle.png "Aztec Circle")
 
 
-- Rotating Stars, based on this [Mathologer video](https://www.youtube.com/watch?v=oEN0o9ZGmOM&t=1261s) ![Rotating Stars](https://github.com/pierrebai/MathAnim/blob/main/examples/rotating_stars/Rotating-Stars.png "Rotating Stars")
+### Rotating Stars
+
+Based on this [Mathologer video](https://www.youtube.com/watch?v=oEN0o9ZGmOM&t=1261s)
+
+![Rotating Stars](https://github.com/pierrebai/MathAnim/blob/main/examples/rotating_stars/Rotating-Stars.png "Rotating Stars")
 
 
