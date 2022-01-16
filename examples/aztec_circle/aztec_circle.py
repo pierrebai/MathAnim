@@ -155,7 +155,6 @@ class aztec:
         """
         Grow the aztec diamond to the given size.
         Does nothing if the target size is smaller.
-        TODO: allow rewinding to a smaller size.
         """
         while self._size < target_size:
             self.grow()
