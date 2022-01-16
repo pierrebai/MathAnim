@@ -106,7 +106,7 @@ def create_pointing_arrow(tail: point, head: point, color: QColor = pale_blue_co
     Creates a dynamic pointing arrow of the given color.
     """
     item = pointing_arrow(tail, head)
-    _prepare_item(item, color, color, parent)
+    _prepare_item(item, no_pen, color, parent)
     return item
 
 def create_rect(x: point, y: point, width: float, height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsRectItem:

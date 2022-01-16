@@ -37,7 +37,7 @@ class animation(named):
         self.shots = []
 
         self.generate_actors(scene)
-        self.add_actors(scene.pointing_arrow, scene)
+        self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
         scene.ensure_all_contents_fit()

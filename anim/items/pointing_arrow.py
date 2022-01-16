@@ -33,13 +33,40 @@ class pointing_arrow(QGraphicsPathItem):
         dir = (arrow_head - arrow_tail) / 20.
         perp = QPointF(dir.y(), -dir.x())
         arrow_path = QPainterPath()
-        arrow_path.moveTo(arrow_tail + dir)
-        arrow_path.lineTo( arrow_tail + dir       + perp * 0.5)
-        arrow_path.lineTo( arrow_head - dir * 2.5 + perp * 0.5)
-        arrow_path.lineTo( arrow_head - dir * 3.0 + perp * 1.5)
-        arrow_path.lineTo( arrow_head - dir * 0.3             )
-        arrow_path.lineTo( arrow_head - dir * 3.0 - perp * 1.5)
-        arrow_path.lineTo( arrow_head - dir * 2.5 - perp * 0.5)
-        arrow_path.lineTo( arrow_tail + dir       - perp * 0.5)
-        arrow_path.lineTo( arrow_tail + dir)
+
+
+        arrow_tail_target_dist = dir * 1.0
+        arrow_tail_back_spike = dir * 1.0
+
+        arrow_body_half_width = perp * 0.5
+        arrow_body_curve_dist = perp * 5.0
+        arrow_body_control_pos = dir * 10.0
+
+        arrow_head_half_width = perp * 1.5
+        arrow_head_back_dist = dir * 2.0
+        arrow_head_back_spike = dir * 3.0
+        arrow_head_target_dist = dir * 0.3
+
+        arrow_path.moveTo(arrow_tail + arrow_tail_target_dist)
+
+        arrow_path.lineTo( arrow_tail - arrow_body_half_width + arrow_tail_back_spike)
+        arrow_path.cubicTo(
+            arrow_tail - arrow_body_half_width + arrow_body_control_pos - arrow_body_curve_dist,
+            arrow_head - arrow_body_half_width - arrow_body_control_pos - arrow_body_half_width,
+            arrow_head - arrow_head_back_dist - arrow_body_half_width)
+        arrow_path.lineTo( arrow_head - arrow_head_back_spike - arrow_head_half_width)
+
+        arrow_path.lineTo( arrow_head - arrow_head_target_dist)
+
+        arrow_path.lineTo( arrow_head - arrow_head_back_spike + arrow_head_half_width)
+        arrow_path.lineTo( arrow_head - arrow_head_back_dist + arrow_body_half_width)
+        arrow_path.cubicTo(
+            arrow_head + arrow_body_half_width - arrow_body_control_pos,
+            arrow_tail - arrow_body_curve_dist + arrow_body_control_pos ,
+            # arrow_head + arrow_body_half_width - arrow_body_control_pos - arrow_body_curve_dist,
+            # arrow_tail + arrow_body_half_width + arrow_body_control_pos - arrow_body_curve_dist,
+            arrow_tail + arrow_body_half_width + arrow_tail_back_spike)
+
+        arrow_path.lineTo( arrow_tail + arrow_tail_target_dist)
+
         self.setPath(arrow_path)
