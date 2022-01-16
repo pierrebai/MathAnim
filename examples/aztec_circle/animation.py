@@ -139,7 +139,7 @@ class animation(anim.animation):
         width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
         height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
         item = anim.items.create_rect(x, y, width, height, animation.tile_to_color(tile), 1)
-        self.scene.scene.addItem(item)
+        self.scene.add_item(item)
         return item
 
     def reallocate(self, az, old_amount: int, new_amount: int):
@@ -161,14 +161,14 @@ class animation(anim.animation):
         if self.skip_animations:
             item = self.items[x][y]
             if item:
-                self.scene.scene.removeItem(item)
+                self.scene.remove_item(item)
             return
 
         center = self.center
         tile = az.tiles()[x][y] if az else None
         cross = self.create_cross()
         cross.setPos(*self.middle_pos_to_scene(x - center, y - center, tile))
-        self.scene.scene.addItem(cross)
+        self.scene.add_item(cross)
 
         item = self.items[x][y]
         if not item:
@@ -176,11 +176,11 @@ class animation(anim.animation):
 
         self.animator.animate_value(0., 1., self.anim_duration,
             anim.anims.reveal_item(cross),
-            lambda: self.scene.scene.removeItem(cross))
+            lambda: self.scene.remove_item(cross))
 
         self.animator.animate_value(1., 0.5, self.anim_duration,
             anim.anims.reveal_item(item),
-            lambda: self.scene.scene.removeItem(item))
+            lambda: self.scene.remove_item(item))
 
     def collisions_done(self, az):
         self.animator.check_all_anims_done()
@@ -201,13 +201,13 @@ class animation(anim.animation):
             arrow = self.create_arrow_for_tile(tile)
             arrow.setPos(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
             arrow.setOpacity(1.)
-            self.scene.scene.addItem(arrow)
+            self.scene.add_item(arrow)
             self.animator.animate_value(
                 QPointF(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
                 QPointF(*self.middle_pos_to_scene(x2 - center, y2 - center, tile)),
                 self.anim_duration,
                 anim.anims.move_item(arrow),
-                lambda: self.scene.scene.removeItem(arrow)
+                lambda: self.scene.remove_item(arrow)
             )
 
         self.animator.animate_value(

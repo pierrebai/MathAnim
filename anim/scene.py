@@ -1,8 +1,8 @@
 from .actor import actor
 
-from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem
-from PySide6.QtCore import QMarginsF, QRectF, Qt
+from PySide6.QtGui import QPainter, QFont
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem, QGraphicsSimpleTextItem
+from PySide6.QtCore import Qt, QPointF, QMarginsF, QRectF, QPoint
 
 class scene:
     """
@@ -28,6 +28,7 @@ class scene:
         self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         self.view.setScene(self.scene)
 
+        self.remove_all_items()
         self.adjust_view_to_fit(margin)
 
     def reset(self, margin: int = None) -> None:
@@ -56,6 +57,24 @@ class scene:
     def remove_actor(self, actor: actor) -> None:
         self.remove_item(actor.item)
 
+    def remove_all_items(self) -> None:
+        self.scene.clear()
+        self.title = QGraphicsSimpleTextItem()
+        self.title.setFont(QFont("Georgia", 24))
+        self.title.setFlag(QGraphicsSimpleTextItem.ItemIgnoresTransformations)
+        self.scene.addItem(self.title)
+
+    def set_title(self, title: str) -> None:
+        self.title.setText(title)
+
+    def place_title(self) -> None:
+        self.scene.removeItem(self.title)
+        topLeft = self.scene.itemsBoundingRect().topLeft()
+        self.scene.addItem(self.title)
+        viewTopLeft = self.view.mapFromScene(topLeft)
+        topLeft = self.view.mapToScene(viewTopLeft - QPoint(0, 48))
+        self.title.setPos(topLeft)
+
     def ensure_all_contents_fit(self, margin: int = None) -> None:
         """
         If the scene contents does not fit the view then call adjust_view_to_fit()
@@ -65,6 +84,9 @@ class scene:
         sceneOrigin = self.view.mapFromScene(self.scene.sceneRect().translated(-15, -15).topLeft())
         if viewOrigin.x() >= sceneOrigin.x() or viewOrigin.y() >= sceneOrigin.y():
             self.adjust_view_to_fit(margin)
+        else:
+            self.place_title()
+
 
     def adjust_view_to_fit(self, margin: int = None) -> None:
         """
@@ -74,3 +96,4 @@ class scene:
         if margin is None:
             margin = self.default_margin
         self.view.fitInView(self.scene.sceneRect().marginsAdded(QMarginsF(margin, margin, margin, margin)), Qt.KeepAspectRatio)
+        self.place_title()

@@ -29,7 +29,7 @@ class animation(named):
 
         for actor in self.actors:
             scene.remove_actor(actor)
-        scene.scene.clear()
+        scene.remove_all_items()
         self.actors = set()
         self.shots = []
 
@@ -42,6 +42,7 @@ class animation(named):
             self.current_shot_index = len(self.shots) - 1
         else:
             self.current_shot_index = 0
+        scene.set_title(self.shots[self.current_shot_index].name)
 
     def add_actors(self, actors, scene: scene) -> None:
         """
@@ -152,6 +153,7 @@ class animation(named):
             return
         self.current_shot_index = self.current_shot_index % len(self.shots)
         shot = self.shots[self.current_shot_index]
+        scene.set_title(shot.name)
         animator.play(shot, scene)
         if self.on_shot_changed:
             self.on_shot_changed(scene, animator, shot)
