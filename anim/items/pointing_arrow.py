@@ -28,12 +28,14 @@ class pointing_arrow(QGraphicsPathItem):
             self._create_arrow()
 
     def _create_arrow(self) -> None:
+        """
+        Create the curvy arrow using cubic paths.
+        """
         arrow_tail = self.arrow_tail = QPointF(self.tail)
         arrow_head = self.arrow_head = QPointF(self.head)
         dir = (arrow_head - arrow_tail) / 20.
         perp = QPointF(dir.y(), -dir.x())
         arrow_path = QPainterPath()
-
 
         arrow_tail_target_dist = dir * 1.0
         arrow_tail_back_spike = dir * 1.0
@@ -63,8 +65,6 @@ class pointing_arrow(QGraphicsPathItem):
         arrow_path.cubicTo(
             arrow_head + arrow_body_half_width - arrow_body_control_pos,
             arrow_tail - arrow_body_curve_dist + arrow_body_control_pos ,
-            # arrow_head + arrow_body_half_width - arrow_body_control_pos - arrow_body_curve_dist,
-            # arrow_tail + arrow_body_half_width + arrow_body_control_pos - arrow_body_curve_dist,
             arrow_tail + arrow_body_half_width + arrow_tail_back_spike)
 
         arrow_path.lineTo( arrow_tail + arrow_tail_target_dist)
