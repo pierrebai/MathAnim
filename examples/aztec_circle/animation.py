@@ -254,6 +254,7 @@ class animation(anim.animation):
             anim.anims.move_item(item)
         )
 
+        tile = az.tiles()[x2][y2] if az else None
         self.anim_pointing_arrow_to_tile(x2 - center, y2 - center, tile)
 
     def moves_done(self, az):
