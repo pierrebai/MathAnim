@@ -131,18 +131,18 @@ class animation(named):
         # which in the main triggers the next shot to be played.
         animator.stop()
 
-    def anim_pointing_arrow(self, head_point: QPointF, scene: scene, animator: animator):
+    def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
         """
         Animate the pointing arrow to point to the new point of interest.
         """
         tail_pos = QPointF(scene.pointing_arrow.item.tail)
         desc_rect = scene.descriptionBox.sceneBoundingRect()
-        desc_pos = (desc_rect.topLeft() + desc_rect.bottomLeft()) * 0.5
-        animator.animate_value(tail_pos, desc_pos, self.reveal_duration / 3, anims.move_point(scene.pointing_arrow.item.tail))
+        desc_pos = desc_rect.topLeft()
+        animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
 
         head_pos = QPointF(scene.pointing_arrow.item.head)
         what_pos = QPointF(head_point)
-        animator.animate_value(head_pos, what_pos, self.reveal_duration / 3, anims.move_point(scene.pointing_arrow.item.head))
+        animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
 
     def play(self, scene: scene, animator: animator, start_at_shot_index = 0) -> None:
         if self.playing:

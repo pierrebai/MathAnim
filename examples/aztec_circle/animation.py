@@ -105,8 +105,18 @@ class animation(anim.animation):
     #
     # Shots
 
+    def anim_pointing_arrow_to_tile(self, x, y, tile):
+        if self.pointing_arrow_animated:
+            return
+        self.pointing_arrow_animated = True
+        pos = QPointF(*self.middle_pos_to_scene(x, y, tile))
+        pos.setX(pos.x() + anim.items.tile_size / 2.)
+        pos.setY(pos.y() + anim.items.tile_size / 2.)
+        self.anim_pointing_arrow(pos, self.anim_duration / 10, self.scene, self.animator)
+
     def _anim_increase_size(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+            self.pointing_arrow_animated = False
             self.az.increase_size()
             self.animator = animator
         self.add_shots(anim.shot(
@@ -119,6 +129,7 @@ class animation(anim.animation):
 
     def _anim_remove_collisions(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+            self.pointing_arrow_animated = False
             self.az.remove_collisions()
         self.add_shots(anim.shot(
             "Remove collisions",
@@ -128,6 +139,7 @@ class animation(anim.animation):
 
     def _anim_move_tiles(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+            self.pointing_arrow_animated = False
             self.az.move_tiles()
         self.add_shots(anim.shot(
             "Move tiles",
@@ -138,6 +150,7 @@ class animation(anim.animation):
 
     def _anim_fill_holes(self):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+            self.pointing_arrow_animated = False
             self.az.fill_holes()
         self.add_shots(anim.shot(
             "Fill holes",
@@ -192,6 +205,8 @@ class animation(anim.animation):
         cross.setPos(*self.middle_pos_to_scene(x - center, y - center, tile))
         self.scene.add_item(cross)
 
+        self.anim_pointing_arrow_to_tile(x - center, y - center, tile)
+
         item = self.items[x][y]
         if not item:
             return
@@ -239,6 +254,8 @@ class animation(anim.animation):
             anim.anims.move_item(item)
         )
 
+        self.anim_pointing_arrow_to_tile(x2 - center, y2 - center, tile)
+
     def moves_done(self, az):
         self.animator.check_all_anims_done()
 
@@ -253,6 +270,7 @@ class animation(anim.animation):
         else:
             item.setOpacity(0.)
             self.animator.animate_value(0., 1., self.anim_duration, anim.anims.reveal_item(item))
+            self.anim_pointing_arrow_to_tile(x - center, y - center, tile)
 
     def fills_done(self, az):
         self.items, self.new_items = self.new_items, self.items
