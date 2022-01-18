@@ -6,6 +6,7 @@ from anim.items.pointing_arrow import pointing_arrow
 from .circle import circle
 from .line import line
 from .polygon import polygon
+from .rectangle import rectangle, center_rectangle
 from .pointing_arrow import pointing_arrow
 from ..point import point
 
@@ -109,10 +110,25 @@ def create_pointing_arrow(tail: point, head: point, color: QColor = pale_blue_co
     _prepare_item(item, no_pen, color, parent)
     return item
 
-def create_rect(x: point, y: point, width: float, height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsRectItem:
-    # TODO: rectangle dynamic item, a version taking two corners.
+def create_rect(x: float, y: float, width: float, height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> QGraphicsRectItem:
     item = QGraphicsRectItem(0, 0, width, height)
     item.setPos(x, y)
+    _prepare_item(item, QPen(black_color, thickness), color, parent)
+    return item
+
+def create_two_points_rect(p1: point, p2: point, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> rectangle:
+    """
+    Creates a dynamic rectangle out of two corners of the given color.
+    """
+    item = rectangle(p1, p2)
+    _prepare_item(item, QPen(black_color, thickness), color, parent)
+    return item
+
+def create_center_rect(p1: point, half_width: float, half_height: float, color: QColor = dark_gray_color, thickness = line_width, parent: QGraphicsItem = None) -> rectangle:
+    """
+    Creates a dynamic rectangle out of its center position and half-width and half-height of the given color.
+    """
+    item = center_rectangle(p1, half_width, half_height)
     _prepare_item(item, QPen(black_color, thickness), color, parent)
     return item
 

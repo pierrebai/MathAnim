@@ -15,8 +15,9 @@ class shot(named):
 
         - A cleanup_anim function receiving the same shot, scene and animator.
     """
-    def __init__(self, name: str, description: str, prep_anim: callable = None, cleanup_anim: callable = None):
+    def __init__(self, name: str, description: str, prep_anim: callable = None, cleanup_anim: callable = None, repeat = False):
         super().__init__(name, description)
+        self.repeat = repeat
         self.reset()
         self.add_anim(prep_anim, cleanup_anim)
 

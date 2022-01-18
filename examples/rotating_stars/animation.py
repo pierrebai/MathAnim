@@ -340,14 +340,9 @@ class animation(anim.animation):
             outer_circle_corner = outer_circle_rect.center() + QPointF(outer_circle_radius, -outer_circle_radius)
             self.anim_pointing_arrow(outer_circle_corner, self.reveal_duration, scene, animator)
 
-        def cleanup_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
-            # TODO: replace this with a flag on the shot that controls if it repeats.
-            if self.playing:
-                animator.play(shot, scene)
-
         self.add_shots(anim.shot(
             "Animate all",
             "Rotate the inner circle inside\n"
             "the outer one dragging along\n"
             "the polygons in a curious dance.",
-            prep_anim, cleanup_anim))
+            prep_anim, None, True))

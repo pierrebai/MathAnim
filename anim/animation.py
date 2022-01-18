@@ -181,8 +181,10 @@ class animation(named):
             self.on_shot_changed(scene, animator, current_shot)
 
     def _shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
-        if not self.playing or self.single_shot or (not self.loop and self.current_shot_index == len(self.shots) - 1):
+        if not self.playing or self.single_shot or (not self.loop and not ended_shot.repeat and self.current_shot_index == len(self.shots) - 1):
             self.stop(ended_scene, ended_animator)
+        elif ended_shot.repeat:
+            self.play_current_shot(ended_scene, ended_animator)
         else:
             self.play_next_shot(ended_scene, ended_animator)
 
