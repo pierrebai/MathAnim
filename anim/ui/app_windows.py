@@ -10,10 +10,12 @@ from .shots_ui import create_shots_ui
 def create_app_window(animation: animation, scene: scene, animator: animator) -> QMainWindow:
     anim_dock, anim_layout = create_dock("Animation Controls")
 
-    play_button = create_button("Play", anim_layout)
-    step_button = create_button("Step", anim_layout)
-    stop_button = create_button("Stop", anim_layout)
-    reset_button = create_button("Reset", anim_layout)
+    buttons_layout = create_horiz_container(anim_layout)
+    play_button = create_button("Play", buttons_layout)
+    step_button = create_button("Step", buttons_layout)
+    stop_button = create_button("Stop", buttons_layout)
+    reset_button = create_button("Reset", buttons_layout)
+    current_time_box = create_number_slider("Current time", 0, 1000, 0, anim_layout)
     speed_box = create_number_range_slider("Animation speed", 1, 100, int(animator.anim_speedup * 20), anim_layout)
     add_stretch(anim_layout)
 
@@ -38,18 +40,26 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
 
     @stop_button.clicked.connect
     def on_stop():
-        animation.stop(animator)
+        animation.stop(scene, animator)
 
     @reset_button.clicked.connect
     def on_reset():
         was_playing = animation.playing
-        animation.stop(animator)
-        animation.reset(scene)
+        animation.stop(scene, animator)
+        animation.reset(scene, animator)
         if was_playing:
             animation.play_all(scene, animator)
 
+    @current_time_box.valueChanged.connect
+    def on_current_time_changed(value):
+        animator.set_current_time_fraction(int(value) / 1000.)
+
     @speed_box.valueChanged.connect
-    def on_delay_changed(value):
+    def on_speed_changed(value):
         animator.anim_speedup = int(value) / 20.
+
+    @animator.anim_group.current_time_changed.connect
+    def on_anim_current_time_changed(value: float):
+        current_time_box.setValue(int(round(1000 * value)))
 
     return window

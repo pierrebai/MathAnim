@@ -8,8 +8,8 @@ from PySide6.QtCore import QPointF
 import math
 
 class animation(anim.animation):
-    def __init__(self, scene: anim.scene) -> None:
-        super().__init__("Aztec Circle", "")
+    def __init__(self, scene: anim.scene, animator: anim.animator) -> None:
+        super().__init__("Aztec Circle", "", scene, animator)
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
@@ -20,7 +20,7 @@ class animation(anim.animation):
         self.animator: anim.animator = None
         self.loop = True
 
-        self.reset(scene)
+        self.reset(scene, animator)
 
     @property
     def tiles_sequence(self) -> str:
@@ -34,7 +34,7 @@ class animation(anim.animation):
     def skip_animations(self) -> bool:
         return self.size > self.animate_limit_option.value
 
-    def reset(self, scene: anim.scene):
+    def reset(self, scene: anim.scene, animator: anim.animator):
         self.anim_duration = 1.
         self.size = 1
         self.items = []
@@ -43,7 +43,7 @@ class animation(anim.animation):
         self.cross = None
         self.arrow = None
         self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
-        super().reset(scene)
+        super().reset(scene, animator)
 
     def generate_actors(self, scene: anim.scene) -> None:
         self.cross = anim.actor("cross", "", anim.items.create_cross())

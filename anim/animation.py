@@ -13,7 +13,7 @@ from PySide6.QtCore import QPointF
 
 
 class animation(named):
-    def __init__(self, name: str, description: str) -> None:
+    def __init__(self, name: str, description: str, scene: scene, animator: animator) -> None:
         super().__init__(name, description)
         self.options = options()
         self.actors = set()
@@ -23,13 +23,17 @@ class animation(named):
         self.playing = False
         self.on_shot_changed = None
 
-    def reset(self, scene: scene) -> None:
+        animator.shot_ended.connect(self._shot_ended)
+
+    def reset(self, scene: scene, animator: animator) -> None:
         """
         Clears the actors and shots and recreates them.
         """
         was_last = (self.current_shot_index == len(self.shots) - 1)
         shown_by_names = self.get_shown_actors_by_names()
 
+        animator.stop()
+        
         for actor in self.actors:
             scene.remove_actor(actor)
         scene.remove_all_items()
@@ -126,7 +130,7 @@ class animation(named):
         """
         # The reset function regenerate the actors, anims and shots,
         # which will make the animator pick up the new animations on the fly.
-        self.reset(scene)
+        self.reset(scene, animator)
         # Stopping the animator only triggers its shot_ended,
         # which in the main triggers the next shot to be played.
         animator.stop()
@@ -148,18 +152,12 @@ class animation(named):
         if self.playing:
             return
         self.playing = True
+        self.single_shot = False
         if not start_at_shot_index is None:
             self.current_shot_index = start_at_shot_index - 1
         self.play_next_shot(scene, animator)
 
     def play_all(self, scene: scene, animator: animator) -> None:
-        def shot_ended(ended_shot: shot, ended_scene: scene, ended_animator: animator):
-            if not self.playing or (not self.loop and self.current_shot_index == len(self.shots) - 1):
-                animator.shot_ended.disconnect(shot_ended)
-                self.stop(ended_animator)
-            else:
-                self.play_next_shot(ended_scene, ended_animator)
-        animator.shot_ended.connect(shot_ended)
         self.play(scene, animator)
 
     def play_next_shot(self, scene: scene, animator: animator) -> None:
@@ -172,10 +170,7 @@ class animation(named):
 
         if not self.playing:
             self.playing = True
-            def shot_ended(ended_shot: shot, ended_scene: scene, ended_animator: animator):
-                animator.shot_ended.disconnect(shot_ended)
-                self.stop(ended_animator)
-            animator.shot_ended.connect(shot_ended)
+            self.single_shot = True
 
         self.current_shot_index = self.current_shot_index % len(self.shots)
         current_shot = self.shots[self.current_shot_index]
@@ -185,7 +180,13 @@ class animation(named):
         if self.on_shot_changed:
             self.on_shot_changed(scene, animator, current_shot)
 
-    def stop(self, animator: animator) -> None:
+    def _shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
+        if not self.playing or self.single_shot or (not self.loop and self.current_shot_index == len(self.shots) - 1):
+            self.stop(ended_scene, ended_animator)
+        else:
+            self.play_next_shot(ended_scene, ended_animator)
+
+    def stop(self, scene: scene, animator: animator) -> None:
         if not self.playing:
             return
         self.playing = False

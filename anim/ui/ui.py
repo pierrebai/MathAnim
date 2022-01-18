@@ -131,7 +131,7 @@ def create_number_text(title: str, low: IntOrFloat, high: IntOrFloat, value: Int
         widget.setValidator(QIntValidator(low, high))
     return widget
 
-def create_number_slider(title: str, low: int, high: int, value: int, layout: QLayout) -> QLineEdit:
+def create_number_slider(title: str, low: int, high: int, value: int, layout: QLayout) -> QSlider:
     """
     Creates and returns a slider widget (QSlider) for an integer number,
     with the given title, low and high limits, and current value in the given layout.
