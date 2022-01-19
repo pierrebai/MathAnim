@@ -60,7 +60,8 @@ class scene:
         self.remove_item(actor.item)
 
     def remove_all_items(self) -> None:
-        self.scene.clear()
+        self.scene = QGraphicsScene()
+        self.view.setScene(self.scene)
 
         self.title = QGraphicsSimpleTextItem()
         self.title.setFont(QFont("Georgia", 24))

@@ -1,7 +1,7 @@
 from .shot import shot;
 from .scene import scene
 
-from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject
+from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject, Qt
 
 
 class animation_group(QParallelAnimationGroup):
@@ -64,8 +64,7 @@ class animator(QObject):
         """
         super().__init__()
         self.anim_speedup = 1.
-        self.queued_anims = set()
-        self.ended_anims = set()
+        self.queued_anims = {}
         self.anim_group = animation_group()
         self.current_scene = None
         self.current_shot = None
@@ -105,15 +104,25 @@ class animator(QObject):
 
         When all animations that were added are done, the class shot_ended is called.
         """
-        self.queued_anims.add(anim)
+        self.queued_anims[anim] = []
         anim.setDuration(max(1., duration * 1000. / max(0.001, self.anim_speedup)))
         if on_finished:
+            self.queued_anims[anim].append(on_finished)
             anim.finished.connect(on_finished)
-        anim.finished.connect(lambda: self._anim_ended(anim))
+        ended = lambda: self._anim_ended(anim)
+        self.queued_anims[anim].append(ended)
+        anim.finished.connect(ended)
         self.anim_group.addAnimation(anim)
 
+    def _remove_anim(self, anim: QAbstractAnimation) -> None:
+        self.anim_group.removeAnimation(anim)
+        conns = self.queued_anims[anim]
+        del self.queued_anims[anim]
+        for conn in conns:
+            anim.finished.disconnect(conn)
+
     def _anim_ended(self, anim: QAbstractAnimation) -> None:
-        self.ended_anims.add(anim)
+        self._remove_anim(anim)
         self.check_all_anims_done()
 
     def play(self, shot: shot, scene: scene) -> None:
@@ -132,10 +141,8 @@ class animator(QObject):
         #       so we need to remove them before calling it, because
         #       sometimes we are being called within an animation signal
         #       and deleting the animation in that case would crash.
-        for anim in self.queued_anims:
-            self.anim_group.removeAnimation(anim)
-        self.queued_anims.clear()
-        self.ended_anims.clear()
+        for anim in list(self.queued_anims.keys()):
+            self._remove_anim(anim)
 
         self.current_shot = shot
         self.current_scene = scene
@@ -165,11 +172,9 @@ class animator(QObject):
         self.anim_group.stop()
         for anim in list(self.queued_anims):
             anim.setCurrentTime(anim.totalDuration())
-            if anim not in self.ended_anims:
-                anim.finished.emit()
 
     def are_all_anims_done(self):
-        return len(self.queued_anims) == len(self.ended_anims)
+        return not self.queued_anims
 
     def check_all_anims_done(self) -> None:
         if not self.current_shot:

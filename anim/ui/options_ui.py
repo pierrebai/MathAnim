@@ -43,7 +43,10 @@ def _create_bool_ui(option: option, scene: scene, animation: animation, animator
 def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
     ui = create_list(option.name, option.low_value, layout)
     _add_ui_description(ui, option)
-    # TODO: list change reaction.
+    @ui.currentTextChanged.connect
+    def on_changed(value):
+        option.value = str(value)
+        animation.option_changed(scene, animator, option)
 
 def _create_text_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_text(option.name, option.description, option.value, layout)
