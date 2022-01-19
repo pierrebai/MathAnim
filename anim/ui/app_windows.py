@@ -1,3 +1,4 @@
+from anim.options import option
 from ..animation import animation
 from ..animator import animator
 from ..scene import scene
@@ -16,7 +17,6 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     stop_button = create_button("Stop", buttons_layout)
     reset_button = create_button("Reset", buttons_layout)
     current_time_box = create_number_slider("Current time", 0, 1000, 0, anim_layout)
-    speed_box = create_number_range_slider("Animation speed", 1, 100, int(animator.anim_speedup * 20), anim_layout)
     add_stretch(anim_layout)
 
     options_dock, _ = create_options_ui(scene, animation, animator)
@@ -53,10 +53,6 @@ def create_app_window(animation: animation, scene: scene, animator: animator) ->
     @current_time_box.valueChanged.connect
     def on_current_time_changed(value):
         animator.set_current_time_fraction(int(value) / 1000.)
-
-    @speed_box.valueChanged.connect
-    def on_speed_changed(value):
-        animator.anim_speedup = int(value) / 20.
 
     @animator.anim_group.current_time_changed.connect
     def on_anim_current_time_changed(value: float):

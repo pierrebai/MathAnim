@@ -62,10 +62,17 @@ class animation(anim.animation):
         self._anim_move_tiles()
         self._anim_fill_holes()
 
-    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+    def _handle_generator_options(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
         if option == self.seed_option or option == self.tiles_sequence_option:
             self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
 
+    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        """
+        Called when an option value is changed.
+        Override base-class behavior to not interrupt the animations.
+        """
+        self._handle_speed_options(scene, animator, option)
+        self._handle_generator_options(scene, animator, option)
 
     #################################################################
     #

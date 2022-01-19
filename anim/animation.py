@@ -23,6 +23,9 @@ class animation(named):
         self.playing = False
         self.on_shot_changed = None
 
+        self.anim_speed_option = option("Animation speed", "How fast the animations is played.", int(animator.anim_speedup * 20), 1, 100)
+        self.add_options(self.anim_speed_option)
+
         animator.shot_ended.connect(self._shot_ended)
 
     def reset(self, scene: scene, animator: animator) -> None:
@@ -32,14 +35,14 @@ class animation(named):
         was_last = (self.current_shot_index == len(self.shots) - 1)
         shown_by_names = self.get_shown_actors_by_names()
 
-        animator.stop()
-        
         for actor in self.actors:
             scene.remove_actor(actor)
         scene.remove_all_items()
         self.actors = set()
         self.shots = []
 
+        animator.stop()
+        
         self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)
@@ -121,6 +124,13 @@ class animation(named):
             for opt in options:
                 self.add_options(opt)
 
+    def _handle_speed_options(self, scene: scene, animator: animator, option: option) -> None:
+        """
+        Handles the animation speed option, which all animations get.
+        """
+        if option == self.anim_speed_option:
+            animator.anim_speedup = int(option.value) / 20.
+
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         """
         Called when an option value is changed. By default it resets the animation
@@ -130,10 +140,9 @@ class animation(named):
         """
         # The reset function regenerate the actors, anims and shots,
         # which will make the animator pick up the new animations on the fly.
+        self._handle_speed_options(scene, animator, option)
         self.reset(scene, animator)
-        # Stopping the animator only triggers its shot_ended,
-        # which in the main triggers the next shot to be played.
-        animator.stop()
+        self.resume_play(scene, animator)
 
     def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
         """
@@ -169,8 +178,13 @@ class animation(named):
             return
 
         if not self.playing:
-            self.playing = True
             self.single_shot = True
+
+        self.resume_play(scene, animator)
+
+    def resume_play(self, scene: scene, animator: animator) -> None:
+        if not self.playing:
+            self.playing = True
 
         self.current_shot_index = self.current_shot_index % len(self.shots)
         current_shot = self.shots[self.current_shot_index]
