@@ -19,8 +19,8 @@ class scene:
         Sets some useful default: anchored in teh center, no scrollbars,
         antialiasing and smooth pixmap transforms.
         """
+        super().__init__()
         self.default_margin = margin
-        self.largest_scene_rect = QRectF(0, 0, 0, 0)
 
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
@@ -42,7 +42,6 @@ class scene:
         """
         self.title = ""
         self.description = ""
-        self.largest_scene_rect = QRectF(0, 0, 0, 0)
         self.ensure_all_contents_fit(margin)
         
     def get_widget(self) -> QGraphicsView:
@@ -107,13 +106,16 @@ class scene:
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
-        self.scene.addItem(self.title)
         self.scene.addItem(self.title_box)
-        self.scene.addItem(self.description)
         self.scene.addItem(self.description_box)
         self.scene.addItem(self.pointing_arrow.item)
 
-        return actors_rect
+        scene_rect = self.scene.itemsBoundingRect()
+
+        self.scene.addItem(self.title)
+        self.scene.addItem(self.description)
+        
+        return actors_rect, scene_rect
 
     def _size_text_boxes(self):
         letter_count = len(self.title.text())
@@ -128,7 +130,7 @@ class scene:
     def _place_title_and_desc(self) -> QRectF:
         self._size_text_boxes()
 
-        actors_rect = self._get_actors_rect()
+        actors_rect, scene_rect = self._get_actors_rect()
 
         view_top_left = self.view.mapFromScene(actors_rect.topLeft())
         top_left = self.view.mapToScene(view_top_left - QPoint(0, self.title.font().pointSize() * 4))
@@ -139,11 +141,6 @@ class scene:
         top_left = self.view.mapToScene(view_top_right + QPoint(30, 0))
         self.description.setPos(top_left)
         self.description_box.setPos(top_left)
-
-        scene_rect = actors_rect
-        scene_rect = scene_rect.united(self.pointing_arrow.item.sceneBoundingRect())
-        scene_rect = scene_rect.united(self.title_box.sceneBoundingRect())
-        scene_rect = scene_rect.united(self.description_box.sceneBoundingRect())
 
         return scene_rect
 
@@ -162,5 +159,4 @@ class scene:
         Fits the whole contents of the scene with the given margin
         or the default margin all around.
         """
-        self.largest_scene_rect = scene_rect.united(self.largest_scene_rect)
-        self.view.fitInView(self.largest_scene_rect, Qt.KeepAspectRatio)
+        self.view.fitInView(scene_rect, Qt.KeepAspectRatio)

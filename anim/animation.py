@@ -35,7 +35,7 @@ class animation(QObject, named):
         """
         Clears the actors and shots and recreates them.
         """
-        was_last = (self.current_shot_index == len(self.shots) - 1)
+        was_last = (self.current_shot_index >= 0 and self.current_shot_index == len(self.shots) - 1)
         shown_by_names = self.get_shown_actors_by_names()
 
         for actor in self.actors:
@@ -51,14 +51,12 @@ class animation(QObject, named):
         self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
-        # scene.ensure_all_contents_fit()
+        scene.ensure_all_contents_fit()
 
         if was_last:
             self.current_shot_index = len(self.shots) - 1
         else:
-            self.current_shot_index = 0
-        scene.set_title(self.shots[self.current_shot_index].name)
-        scene.set_description(self.shots[self.current_shot_index].description)
+            self.current_shot_index = -1
 
     def add_actors(self, actors, scene: scene) -> None:
         """
@@ -175,7 +173,9 @@ class animation(QObject, named):
         self.play(scene, animator)
 
     def play_next_shot(self, scene: scene, animator: animator) -> None:
-        self.current_shot_index = self.current_shot_index + 1
+        current_shot = self.shots[self.current_shot_index]
+        if self.current_shot_index == -1 or not current_shot.repeat:
+            self.current_shot_index = self.current_shot_index + 1
         self.play_current_shot(scene, animator)
 
     def play_current_shot(self, scene: scene, animator: animator) -> None:
