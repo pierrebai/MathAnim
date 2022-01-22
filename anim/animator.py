@@ -1,4 +1,5 @@
-from .shot import shot;
+from .ui.ui import connect_auto_signal, disconnect_auto_signals
+from .shot import shot
 from .scene import scene
 
 from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject, Qt
@@ -64,7 +65,7 @@ class animator(QObject):
         """
         super().__init__()
         self.anim_speedup = 1.
-        self.queued_anims = {}
+        self.queued_anims = set()
         self.anim_group = animation_group()
         self.current_scene = None
         self.current_shot = None
@@ -89,7 +90,7 @@ class animator(QObject):
         anim.setStartValue(start_value)
         anim.setEndValue(end_value)
         if on_changed:
-            anim.valueChanged.connect(on_changed)
+            connect_auto_signal(anim, anim.valueChanged, on_changed)
         self.animate(anim, duration, on_finished)
 
     def animate(self, anim: QAbstractAnimation, duration, on_finished = None) -> None:
@@ -104,14 +105,12 @@ class animator(QObject):
 
         When all animations that were added are done, the class shot_ended is called.
         """
-        self.queued_anims[anim] = []
+        self.queued_anims.add(anim)
         anim.setDuration(max(1., duration * 1000. / max(0.001, self.anim_speedup)))
         if on_finished:
-            self.queued_anims[anim].append(on_finished)
-            anim.finished.connect(on_finished)
+            connect_auto_signal(anim, anim.finished, on_finished)
         ended = lambda: self._anim_ended(anim)
-        self.queued_anims[anim].append(ended)
-        anim.finished.connect(ended)
+        connect_auto_signal(anim, anim.finished, ended)
         self.anim_group.addAnimation(anim)
 
     def _remove_anim(self, anim: QAbstractAnimation) -> None:
@@ -120,10 +119,8 @@ class animator(QObject):
         #       sometimes we are being called within an animation signal
         #       and deleting the animation in that case would crash.
         self.anim_group.removeAnimation(anim)
-        conns = self.queued_anims[anim]
-        del self.queued_anims[anim]
-        for conn in conns:
-            anim.finished.disconnect(conn)
+        disconnect_auto_signals(anim)
+        self.queued_anims.remove(anim)
 
     def _anim_ended(self, anim: QAbstractAnimation) -> None:
         self._remove_anim(anim)
