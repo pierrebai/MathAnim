@@ -5,28 +5,38 @@ from PySide6.QtWidgets import *
 
 from typing import Tuple
 
-def _connect_actor_ui(ui: QCheckBox, animation: animation, name) -> None:
+def _create_actor_ui(animation: animation, name: str, shown: bool, layout: QVBoxLayout) -> None:
     """
     Connects the check box changed signal to a function that updates
     the shown state of the anmation actors.
     """
-    @ui.stateChanged.connect
+    ui = create_checkbox(f"Draw {name}", layout, shown)
     def on_changed(state):
         for actor in animation.actors:
             if actor.name == name:
                 actor.show(bool(state))
+    signal_connection = ui.stateChanged.connect(on_changed)
 
+    def disconnect():
+        ui.stateChanged.disconnect(signal_connection)
+    ui.auto_disconnect = disconnect
+
+def _fill_actors_ui(animation: animation, layout: QVBoxLayout) -> None:
+    shown_by_names = animation.get_shown_actors_by_names()
+    for name, shown in shown_by_names.items():
+        # Note: connect must be out of the loop due to how variables
+        #       are captured in inner functions.
+        _create_actor_ui(animation, name, shown, layout)
+    add_stretch(layout)
 
 def create_actors_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:
     """
     Creates the UI to control which actors are shown.
     """
     dock, layout = create_dock("Draw Options")
-    shown_by_names = animation.get_shown_actors_by_names()
-    for name, shown in shown_by_names.items():
-        ui = create_option(f"Draw {name}", layout, shown)
-        # Note: connect must be out of the loop due to how variables
-        #       are captured in inner functions.
-        _connect_actor_ui(ui, animation, name)
-    add_stretch(layout)
+    _fill_actors_ui(animation, layout)
     return dock, layout
+
+def update_actors_ui(animation, layout: QVBoxLayout) -> None:
+    empty_dock(layout)
+    _fill_actors_ui(animation, layout)

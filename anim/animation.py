@@ -1,4 +1,3 @@
-from .named import named
 from .actor import actor
 from .animator import animator
 from .shot import shot
@@ -9,19 +8,23 @@ from . import anims
 from collections import defaultdict
 from typing import Dict, List
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, Signal, QObject
 
 
-class animation(named):
+class animation(QObject):
+
+    on_shot_changed = Signal(scene, animator, shot)
+
     def __init__(self, name: str, description: str, scene: scene, animator: animator) -> None:
-        super().__init__(name, description)
+        super().__init__()
+        self.name = name
+        self.description = description
         self.options = options()
         self.actors = set()
         self.shots = []
         self.current_shot_index = -1
         self.loop = False
         self.playing = False
-        self.on_shot_changed = None
 
         self.anim_speed_option = option("Animation speed", "How fast the animations is played.", int(animator.anim_speedup * 20), 1, 100)
         self.add_options(self.anim_speed_option)
@@ -191,8 +194,7 @@ class animation(named):
         scene.set_title(current_shot.name)
         scene.set_description(current_shot.description)
         animator.play(current_shot, scene)
-        if self.on_shot_changed:
-            self.on_shot_changed(scene, animator, current_shot)
+        self.on_shot_changed.emit(scene, animator, current_shot)
 
     def _shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
         if not self.playing or self.single_shot or (not self.loop and not ended_shot.repeat and self.current_shot_index == len(self.shots) - 1):

@@ -34,6 +34,14 @@ def create_dock(title: str) -> Tuple[QDockWidget, QVBoxLayout]:
     dock.setWidget(container)
     return dock, layout
 
+def empty_dock(layout: QVBoxLayout):
+    for i in reversed(list(range(layout.count()))):
+        item = layout.itemAt(i)
+        if not isinstance(item, QSpacerItem):
+            ui = item.widget()
+            ui.auto_disconnect()
+        layout.removeItem(i)
+
 def create_label(title: str, layout: QLayout) -> QLabel:
     """
     Creates and returns a label in the given layout with the given text.
@@ -165,7 +173,7 @@ def create_number_range_slider(title: str, low: int, high: int, value: int, layo
     slider.valueChanged.connect(text.setValue)
     return text
 
-def create_option(title: str, layout: QLayout, state = True) -> QCheckBox:
+def create_checkbox(title: str, layout: QLayout, state = True) -> QCheckBox:
     """
     Creates and returns an option widget (QCheckBox) with teh given title in the given layout.
     Optionally set the current state, which defaults to True.
