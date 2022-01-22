@@ -150,7 +150,7 @@ class animator(QObject):
 
         # Make sure all previous animation are at their end-time
         # And their finished signal has been triggered.
-        for anim in list(self.queued_anims.keys()):
+        for anim in list(self.queued_anims):
             anim.setCurrentTime(anim.totalDuration())
             anim.finished.emit()
 
@@ -183,7 +183,7 @@ class animator(QObject):
         """
         Clears all animations without triggering anything.
         """
-        for anim in list(self.queued_anims.keys()):
+        for anim in list(self.queued_anims):
             self._remove_anim(anim)
         self.queued_anims.clear()
         self.anim_group.clear()
