@@ -23,11 +23,7 @@ def _create_int_ui(option: option, scene: scene, animation: animation, animator:
     def on_changed(value):
         option.value = int(value)
         animation.option_changed(scene, animator, option)
-    signal_connection = ui.valueChanged.connect(on_changed)
-
-    def disconnect():
-        ui.valueChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.valueChanged, on_changed)
 
 def _create_float_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_number_text(option.name, option.low_value, option.high_value, option.value, layout)
@@ -35,11 +31,7 @@ def _create_float_ui(option: option, scene: scene, animation: animation, animato
     def on_changed(value):
         option.value = float(value)
         animation.option_changed(scene, animator, option)
-    signal_connection = ui.valueChanged.connect(on_changed)
-
-    def disconnect():
-        ui.valueChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.valueChanged, on_changed)
 
 def _create_bool_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_checkbox(option.name, layout, option.value)
@@ -47,11 +39,7 @@ def _create_bool_ui(option: option, scene: scene, animation: animation, animator
     def on_changed(state):
         option.value = bool(state)
         animation.option_changed(scene, animator, option)
-    signal_connection = ui.stateChanged.connect(on_changed)
-
-    def disconnect():
-        ui.valueChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.stateChanged, on_changed)
 
 def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
     ui = create_list(option.name, option.low_value, layout)
@@ -59,11 +47,7 @@ def _create_list_ui(option: option, scene: scene, animation: animation, layout: 
     def on_changed(value):
         option.value = str(value)
         animation.option_changed(scene, animator, option)
-    signal_connection = ui.currentTextChanged.connect(on_changed)
-
-    def disconnect():
-        ui.valueChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.currentTextChanged, on_changed)
 
 def _create_text_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_text(option.name, option.description, option.value, layout)
@@ -71,11 +55,7 @@ def _create_text_ui(option: option, scene: scene, animation: animation, animator
     def on_changed(value):
         option.value = str(value)
         animation.option_changed(scene, animator, option)
-    signal_connection = ui.textChanged.connect(on_changed)
-
-    def disconnect():
-        ui.valueChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.textChanged, on_changed)
 
 _ui_makers = {
     int: _create_int_ui,

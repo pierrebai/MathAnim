@@ -1,4 +1,4 @@
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 
@@ -37,9 +37,8 @@ def create_dock(title: str) -> Tuple[QDockWidget, QVBoxLayout]:
 def empty_dock(layout: QVBoxLayout):
     for i in reversed(list(range(layout.count()))):
         item = layout.itemAt(i)
-        if not isinstance(item, QSpacerItem):
-            ui = item.widget()
-            ui.auto_disconnect()
+        ui = item.widget()
+        disconnect_auto_signals(ui)
         layout.removeItem(i)
 
 def create_label(title: str, layout: QLayout) -> QLabel:
@@ -212,3 +211,25 @@ def create_timer(interval: int) -> QTimer:
     timer = QTimer()
     timer.setInterval(interval)
     return timer
+
+def connect_auto_signal(obj: object, signal: Signal, func: callable):
+    """
+    Connects the signal to the callable and adds the signal connection
+    to the auto_disconnect variable of the object, so it can be disconnected
+    later by disconnect_auto_signals().
+    """
+    connection = signal.connect(func)
+
+    if not hasattr(obj, "auto_disconnect"):
+        obj.auto_disconnect = []
+    obj.auto_disconnect.append((signal, connection))
+
+def disconnect_auto_signals(obj: object):
+    """
+    Disconnects all registered signal.
+    """
+    if not hasattr(obj, "auto_disconnect"):
+        return
+    for signal, connection in obj.auto_disconnect:
+        signal.disconnect(connection)
+    obj.auto_disconnect.clear()

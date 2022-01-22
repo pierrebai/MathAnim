@@ -1,4 +1,4 @@
-from .ui import create_dock, create_list, empty_dock, select_in_list, add_stretch
+from .ui import create_dock, create_list, empty_dock, select_in_list, add_stretch, connect_auto_signal, disconnect_auto_signals
 from ..animation import animation
 
 from PySide6.QtWidgets import QDockWidget, QVBoxLayout
@@ -10,11 +10,7 @@ def _fill_shots_ui(animation: animation, layout: QVBoxLayout) -> None:
     
     def on_shot_changed(scene, animator, shot):
         select_in_list(shot.name, ui)
-    signal_connection = animation.on_shot_changed.connect(on_shot_changed)
-
-    def disconnect():
-        animation.on_shot_changed.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(animation, animation.on_shot_changed, on_shot_changed)
 
     add_stretch(layout)
 

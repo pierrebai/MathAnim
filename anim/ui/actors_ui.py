@@ -15,11 +15,7 @@ def _create_actor_ui(animation: animation, name: str, shown: bool, layout: QVBox
         for actor in animation.actors:
             if actor.name == name:
                 actor.show(bool(state))
-    signal_connection = ui.stateChanged.connect(on_changed)
-
-    def disconnect():
-        ui.stateChanged.disconnect(signal_connection)
-    ui.auto_disconnect = disconnect
+    connect_auto_signal(ui, ui.stateChanged, on_changed)
 
 def _fill_actors_ui(animation: animation, layout: QVBoxLayout) -> None:
     shown_by_names = animation.get_shown_actors_by_names()
