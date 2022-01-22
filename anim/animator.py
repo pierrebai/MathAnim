@@ -115,6 +115,10 @@ class animator(QObject):
         self.anim_group.addAnimation(anim)
 
     def _remove_anim(self, anim: QAbstractAnimation) -> None:
+        # Note: QParallelAnimationGroup clear deletes the animations,
+        #       so we need to remove them before calling it, because
+        #       sometimes we are being called within an animation signal
+        #       and deleting the animation in that case would crash.
         self.anim_group.removeAnimation(anim)
         conns = self.queued_anims[anim]
         del self.queued_anims[anim]
@@ -127,22 +131,33 @@ class animator(QObject):
 
     def play(self, shot: shot, scene: scene) -> None:
         """
+        Sets all previous animation to their end-time, trigger their
+        anim-finished signals, removes all these previous animations
+        from the anim group, clear all queued animations.
+
         Prepare all animations of the shot by calling their prepare_anim functions
         unless the shot is set to not be shown, in which case do nothing.
         """
         if not shot.shown:
             return
 
-        # Calling stop ensures that the animation-ended signals
-        # have been emitted.
+        # Make sure the anim group is stopped.
         self.stop()
 
-        # Note: QParallelAnimationGroup clear deletes the animations,
-        #       so we need to remove them before calling it, because
-        #       sometimes we are being called within an animation signal
-        #       and deleting the animation in that case would crash.
+        # Clear the current scene and shot to avoid triggering
+        # the shot_ended signal since we are restarting play,
+        # we don't want to confuse the caller and potentially
+        # cause a double-start.
+        self.current_shot = None
+        self.current_scene = None
+
+        # Make sure all previous animation are at their end-time
+        # And their finished signal has been triggered.
         for anim in list(self.queued_anims.keys()):
-            self._remove_anim(anim)
+            anim.setCurrentTime(anim.totalDuration())
+            anim.finished.emit()
+
+        self.reset()
 
         self.current_shot = shot
         self.current_scene = scene
@@ -155,7 +170,7 @@ class animator(QObject):
 
     def set_current_time_fraction(self, frac: float):
         """
-        Set the current time of the animation in fraction of the duration,
+        Sets the current time of the animation in fraction of the duration,
         between zero and one.
         """
         duration = self.anim_group.totalDuration()
@@ -163,15 +178,20 @@ class animator(QObject):
 
     def stop(self) -> None:
         """
-        Stop the anim group, remove all animations from the anim group,
-        clear all queued and ended animations.
-
-        Trigger shot_ended signal unless cleaning up animations queued
-        more animations.
+        Stops the anim group.
         """
         self.anim_group.stop()
-        for anim in list(self.queued_anims):
-            anim.setCurrentTime(anim.totalDuration())
+
+    def reset(self):
+        """
+        Clears all animations without triggering anything.
+        """
+        for anim in list(self.queued_anims.keys()):
+            self._remove_anim(anim)
+        self.queued_anims.clear()
+        self.anim_group.clear()
+        self.current_scene = None
+        self.current_shot = None
 
     def are_all_anims_done(self):
         return not self.queued_anims

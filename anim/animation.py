@@ -45,6 +45,7 @@ class animation(QObject):
         self.shots = []
 
         animator.stop()
+        animator.reset()
         
         self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
@@ -160,7 +161,7 @@ class animation(QObject):
         what_pos = QPointF(head_point)
         animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
 
-    def play(self, scene: scene, animator: animator, start_at_shot_index = 0) -> None:
+    def play(self, scene: scene, animator: animator, start_at_shot_index = None) -> None:
         if self.playing:
             return
         self.playing = True
