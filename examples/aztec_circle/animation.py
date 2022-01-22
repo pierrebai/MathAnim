@@ -1,7 +1,7 @@
 import anim
 
-from aztec_circle import aztec
-from tile_generator import sequence_tile_generator
+from .aztec_circle import aztec
+from .tile_generator import sequence_tile_generator
 
 from PySide6.QtCore import QPointF
 

@@ -33,6 +33,7 @@ def create_actors_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:
     _fill_actors_ui(animation, layout)
     return dock, layout
 
-def update_actors_ui(animation, layout: QVBoxLayout) -> None:
-    empty_dock(layout)
+def update_actors_ui(animation, dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+    layout = empty_dock(dock, layout)
     _fill_actors_ui(animation, layout)
+    return layout

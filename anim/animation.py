@@ -1,5 +1,6 @@
 from .actor import actor
 from .animator import animator
+from .named import named
 from .shot import shot
 from .options import option, options
 from .scene import scene
@@ -11,12 +12,13 @@ from typing import Dict, List
 from PySide6.QtCore import QPointF, Signal, QObject
 
 
-class animation(QObject):
+class animation(QObject, named):
 
     on_shot_changed = Signal(scene, animator, shot)
 
     def __init__(self, name: str, description: str, scene: scene, animator: animator) -> None:
-        super().__init__()
+        QObject.__init__(self)
+        named.__init__(self, name, description)
         self.name = name
         self.description = description
         self.options = options()
@@ -28,8 +30,6 @@ class animation(QObject):
 
         self.anim_speed_option = option("Animation speed", "How fast the animations is played.", int(animator.anim_speedup * 20), 1, 100)
         self.add_options(self.anim_speed_option)
-
-        animator.shot_ended.connect(self._shot_ended)
 
     def reset(self, scene: scene, animator: animator) -> None:
         """
@@ -146,7 +146,8 @@ class animation(QObject):
         # which will make the animator pick up the new animations on the fly.
         self._handle_speed_options(scene, animator, option)
         self.reset(scene, animator)
-        self.resume_play(scene, animator)
+        if self.playing:
+            self.resume_play(scene, animator)
 
     def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
         """
@@ -194,10 +195,10 @@ class animation(QObject):
         current_shot = self.shots[self.current_shot_index]
         scene.set_title(current_shot.name)
         scene.set_description(current_shot.description)
-        animator.play(current_shot, scene)
+        animator.play(current_shot, self, scene)
         self.on_shot_changed.emit(scene, animator, current_shot)
 
-    def _shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
+    def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
         if not self.playing or self.single_shot or (not self.loop and not ended_shot.repeat and self.current_shot_index == len(self.shots) - 1):
             self.stop(ended_scene, ended_animator)
         elif ended_shot.repeat:

@@ -20,6 +20,13 @@ def start_app(app: QApplication, window: QMainWindow) -> None:
     window.show()
     app.exec_()
 
+def _create_dock_container(dock: QDockWidget) -> QVBoxLayout:
+    container = QWidget()
+    container.setMinimumWidth(150)
+    layout = QVBoxLayout(container)
+    dock.setWidget(container)
+    return layout
+
 def create_dock(title: str) -> Tuple[QDockWidget, QVBoxLayout]:
     """
     Creates a QDockWidget that can be put in a QMainWindow
@@ -28,18 +35,19 @@ def create_dock(title: str) -> Tuple[QDockWidget, QVBoxLayout]:
     """
     dock = QDockWidget(title)
     dock.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
-    container = QWidget()
-    container.setMinimumWidth(150)
-    layout = QVBoxLayout(container)
-    dock.setWidget(container)
+    layout = _create_dock_container(dock)
     return dock, layout
 
-def empty_dock(layout: QVBoxLayout):
-    for i in reversed(list(range(layout.count()))):
-        item = layout.itemAt(i)
+def empty_dock(dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+    while layout.count():
+        item = layout.itemAt(layout.count() - 1)
         ui = item.widget()
-        disconnect_auto_signals(ui)
-        layout.removeItem(i)
+        if ui:
+            disconnect_auto_signals(ui)
+            layout.removeWidget(ui)
+        else:
+            layout.removeItem(item)
+    return _create_dock_container(dock)
 
 def create_label(title: str, layout: QLayout) -> QLabel:
     """

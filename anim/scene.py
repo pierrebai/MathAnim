@@ -38,7 +38,7 @@ class scene:
         Resets to a new scene and resets the view with the given margin
         or the default margin.
         """
-        pass
+        self.adjust_view_to_fit()
         
     def get_widget(self) -> QGraphicsView:
         """

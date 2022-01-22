@@ -45,17 +45,11 @@ class animator(QObject):
     default duration. The speedup divides the duration, so a speedup of 2 plays
     the animations twice as fast.
 
-    The typical usage is to connect shot_ended signal to a function that sets
-    up the next animation shot. Then, in each animation shot, animate() is
-    called to specify which item gets animated in the shot.
-
     Since animate() also takes a per-animated-item on_finished callback,
     it is also possible to add new animation items when a given item is done.
     This can be useful if you want to chain animations of different items with
     different durations without having to calculate the exact chain of durations.
     """
-
-    shot_ended = Signal(shot, scene, object)
 
     def __init__(self) -> None:
         """
@@ -69,6 +63,7 @@ class animator(QObject):
         self.anim_group = animation_group()
         self.current_scene = None
         self.current_shot = None
+        self.current_animation = None
 
     #################################################################
     #
@@ -103,7 +98,7 @@ class animator(QObject):
         The given optional on_changed callback is called every time the value changes during the animation.
         The given optional on_finished is called when the animation ends.
 
-        When all animations that were added are done, the class shot_ended is called.
+        When all animations that were added are done, the current animation shot_ended is called.
         """
         self.queued_anims.add(anim)
         anim.setDuration(max(1., duration * 1000. / max(0.001, self.anim_speedup)))
@@ -126,7 +121,7 @@ class animator(QObject):
         self._remove_anim(anim)
         self.check_all_anims_done()
 
-    def play(self, shot: shot, scene: scene) -> None:
+    def play(self, shot: shot, animation, scene: scene) -> None:
         """
         Sets all previous animation to their end-time, trigger their
         anim-finished signals, removes all these previous animations
@@ -141,12 +136,11 @@ class animator(QObject):
         # Make sure the anim group is stopped.
         self.stop()
 
-        # Clear the current scene and shot to avoid triggering
+        # Clear the current shot to avoid triggering
         # the shot_ended signal since we are restarting play,
         # we don't want to confuse the caller and potentially
         # cause a double-start.
         self.current_shot = None
-        self.current_scene = None
 
         # Make sure all previous animation are at their end-time
         # And their finished signal has been triggered.
@@ -158,6 +152,7 @@ class animator(QObject):
 
         self.current_shot = shot
         self.current_scene = scene
+        self.current_animation = animation
         for prep in shot.prepare_anims:
             prep(shot, scene, self)
         scene.ensure_all_contents_fit()
@@ -189,6 +184,7 @@ class animator(QObject):
         self.anim_group.clear()
         self.current_scene = None
         self.current_shot = None
+        self.current_animation = None
 
     def are_all_anims_done(self):
         return not self.queued_anims
@@ -200,13 +196,15 @@ class animator(QObject):
         if not self.are_all_anims_done():
             return
 
-        # Note: keep a copy of the current shot and scene and clear them
-        #       immediately before calling cleanup of shot_ended since
-        #       both may queue a new shot.
+        # Note: keep a copy of the current shot, scene and animation
+        #       and clear them immediately before calling cleanup of
+        #       the current shot it may queue a new shot.
         shot = self.current_shot
         scene = self.current_scene
+        animation = self.current_animation
         self.current_shot = None
         self.current_scene = None
+        self.current_animation = None
 
         for cleanup in shot.cleanup_anims:
             cleanup(shot, scene, self)
@@ -215,6 +213,7 @@ class animator(QObject):
         if not self.are_all_anims_done():
             return
 
-        self.shot_ended.emit(shot, scene, self)
+        if animation:
+            animation.shot_ended(shot, scene, self)
 
 

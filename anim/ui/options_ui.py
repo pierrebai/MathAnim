@@ -88,6 +88,7 @@ def create_options_ui(scene: scene, animation: animation, animator: animator) ->
     _fill_options_ui(scene, animation, animator, layout)
     return dock, layout
 
-def update_options_ui(scene: scene, animation: animation, animator: animator, layout: QVBoxLayout) -> None:
-    empty_dock(layout)
+def update_options_ui(scene: scene, animation: animation, animator: animator, dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+    layout = empty_dock(dock, layout)
     _fill_options_ui(scene, animation, animator, layout)
+    return layout

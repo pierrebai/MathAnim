@@ -1,4 +1,4 @@
-from half_tile import available_tiles
+from .half_tile import available_tiles
 
 class aztec:
     """

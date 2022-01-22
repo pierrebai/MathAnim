@@ -1,4 +1,4 @@
-from .ui import create_dock, create_list, empty_dock, select_in_list, add_stretch, connect_auto_signal, disconnect_auto_signals
+from .ui import create_dock, create_list, empty_dock, select_in_list, add_stretch, connect_auto_signal
 from ..animation import animation
 
 from PySide6.QtWidgets import QDockWidget, QVBoxLayout
@@ -22,6 +22,7 @@ def create_shots_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:
     _fill_shots_ui(animation, layout)
     return dock, layout
 
-def update_shots_ui(animation: animation, layout: QVBoxLayout) -> None:
-    empty_dock(layout)
+def update_shots_ui(animation: animation, dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+    layout = empty_dock(dock, layout)
     _fill_shots_ui(animation, layout)
+    return layout

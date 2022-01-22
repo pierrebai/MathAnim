@@ -4,58 +4,45 @@ from ..animator import animator
 from ..scene import scene
 
 from .ui import *
-from .options_ui import create_options_ui
-from .actors_ui import create_actors_ui
-from .shots_ui import create_shots_ui
+from .options_ui import create_options_ui, update_options_ui
+from .actors_ui import create_actors_ui, update_actors_ui
+from .shots_ui import create_shots_ui, update_shots_ui
+from .animations_ui import create_animations_ui
+from .animation_controls_ui import create_animation_controls_ui, update_animation_controls_ui
 
-def create_app_window(animation: animation, scene: scene, animator: animator) -> QMainWindow:
-    anim_dock, anim_layout = create_dock("Animation Controls")
+from typing import List, Type, Tuple
 
-    buttons_layout = create_horiz_container(anim_layout)
-    play_button = create_button("Play", buttons_layout)
-    step_button = create_button("Step", buttons_layout)
-    stop_button = create_button("Stop", buttons_layout)
-    reset_button = create_button("Reset", buttons_layout)
-    current_time_box = create_number_slider("Current time", 0, 1000, 0, anim_layout)
-    add_stretch(anim_layout)
+def create_app_window(animations: List[Tuple[str, Type]], scene: scene, animator: animator) -> QMainWindow:
+    if not animations:
+        return
 
-    options_dock, _ = create_options_ui(scene, animation, animator)
-    draw_dock, _ = create_actors_ui(animation)
-    shots_dock, _ = create_shots_ui(animation)
+    current_anim = animations[0][1](scene, animator)
+    anim_ctrl_dock, anim_ctrl_layout = create_animation_controls_ui(current_anim, scene, animator)
+    options_dock, options_layout = create_options_ui(scene, current_anim, animator)
+    actors_dock, actors_layout = create_actors_ui(current_anim)
+    shots_dock, shots_layout = create_shots_ui(current_anim)
 
-    window = create_main_window(animation.name, scene.get_widget())
+    def on_anim_changed(name: str):
+        nonlocal anim_ctrl_layout, options_layout, actors_layout, shots_layout, window
+        for anim_name, anim_type in animations:
+            if anim_name == name:
+                animator.stop()
+                animator.reset()
+                scene.reset()
+                current_anim = anim_type(scene, animator)
+                anim_ctrl_layout = update_animation_controls_ui(current_anim, scene, animator, anim_ctrl_dock, anim_ctrl_layout)
+                options_layout = update_options_ui(scene, current_anim, animator, options_dock, options_layout)
+                actors_layout = update_actors_ui(current_anim, actors_dock, actors_layout)
+                shots_layout = update_shots_ui(current_anim, shots_dock, shots_layout)
+                break
+
+    anims_dock, _ = create_animations_ui([anim_name for anim_name, _ in animations], on_anim_changed)
+
+    window = create_main_window(current_anim.name, scene.get_widget())
+    add_dock(window, anims_dock)
     add_dock(window, shots_dock)
-    add_dock(window, anim_dock)
+    add_dock(window, anim_ctrl_dock)
     add_dock(window, options_dock)
-    add_dock(window, draw_dock)
-
-    @play_button.clicked.connect
-    def on_play():
-        animation.play_all(scene, animator)
-
-    @step_button.clicked.connect
-    def on_step():
-        if not animation.playing:
-            animation.play_next_shot(scene, animator)
-
-    @stop_button.clicked.connect
-    def on_stop():
-        animation.stop(scene, animator)
-
-    @reset_button.clicked.connect
-    def on_reset():
-        was_playing = animation.playing
-        animation.stop(scene, animator)
-        animation.reset(scene, animator)
-        if was_playing:
-            animation.play_all(scene, animator)
-
-    @current_time_box.valueChanged.connect
-    def on_current_time_changed(value):
-        animator.set_current_time_fraction(int(value) / 1000.)
-
-    @animator.anim_group.current_time_changed.connect
-    def on_anim_current_time_changed(value: float):
-        current_time_box.setValue(int(round(1000 * value)))
+    add_dock(window, actors_dock)
 
     return window
