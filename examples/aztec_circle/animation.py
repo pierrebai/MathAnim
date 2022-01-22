@@ -282,4 +282,4 @@ class animation(anim.animation):
 
     def fills_done(self, az):
         self.items, self.new_items = self.new_items, self.items
-        self.scene.adjust_view_to_fit()
+        self.scene.ensure_all_contents_fit(self.scene.default_margin + anim.items.tile_size * 2)

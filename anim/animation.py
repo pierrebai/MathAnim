@@ -51,7 +51,7 @@ class animation(QObject, named):
         self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
-        scene.ensure_all_contents_fit()
+        # scene.ensure_all_contents_fit()
 
         if was_last:
             self.current_shot_index = len(self.shots) - 1
@@ -154,7 +154,7 @@ class animation(QObject, named):
         Animate the pointing arrow to point to the new point of interest.
         """
         tail_pos = QPointF(scene.pointing_arrow.item.tail)
-        desc_rect = scene.descriptionBox.sceneBoundingRect()
+        desc_rect = scene.description_box.sceneBoundingRect()
         desc_pos = desc_rect.topLeft()
         animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
 

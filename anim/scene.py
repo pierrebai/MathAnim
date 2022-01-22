@@ -4,20 +4,23 @@ from .point import point
 
 from PySide6.QtGui import QPainter, QFont
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem, QGraphicsSimpleTextItem, QGraphicsRectItem
-from PySide6.QtCore import Qt, QPointF, QMarginsF, QRectF, QPoint
+from PySide6.QtCore import Qt, QMarginsF, QRectF, QPoint, QRect
+
+from typing import Tuple
 
 class scene:
     """
     Scene containing scene items using Qt graphics scene and graphics items.
     """
 
-    def __init__(self, margin: int = 10) -> None:
+    def __init__(self, margin: int = 80) -> None:
         """
         Creates the scene (QGraphicsScene) and the view (QGraphicsView).
         Sets some useful default: anchored in teh center, no scrollbars,
         antialiasing and smooth pixmap transforms.
         """
         self.default_margin = margin
+        self.largest_scene_rect = QRectF(0, 0, 0, 0)
 
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
@@ -31,14 +34,16 @@ class scene:
         self.view.setScene(self.scene)
 
         self.remove_all_items()
-        self.adjust_view_to_fit(margin)
 
     def reset(self, margin: int = None) -> None:
         """
         Resets to a new scene and resets the view with the given margin
         or the default margin.
         """
-        self.adjust_view_to_fit()
+        self.title = ""
+        self.description = ""
+        self.largest_scene_rect = QRectF(0, 0, 0, 0)
+        self.ensure_all_contents_fit(margin)
         
     def get_widget(self) -> QGraphicsView:
         """
@@ -68,18 +73,18 @@ class scene:
         self.title.setFlag(QGraphicsSimpleTextItem.ItemIgnoresTransformations)
         self.scene.addItem(self.title)
 
-        self.titleBox = QGraphicsRectItem(0, 0, 600, 20)
-        self.titleBox.setPen(no_pen)
-        self.scene.addItem(self.titleBox)
+        self.title_box = QGraphicsRectItem(0, 0, 6, 2)
+        self.title_box.setPen(no_pen)
+        self.scene.addItem(self.title_box)
 
         self.description = QGraphicsSimpleTextItem()
         self.description.setFont(QFont("Georgia", 10))
         self.description.setFlag(QGraphicsSimpleTextItem.ItemIgnoresTransformations)
         self.scene.addItem(self.description)
 
-        self.descriptionBox = QGraphicsRectItem(0, 0, 200, 600)
-        self.descriptionBox.setPen(no_pen)
-        self.scene.addItem(self.descriptionBox)
+        self.description_box = QGraphicsRectItem(0, 0, 2, 6)
+        self.description_box.setPen(no_pen)
+        self.scene.addItem(self.description_box)
 
         arrow = create_pointing_arrow(point(0, 0), point(0, 0))
         self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
@@ -93,80 +98,69 @@ class scene:
         self.description.setText(description)
         self.ensure_all_contents_fit()
 
-    def _get_actors_bounding_rect(self):
+    def _get_actors_rect(self) -> QRectF:
         self.scene.removeItem(self.title)
-        self.scene.removeItem(self.titleBox)
+        self.scene.removeItem(self.title_box)
         self.scene.removeItem(self.description)
-        self.scene.removeItem(self.descriptionBox)
+        self.scene.removeItem(self.description_box)
         self.scene.removeItem(self.pointing_arrow.item)
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
         self.scene.addItem(self.title)
-        self.scene.addItem(self.titleBox)
+        self.scene.addItem(self.title_box)
         self.scene.addItem(self.description)
-        self.scene.addItem(self.descriptionBox)
+        self.scene.addItem(self.description_box)
         self.scene.addItem(self.pointing_arrow.item)
+
         return actors_rect
 
     def _size_text_boxes(self):
-        scaledRect = self.view.transform().map(QRectF(0., 0., 1., 1.)).boundingRect()
-        scale = scaledRect.height()
-        self.titleBox.setRect(QRectF(0, 0, 200 / scale, 40 / scale))
+        letter_count = len(self.title.text())
+        r = self.view.mapToScene(QRect(0, 0, 15 * letter_count, 40)).boundingRect()
+        self.title_box.setRect(QRectF(0, 0, r.width(), r.height()))
         lines = self.description.text().splitlines()
         lineCount = len(lines)
-        letterCount = max([len(line) for line in lines]) if lines else 1
-        self.descriptionBox.setRect(QRectF(0, 0, 6 * letterCount / scale, 24 * lineCount / scale))
+        letter_count = max(36, max([len(line) for line in lines]) if lines else 1)
+        r = self.view.mapToScene(QRect(0, 0, int(6.5 * letter_count), 20 * lineCount)).boundingRect()
+        self.description_box.setRect(QRectF(0, 0, r.width(), r.height()))
 
-    def _place_title_and_desc(self) -> None:
+    def _place_title_and_desc(self) -> QRectF:
         self._size_text_boxes()
-        actors_rect = self._get_actors_bounding_rect()
 
-        viewTopLeft = self.view.mapFromScene(actors_rect.topLeft())
-        topLeft = self.view.mapToScene(viewTopLeft - QPoint(0, self.title.font().pointSize() * 4))
-        self.title.setPos(topLeft)
-        self.titleBox.setPos(topLeft)
+        actors_rect = self._get_actors_rect()
 
-        viewTopRight = self.view.mapFromScene(actors_rect.topRight())
-        topLeft = self.view.mapToScene(viewTopRight + QPoint(30, 0))
-        self.description.setPos(topLeft)
-        self.descriptionBox.setPos(topLeft)
+        view_top_left = self.view.mapFromScene(actors_rect.topLeft())
+        top_left = self.view.mapToScene(view_top_left - QPoint(0, self.title.font().pointSize() * 4))
+        self.title.setPos(top_left)
+        self.title_box.setPos(top_left)
+
+        view_top_right = self.view.mapFromScene(actors_rect.topRight())
+        top_left = self.view.mapToScene(view_top_right + QPoint(30, 0))
+        self.description.setPos(top_left)
+        self.description_box.setPos(top_left)
+
+        scene_rect = actors_rect
+        scene_rect = scene_rect.united(self.pointing_arrow.item.sceneBoundingRect())
+        scene_rect = scene_rect.united(self.title_box.sceneBoundingRect())
+        scene_rect = scene_rect.united(self.description_box.sceneBoundingRect())
+
+        return scene_rect
 
     def ensure_all_contents_fit(self, margin: int = None) -> None:
         """
-        If the scene contents does not fit the view then call adjust_view_to_fit()
+        If the scene contents does not fit the view then call _adjust_view_to_fit()
         with the given margin or the default margin.
         """
-        self._place_title_and_desc()
+        scene_rect = self._place_title_and_desc()
+        margin = self.default_margin if margin is None else margin
+        scene_rect = scene_rect.marginsAdded(QMarginsF(margin, margin, margin, margin))
+        self._adjust_view_to_fit(scene_rect)
 
-        viewRect = self.view.rect()
-        viewTopLeft = viewRect.topLeft()
-        viewBotRight = viewRect.bottomRight()
-
-        sceneRect = self.scene.sceneRect()
-        breathingRoom = QPoint(5, 5)
-        sceneTopLeft = self.view.mapFromScene(sceneRect.topLeft()) - breathingRoom
-        sceneBotRight = self.view.mapFromScene(sceneRect.bottomRight()) + breathingRoom
-
-        dx1 = viewTopLeft.x() - sceneTopLeft.x()
-        dy1 = viewTopLeft.y() - sceneTopLeft.y()
-
-        dx2 = viewBotRight.x() - sceneBotRight.x()
-        dy2 = viewBotRight.y() - sceneBotRight.y()
-
-        if dx1 > 0 or dy1 > 0 or dx2 < 0 or dy2 < 0:
-            self.adjust_view_to_fit(margin, False)
-
-
-    def adjust_view_to_fit(self, margin: int = None, place_title_and_desc = True) -> None:
+    def _adjust_view_to_fit(self, scene_rect: QRectF) -> None:
         """
         Fits the whole contents of the scene with the given margin
         or the default margin all around.
         """
-        if place_title_and_desc:
-            self._place_title_and_desc()
-
-        if margin is None:
-            margin = self.default_margin
-
-        self.view.fitInView(self.scene.sceneRect().marginsAdded(QMarginsF(margin, margin, margin, margin)), Qt.KeepAspectRatio)
+        self.largest_scene_rect = scene_rect.united(self.largest_scene_rect)
+        self.view.fitInView(self.largest_scene_rect, Qt.KeepAspectRatio)
