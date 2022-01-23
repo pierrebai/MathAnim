@@ -17,7 +17,7 @@ def _fill_animation_controls_ui(animation: animation, scene: scene, animator: an
 
     @play_button.clicked.connect
     def on_play():
-        animation.play_all(scene, animator)
+        animation.play(scene, animator)
 
     @step_button.clicked.connect
     def on_step():
@@ -34,7 +34,7 @@ def _fill_animation_controls_ui(animation: animation, scene: scene, animator: an
         animation.stop(scene, animator)
         animation.reset(scene, animator)
         if was_playing:
-            animation.play_all(scene, animator)
+            animation.play(scene, animator)
 
     @current_time_box.valueChanged.connect
     def on_current_time_changed(value):

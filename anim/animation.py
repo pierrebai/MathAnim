@@ -13,6 +13,42 @@ from PySide6.QtCore import QPointF, Signal, QObject
 
 
 class animation(QObject, named):
+    """
+    Animation base class.
+
+    To create an animation, derive from this and implement the following functions:
+
+        - generate_actors(scene): generates the actors that will be used in the
+                                  animation. The names of the actors will be used
+                                  to create UI to let the user decide what gets drawn.
+
+                                  All actors must be added to the animation by calling
+                                  the add_actors function from within generate_actors,
+                                  passng the actors and the scene.
+
+        - generate_shots(): generates the shots that make=up the entire animation.
+
+                            All shots must be added to the animation by calling the
+                            add_shots function from within generate_shots, passing
+                            the shots.
+
+                            A shot has a name, description and at least a prepare_anim
+                            function. Optionally, it can have a cleanup_anim function.
+
+                            The prepare_anim function of each shot receives the shot,
+                            scene and animator. It must registers animations to be
+                            played by calling the animate_value function of the animator,
+                            possibly multiple times, for all the actors that will
+                            participate in the shot.
+
+        - reset(): resets the animation. Calls generate_actors and generate_shots again.
+                   The reset function gets called when the options of the animation change
+                   or when the user press the reset-button in the UI.
+
+        - option_changed(): called when an option has changed. Normally you can simply
+                            implement reset() or even just let the generate_actors and
+                            generate_shots react to the new options.
+    """
 
     on_shot_changed = Signal(scene, animator, shot)
 
@@ -31,6 +67,11 @@ class animation(QObject, named):
         self.anim_speed_option = option("Animation speed", "How fast the animations is played.", int(animator.anim_speedup * 20), 1, 100)
         self.add_options(self.anim_speed_option)
 
+
+    ########################################################################
+    #
+    # Overridable functions
+    
     def reset(self, scene: scene, animator: animator) -> None:
         """
         Clears the actors and shots and recreates them.
@@ -57,6 +98,39 @@ class animation(QObject, named):
             self.current_shot_index = len(self.shots) - 1
         else:
             self.current_shot_index = -1
+
+    def option_changed(self, scene: scene, animator: animator, option: option) -> None:
+        """
+        Called when an option value is changed. By default it resets the animation
+        (calls reset) and continue the animation with the new settings.
+        
+        Override in sub-classes to react to option changes.
+        """
+        # The reset function regenerate the actors, anims and shots,
+        # which will make the animator pick up the new animations on the fly.
+        self._handle_speed_options(scene, animator, option)
+        self.reset(scene, animator)
+        if self.playing:
+            self.resume_play(scene, animator)
+
+    def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
+        """
+        Called when the current shot has finished playing in the animator.
+        """
+        is_last_shot = (self.current_shot_index == len(self.shots) - 1)
+        has_more_shots = self.loop or ended_shot.repeat or not is_last_shot
+        keep_playing = self.playing and not self.single_shot and has_more_shots
+        if not keep_playing:
+            self.stop(ended_scene, ended_animator)
+        elif ended_shot.repeat:
+            self.play_current_shot(ended_scene, ended_animator)
+        else:
+            self.play_next_shot(ended_scene, ended_animator)
+
+
+    ########################################################################
+    #
+    # Actors
 
     def add_actors(self, actors, scene: scene) -> None:
         """
@@ -98,6 +172,11 @@ class animation(QObject, named):
             if actor.name in shown_by_names:
                 actor.show(shown_by_names[actor.name])
 
+
+    ########################################################################
+    #
+    # Shots
+
     def add_shots(self, shots) -> None:
         """
         Add shots to the animation.
@@ -111,6 +190,25 @@ class animation(QObject, named):
         else:
             for a in shots:
                 self.add_shots(a)
+
+    def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
+        """
+        Animate the pointing arrow to point to the new point of interest.
+        Used in shots created by the sub-classes.
+        """
+        tail_pos = QPointF(scene.pointing_arrow.item.tail)
+        desc_rect = scene.description_box.sceneBoundingRect()
+        desc_pos = desc_rect.topLeft()
+        animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
+
+        head_pos = QPointF(scene.pointing_arrow.item.head)
+        what_pos = QPointF(head_point)
+        animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
+
+
+    ########################################################################
+    #
+    # Options
 
     def add_options(self, options) -> None:
         """
@@ -133,34 +231,17 @@ class animation(QObject, named):
         if option == self.anim_speed_option:
             animator.anim_speedup = int(option.value) / 20.
 
-    def option_changed(self, scene: scene, animator: animator, option: option) -> None:
-        """
-        Called when an option value is changed. By default it resets the animation
-        (calls reset) and continue the animation with the new settings.
-        
-        Override in sub-classes to react to option changes.
-        """
-        # The reset function regenerate the actors, anims and shots,
-        # which will make the animator pick up the new animations on the fly.
-        self._handle_speed_options(scene, animator, option)
-        self.reset(scene, animator)
-        if self.playing:
-            self.resume_play(scene, animator)
 
-    def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
-        """
-        Animate the pointing arrow to point to the new point of interest.
-        """
-        tail_pos = QPointF(scene.pointing_arrow.item.tail)
-        desc_rect = scene.description_box.sceneBoundingRect()
-        desc_pos = desc_rect.topLeft()
-        animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
-
-        head_pos = QPointF(scene.pointing_arrow.item.head)
-        what_pos = QPointF(head_point)
-        animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
+    ########################################################################
+    #
+    # Play / Stop / etc
 
     def play(self, scene: scene, animator: animator, start_at_shot_index = None) -> None:
+        """
+        Starts to play all shots if not already playing.
+
+        If already playing, does nothing.
+        """
         if self.playing:
             return
         self.playing = True
@@ -169,16 +250,23 @@ class animation(QObject, named):
             self.current_shot_index = start_at_shot_index - 1
         self.play_next_shot(scene, animator)
 
-    def play_all(self, scene: scene, animator: animator) -> None:
-        self.play(scene, animator)
-
     def play_next_shot(self, scene: scene, animator: animator) -> None:
+        """
+        Plays the next shot, even if already playing.
+
+        If the current shot is a repeating shot, then this repeats the
+        curent shot.
+        """
         current_shot = self.shots[self.current_shot_index]
         if self.current_shot_index == -1 or not current_shot.repeat:
             self.current_shot_index = self.current_shot_index + 1
         self.play_current_shot(scene, animator)
 
     def play_current_shot(self, scene: scene, animator: animator) -> None:
+        """
+        If it was already playing, plays the current shot and keep playing.
+        If it was not already playing, then play *only* the current shot.
+        """
         if not self.shots:
             return
 
@@ -188,6 +276,9 @@ class animation(QObject, named):
         self.resume_play(scene, animator)
 
     def resume_play(self, scene: scene, animator: animator) -> None:
+        """
+        Resume playing if it was already playing, else does nothing.
+        """
         if not self.playing:
             self.playing = True
 
@@ -198,15 +289,10 @@ class animation(QObject, named):
         animator.play(current_shot, self, scene)
         self.on_shot_changed.emit(scene, animator, current_shot)
 
-    def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
-        if not self.playing or self.single_shot or (not self.loop and not ended_shot.repeat and self.current_shot_index == len(self.shots) - 1):
-            self.stop(ended_scene, ended_animator)
-        elif ended_shot.repeat:
-            self.play_current_shot(ended_scene, ended_animator)
-        else:
-            self.play_next_shot(ended_scene, ended_animator)
-
     def stop(self, scene: scene, animator: animator) -> None:
+        """
+        Stops playing. Does nothing if already stopped.
+        """
         if not self.playing:
             return
         self.playing = False
