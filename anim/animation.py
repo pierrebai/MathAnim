@@ -48,6 +48,9 @@ class animation(QObject, named):
         - option_changed(): called when an option has changed. Normally you can simply
                             implement reset() or even just let the generate_actors and
                             generate_shots react to the new options.
+
+        - shot_ended(): called when the currently playing shot ends. By default, plays
+                        the next shot if the animation is still playing.
     """
 
     on_shot_changed = Signal(scene, animator, shot)
@@ -72,9 +75,45 @@ class animation(QObject, named):
     #
     # Overridable functions
     
+    def generate_actors(self, scene: anim.scene) -> None:
+        """
+        Generates the actors that will be used in the animation.
+
+        The names of the actors will be used to create UI to let
+        the user decide what gets drawn.
+
+        All actors must be added to the animation by calling
+        the add_actors function from within generate_actors,
+        passng the actors and the scene.
+        """
+        pass
+
+    def generate_shots(self) -> None:
+        """
+        Generates the shots that make=up the entire animation.
+
+        All shots must be added to the animation by calling the
+        add_shots function from within generate_shots, passing
+        the shots.
+
+        A shot has a name, description and at least a prepare_anim
+        function. Optionally, it can have a cleanup_anim function.
+
+        The prepare_anim function of each shot receives the shot,
+        scene and animator. It must registers animations to be
+        played by calling the animate_value function of the animator,
+        possibly multiple times, for all the actors that will
+        participate in the shot.
+        """
+        pass
+
     def reset(self, scene: scene, animator: animator) -> None:
         """
-        Clears the actors and shots and recreates them.
+        Clears the actors and shots and recreates them by calling
+        the generate_actors and generate_shots functions.
+
+        The reset function gets called when the options of the animation
+        change or when the user press the reset-button in the UI.
         """
         was_last = (self.current_shot_index >= 0 and self.current_shot_index == len(self.shots) - 1)
         shown_by_names = self.get_shown_actors_by_names()
@@ -104,7 +143,9 @@ class animation(QObject, named):
         Called when an option value is changed. By default it resets the animation
         (calls reset) and continue the animation with the new settings.
         
-        Override in sub-classes to react to option changes.
+        Override in sub-classes to react to option changes. Normally you can simply
+        implement reset() or even just let the generate_actors and generate_shots
+        functions react to the new options when they do their work.
         """
         # The reset function regenerate the actors, anims and shots,
         # which will make the animator pick up the new animations on the fly.
