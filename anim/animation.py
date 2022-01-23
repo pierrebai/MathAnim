@@ -18,6 +18,14 @@ class animation(QObject, named):
 
     To create an animation, derive from this and implement the following functions:
 
+        - reset(): resets the animation. Calls generate_actors and generate_shots again.
+                   The reset function gets called when the options of the animation change
+                   or when the user press the reset-button in the UI.
+
+                   The reset() function must be called before using the animation.
+                   The app window automatically calls it when a new animation is
+                   selected.
+
         - generate_actors(scene): generates the actors that will be used in the
                                   animation. The names of the actors will be used
                                   to create UI to let the user decide what gets drawn.
@@ -41,10 +49,6 @@ class animation(QObject, named):
                             possibly multiple times, for all the actors that will
                             participate in the shot.
 
-        - reset(): resets the animation. Calls generate_actors and generate_shots again.
-                   The reset function gets called when the options of the animation change
-                   or when the user press the reset-button in the UI.
-
         - option_changed(): called when an option has changed. Normally you can simply
                             implement reset() or even just let the generate_actors and
                             generate_shots react to the new options.
@@ -52,7 +56,7 @@ class animation(QObject, named):
         - shot_ended(): called when the currently playing shot ends. By default, plays
                         the next shot if the animation is still playing.
     """
-    def __init__(self, name: str, description: str, scene: scene, animator: animator) -> None:
+    def __init__(self, name: str, description: str) -> None:
         QObject.__init__(self)
         named.__init__(self, name, description)
         self.name = name
@@ -62,9 +66,10 @@ class animation(QObject, named):
         self.shots = []
         self.current_shot_index = -1
         self.loop = False
+        self.reset_when_options_change = True
         self.playing = False
 
-        self.anim_speed_option = option("Animation speed", "How fast the animations is played.", int(animator.anim_speedup * 20), 1, 100)
+        self.anim_speed_option = option("Animation speed", "How fast the animations is played.", 20, 1, 100)
         self.add_options(self.anim_speed_option)
 
 
@@ -75,6 +80,37 @@ class animation(QObject, named):
     #
     # Overridable functions
     
+    def reset(self, scene: scene, animator: animator) -> None:
+        """
+        Clears the actors and shots and recreates them by calling
+        the generate_actors and generate_shots functions.
+
+        The reset function gets called when the options of the animation
+        change or when the user press the reset-button in the UI.
+        """
+        was_last = (self.current_shot_index >= 0 and self.current_shot_index == len(self.shots) - 1)
+        shown_by_names = self.get_shown_actors_by_names()
+
+        for actor in self.actors:
+            scene.remove_actor(actor)
+        scene.remove_all_items()
+        self.actors = set()
+        self.shots = []
+
+        animator.stop()
+        animator.reset()
+        
+        self.generate_actors(scene)
+        self.actors.add(scene.pointing_arrow)
+        self.apply_shown_to_actors(shown_by_names)
+        self.generate_shots()
+        scene.ensure_all_contents_fit()
+
+        if was_last:
+            self.current_shot_index = len(self.shots) - 1
+        else:
+            self.current_shot_index = -1
+
     def generate_actors(self, scene: scene) -> None:
         """
         Generates the actors that will be used in the animation.
@@ -107,52 +143,28 @@ class animation(QObject, named):
         """
         pass
 
-    def reset(self, scene: scene, animator: animator) -> None:
-        """
-        Clears the actors and shots and recreates them by calling
-        the generate_actors and generate_shots functions.
-
-        The reset function gets called when the options of the animation
-        change or when the user press the reset-button in the UI.
-        """
-        was_last = (self.current_shot_index >= 0 and self.current_shot_index == len(self.shots) - 1)
-        shown_by_names = self.get_shown_actors_by_names()
-
-        for actor in self.actors:
-            scene.remove_actor(actor)
-        scene.remove_all_items()
-        self.actors = set()
-        self.shots = []
-
-        animator.stop()
-        animator.reset()
-        
-        self.generate_actors(scene)
-        self.actors.add(scene.pointing_arrow)
-        self.apply_shown_to_actors(shown_by_names)
-        self.generate_shots()
-        scene.ensure_all_contents_fit()
-
-        if was_last:
-            self.current_shot_index = len(self.shots) - 1
-        else:
-            self.current_shot_index = -1
-
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         """
-        Called when an option value is changed. By default it resets the animation
-        (calls reset) and continue the animation with the new settings.
+        Called when an option value is changed. The base class handles
+        change to the animation-speed option.
         
-        Override in sub-classes to react to option changes. Normally you can simply
-        implement reset() or even just let the generate_actors and generate_shots
-        functions react to the new options when they do their work.
+        If the reset_when_options_change flag is True then it calls the
+        reset function and continues playing the animation with the new
+        settings.
+        
+        Override in sub-classes to react to option changes, if needed.
+        You can instead react to the options in reset() or just let the
+        generate_actors and generate_shots functions react to the new
+        options when they do their work.
         """
-        # The reset function regenerate the actors, anims and shots,
-        # which will make the animator pick up the new animations on the fly.
         self._handle_speed_options(scene, animator, option)
-        self.reset(scene, animator)
-        if self.playing:
-            self.resume_play(scene, animator)
+
+        if self.reset_when_options_change:
+            # The reset function regenerate the actors, anims and shots,
+            # which will make the animator pick up the new animations on the fly.
+            self.reset(scene, animator)
+            if self.playing:
+                self.resume_play(scene, animator)
 
     def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
         """

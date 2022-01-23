@@ -8,19 +8,19 @@ from PySide6.QtCore import QPointF
 import math
 
 class animation(anim.animation):
-    def __init__(self, scene: anim.scene, animator: anim.animator) -> None:
-        super().__init__("Aztec Circle", "", scene, animator)
+    def __init__(self) -> None:
+        super().__init__("Aztec Circle", "")
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
 
         self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option])
 
-        self.scene = scene
-        self.animator: anim.animator = None
         self.loop = True
+        self.reset_when_options_change = False
 
-        self.reset(scene, animator)
+        self.scene: anim.scene = None
+        self.animator: anim.animator = None
 
     @property
     def tiles_sequence(self) -> str:
@@ -35,6 +35,8 @@ class animation(anim.animation):
         return self.size > self.animate_limit_option.value
 
     def reset(self, scene: anim.scene, animator: anim.animator):
+        self.scene: anim.scene = scene
+        self.animator: anim.animator = animator
         self.anim_duration = 1.
         self.size = 1
         self.items = []
@@ -71,7 +73,7 @@ class animation(anim.animation):
         Called when an option value is changed.
         Override base-class behavior to not interrupt the animations.
         """
-        self._handle_speed_options(scene, animator, option)
+        super().option_changed(scene, animator, option)
         self._handle_generator_options(scene, animator, option)
 
     #################################################################
@@ -125,7 +127,6 @@ class animation(anim.animation):
         def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
             self.pointing_arrow_animated = False
             self.az.increase_size()
-            self.animator = animator
         self.add_shots(anim.shot(
             "Grow diamond",
             "Prepare the diamond\n"
