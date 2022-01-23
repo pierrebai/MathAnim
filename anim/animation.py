@@ -52,9 +52,6 @@ class animation(QObject, named):
         - shot_ended(): called when the currently playing shot ends. By default, plays
                         the next shot if the animation is still playing.
     """
-
-    on_shot_changed = Signal(scene, animator, shot)
-
     def __init__(self, name: str, description: str, scene: scene, animator: animator) -> None:
         QObject.__init__(self)
         named.__init__(self, name, description)
@@ -71,11 +68,14 @@ class animation(QObject, named):
         self.add_options(self.anim_speed_option)
 
 
+    on_shot_changed = Signal(scene, animator, shot)
+
+
     ########################################################################
     #
     # Overridable functions
     
-    def generate_actors(self, scene: anim.scene) -> None:
+    def generate_actors(self, scene: scene) -> None:
         """
         Generates the actors that will be used in the animation.
 
