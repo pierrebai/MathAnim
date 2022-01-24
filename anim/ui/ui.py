@@ -6,6 +6,11 @@ from typing import Tuple, Union
 
 IntOrFloat = Union[int, float]
 
+
+############################################################################
+#
+# App
+
 def create_app() -> QApplication:
     """
     Creates and returns the QApplication with the command-line arguments.
@@ -19,6 +24,11 @@ def start_app(app: QApplication, window: QMainWindow) -> None:
     """
     window.show()
     app.exec_()
+
+
+############################################################################
+#
+# Dock
 
 def _create_dock_container(dock: QDockWidget) -> QVBoxLayout:
     container = QWidget()
@@ -38,16 +48,34 @@ def create_dock(title: str) -> Tuple[QDockWidget, QVBoxLayout]:
     layout = _create_dock_container(dock)
     return dock, layout
 
+def disconnect_dock(dock: QDockWidget, layout: QVBoxLayout) -> None:
+    for i in range(layout.count()):
+        item = layout.itemAt(i)
+        ui = item.widget()
+        if ui:
+            disconnect_auto_signals(ui)
+
 def empty_dock(dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+    disconnect_dock(dock, layout)
     while layout.count():
         item = layout.itemAt(layout.count() - 1)
         ui = item.widget()
         if ui:
-            disconnect_auto_signals(ui)
             layout.removeWidget(ui)
         else:
             layout.removeItem(item)
     return _create_dock_container(dock)
+
+def add_stretch(layout: QLayout) -> None:
+    """
+    Adds a stretcheable zone to a layout.
+    """
+    layout.addStretch()
+
+
+############################################################################
+#
+# UI Elements
 
 def create_label(title: str, layout: QLayout) -> QLabel:
     """
@@ -190,12 +218,6 @@ def create_checkbox(title: str, layout: QLayout, state = True) -> QCheckBox:
     layout.addWidget(widget)
     return widget
 
-def add_stretch(layout: QLayout) -> None:
-    """
-    Adds a stretcheable zone to a layout.
-    """
-    layout.addStretch()
-
 def create_main_window(title: str, central_widget) -> QMainWindow:
     """
     Creates and returns a main window (QMainWindow) with the given title and central widget.
@@ -219,6 +241,11 @@ def create_timer(interval: int) -> QTimer:
     timer = QTimer()
     timer.setInterval(interval)
     return timer
+
+
+############################################################################
+#
+# Signals
 
 def connect_auto_signal(obj: object, signal: Signal, func: callable):
     """

@@ -17,7 +17,7 @@ class animation(anim.animation):
         self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option])
 
         self.loop = True
-        self.reset_when_options_change = False
+        self.reset_on_change = False
 
         self.scene: anim.scene = None
         self.animator: anim.animator = None

@@ -23,6 +23,8 @@ class simple_animation(animation):
 
             - name: the name of the animation.
             - description: the description of the animation.
+            - loop: if the animation should loop when reaching the last shot.
+            - reset_on_change: should the animation reset when options change.
             - Variables that are instances of the shot class.
             - Variables that are instances of the actor class.
             - Variables that are instances of the option class.
@@ -37,6 +39,8 @@ class simple_animation(animation):
         """
         name = None
         description = None
+        loop = False
+        reset_on_change = True
         shots = []
         actors = []
         options = []
@@ -54,6 +58,10 @@ class simple_animation(animation):
                 name = var
             elif var_name == 'description':
                 description = var
+            if var_name == 'loop':
+                loop = var
+            elif var_name == 'reset_on_change':
+                reset_on_change = var
             elif var_name == 'generate_actors':
                 custom_generate_actors = var
             elif var_name == 'generate_shots':
@@ -95,16 +103,18 @@ class simple_animation(animation):
 
         def maker():
             return simple_animation(
-                name, description, shots, actors, options,
+                name, description, loop, reset_on_change, shots, actors, options,
                 custom_generate_actors, custom_generate_shots, custom_reset,
                 custom_option_changed, custom_shot_ended)
         return maker
 
-    def __init__(self, name, description,
+    def __init__(self, name, description, loop, reset_on_change,
                  shots, actors, options,
                  custom_generate_actors, custom_generate_shots,
                  custom_reset, custom_option_changed, custom_shot_ended) -> None:
         super().__init__(name, description)
+        self.loop = loop
+        self.reset_on_change = reset_on_change
         self.custom_shots = shots
         self.custom_actors = actors
         self.custom_generate_actors = custom_generate_actors

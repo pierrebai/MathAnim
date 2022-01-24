@@ -61,13 +61,16 @@ class animation(QObject, named):
         named.__init__(self, name, description)
         self.name = name
         self.description = description
+
         self.options = options()
         self.actors = set()
         self.shots = []
+
         self.current_shot_index = -1
-        self.loop = False
-        self.reset_when_options_change = True
         self.playing = False
+
+        self.loop = False
+        self.reset_on_change = True
 
         self.anim_speed_option = option("Animation speed", "How fast the animations is played.", 20, 1, 100)
         self.add_options(self.anim_speed_option)
@@ -148,7 +151,7 @@ class animation(QObject, named):
         Called when an option value is changed. The base class handles
         change to the animation-speed option.
         
-        If the reset_when_options_change flag is True then it calls the
+        If the reset_on_change flag is True then it calls the
         reset function and continues playing the animation with the new
         settings.
         
@@ -159,7 +162,7 @@ class animation(QObject, named):
         """
         self._handle_speed_options(scene, animator, option)
 
-        if self.reset_when_options_change:
+        if self.reset_on_change:
             # The reset function regenerate the actors, anims and shots,
             # which will make the animator pick up the new animations on the fly.
             self.reset(scene, animator)

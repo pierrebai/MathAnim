@@ -31,6 +31,7 @@ def create_app_window(animations: Dict[str, Type]) -> QMainWindow:
             current_animator.reset()
             current_scene = scene()
             window.setCentralWidget(current_scene.get_widget())
+            window.setWindowTitle(name)
             current_anim = animations[name]()
             current_anim.reset(current_scene, current_animator)
             anim_ctrl_layout = update_animation_controls_ui(current_anim, current_scene, current_animator, anim_ctrl_dock, anim_ctrl_layout)
