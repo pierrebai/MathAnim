@@ -10,7 +10,16 @@ from typing import Tuple
 
 class scene:
     """
-    Scene containing scene items using Qt graphics scene and graphics items.
+    Scene containing scene items using Qt graphics scene, view and graphics items.
+
+    The scene can show a title and description in the scene. It positions the title
+    above all other items. It position the description on the right of all items.
+
+    The scene also has a pointing arrow. It is used to point from the description
+    to what is described.
+
+    The scene tries to show all its item in the scene view by manipulating the
+    view transform.
     """
 
     def __init__(self, margin: int = 80) -> None:
@@ -50,6 +59,11 @@ class scene:
         """
         return self.view
 
+
+    ########################################################################
+    #
+    # Actors
+
     def add_item(self, item: QGraphicsItem) -> None:
         self.scene.addItem(item)
 
@@ -64,6 +78,9 @@ class scene:
         self.remove_item(actor.item)
 
     def remove_all_items(self) -> None:
+        """
+        Removes all items from the scene.
+        """
         self.scene = QGraphicsScene()
         self.view.setScene(self.scene)
 
@@ -89,15 +106,34 @@ class scene:
         self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
         self.add_actor(self.pointing_arrow)
 
+
+    ########################################################################
+    #
+    # Title and Description
+
     def set_title(self, title: str) -> None:
+        """
+        Sets the title and redo its placement.
+        """
         self.title.setText(title)
         self.ensure_all_contents_fit()
 
     def set_description(self, description: str) -> None:
+        """
+        Sets the description and redo its placement.
+        """
         self.description.setText(description)
         self.ensure_all_contents_fit()
 
-    def _get_actors_rect(self) -> QRectF:
+
+    ########################################################################
+    #
+    # View Fitting
+
+    def _get_actors_rect(self) -> Tuple[QRectF, QRectF]:
+        """
+        Returns the boundary of non-title items and all items including title.
+        """
         self.scene.removeItem(self.title)
         self.scene.removeItem(self.title_box)
         self.scene.removeItem(self.description)
@@ -118,6 +154,11 @@ class scene:
         return actors_rect, scene_rect
 
     def _size_text_boxes(self):
+        """
+        Because the title and desciption are not transformed, the scene
+        does not calculate their size and boundaries correctly.
+        We use invisible boxes to fix that.
+        """
         letter_count = len(self.title.text())
         r = self.view.mapToScene(QRect(0, 0, 15 * letter_count, 40)).boundingRect()
         self.title_box.setRect(QRectF(0, 0, r.width(), r.height()))
@@ -128,6 +169,9 @@ class scene:
         self.description_box.setRect(QRectF(0, 0, r.width(), r.height()))
 
     def _place_title_and_desc(self) -> QRectF:
+        """
+        Places the title above other items the description to their right.
+        """
         self._size_text_boxes()
 
         actors_rect, scene_rect = self._get_actors_rect()
@@ -143,7 +187,7 @@ class scene:
         self.description_box.setPos(top_left)
 
         return scene_rect
-
+    
     def ensure_all_contents_fit(self, margin: int = None) -> None:
         """
         If the scene contents does not fit the view then call _adjust_view_to_fit()

@@ -30,6 +30,9 @@ class shot(named):
         self.shown = True
 
     def show(self, shown: bool) -> None:
+        """
+        Shows or hides the shot.
+        """
         self.shown = shown
 
     def add_anim(self, prep_anim: callable, cleanup_anim: callable = None) -> None:

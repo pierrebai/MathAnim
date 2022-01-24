@@ -128,6 +128,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
     animation.add_actors([outer_circle, inner_circles, inner_dots, inner_polygons, inter_polygons, star], scene)
 
+
 #################################################################
 #
 # Shots
@@ -275,5 +276,10 @@ def generate_shots(animation: anim.animation):
         "the outer one dragging along\n"
         "the polygons in a curious dance.",
         anim_all, None, True))
+
+
+#################################################################
+#
+# Animtation
 
 animation = anim.simple_animation.from_module(globals())

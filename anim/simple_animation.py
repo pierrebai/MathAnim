@@ -10,9 +10,31 @@ from typing import Dict, Any, List, Tuple
 import modulefinder
 
 class simple_animation(animation):
+    """
+    A simple animation made from the global variables of a module.
+    """
 
     @staticmethod
     def from_module(module_dict: Dict[str, Any]) -> callable:
+        """
+        Create an animation from the global variables of a module.
+
+        The variables that are looked-for are:
+
+            - name: the name of the animation.
+            - description: the description of the animation.
+            - Variables that are instances of the shot class.
+            - Variables that are instances of the actor class.
+            - Variables that are instances of the option class.
+            - generate_actors: a function that generates actors.
+            - generate_shots: a function that generates shots.
+            - reset: a function to reset the animation.
+            - option_changed: a function that reacts to changing options.
+            - shot_ended: a function called when an aniamtion shot ends.
+
+        Only name, description and either shots or generate_shots are
+        required. The others are optional.
+        """
         name = None
         description = None
         shots = []
