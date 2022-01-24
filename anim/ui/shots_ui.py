@@ -1,4 +1,4 @@
-from .ui import create_dock, create_list, empty_dock, select_in_list, add_stretch, connect_auto_signal
+from .ui import create_dock, create_named_list, empty_dock, select_in_list, add_stretch, connect_auto_signal
 from ..animation import animation
 
 from PySide6.QtWidgets import QDockWidget, QVBoxLayout
@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QDockWidget, QVBoxLayout
 from typing import Tuple
 
 def _fill_shots_ui(animation: animation, layout: QVBoxLayout) -> None:
-    ui = create_list("Steps", [shot.name for shot in animation.shots], layout)
+    ui = create_named_list("Steps", animation.shots, layout, False)
     
     def on_shot_changed(scene, animator, shot):
         select_in_list(shot.name, ui)

@@ -5,13 +5,13 @@ from PySide6.QtWidgets import QDockWidget, QVBoxLayout
 
 from typing import Tuple, List
 
-def _fill_animations_ui(animations: List[str], on_changed: callable, layout: QVBoxLayout) -> None:
-    ui = create_list("Animations", [name for name in animations], layout, True)
+def _fill_animations_ui(animations: List[Tuple[str, str]], on_changed: callable, layout: QVBoxLayout) -> None:
+    ui = create_list("Animations", animations, layout)
     if on_changed:    
         connect_auto_signal(ui, ui.currentTextChanged, on_changed)
     add_stretch(layout)
 
-def create_animations_ui(animations: List[str], on_changed: callable) -> Tuple[QDockWidget, QVBoxLayout]:
+def create_animations_ui(animations: List[Tuple[str, str]], on_changed: callable) -> Tuple[QDockWidget, QVBoxLayout]:
     """
     Creates the UI showning the list of animations.
     """
@@ -19,7 +19,7 @@ def create_animations_ui(animations: List[str], on_changed: callable) -> Tuple[Q
     _fill_animations_ui(animations, on_changed, layout)
     return dock, layout
 
-def update_animations_ui(animations: List[str], on_changed: callable, dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
+def update_animations_ui(animations: List[Tuple[str, str]], on_changed: callable, dock: QDockWidget, layout: QVBoxLayout) -> QVBoxLayout:
     layout = empty_dock(dock, layout)
     _fill_animations_ui(animations, on_changed, layout)
     return layout

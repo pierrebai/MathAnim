@@ -42,7 +42,8 @@ def _create_bool_ui(option: option, scene: scene, animation: animation, animator
     connect_auto_signal(ui, ui.stateChanged, on_changed)
 
 def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
-    ui = create_list(option.name, option.low_value, layout)
+    items = [(name, "") for name in option.low_value]
+    ui = create_list(option.name, items, layout)
     _add_ui_description(ui, option)
     def on_changed(value):
         option.value = str(value)

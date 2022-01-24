@@ -1,8 +1,10 @@
+from ..named import named
+
 from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 IntOrFloat = Union[int, float]
 
@@ -75,6 +77,43 @@ def add_stretch(layout: QLayout) -> None:
 
 ############################################################################
 #
+# List UI ELement
+
+def create_list(title: str, contents: List[Tuple[str, str]], layout: QLayout, enabled = True) -> QListWidget:
+    """
+    Creates and returns a list widget with the given title and contents
+    in the given layout. The list can optionally be disabled.
+    """
+    create_label(title, layout)
+    widget = QListWidget()
+    widget.setEnabled(enabled)
+    for name, description in contents:
+        widget.addItem(name)
+        if description:
+            item = widget.item(widget.count() - 1)
+            item.setToolTip(description)
+    layout.addWidget(widget)
+    return widget
+
+def create_named_list(title: str, contents: List[named], layout: QLayout, enabled = True) -> QListWidget:
+    """
+    Creates and returns a list widget with the given title and
+    named objects as contents in the given layout. The list can
+    optionally be disabled.
+    """
+    return create_list(title, [(item.name, item.description) for item in contents], layout, enabled)
+
+def select_in_list(name: str, widget: QListWidget) -> None:
+    """
+    Selects the item with the given text in the list widget.
+    """
+    items = widget.findItems(name, Qt.MatchExactly)
+    if len(items) > 0:
+        widget.setCurrentItem(items[0])
+
+
+############################################################################
+#
 # UI Elements
 
 def create_label(title: str, layout: QLayout) -> QLabel:
@@ -84,27 +123,6 @@ def create_label(title: str, layout: QLayout) -> QLabel:
     widget = QLabel(title)
     layout.addWidget(widget)
     return widget
-
-def create_list(title: str, contents: list, layout: QLayout, enabled = False) -> QListWidget:
-    """
-    Creates and returns a list widget with the given title and contents
-    in the given layout. The list can optionally be disabled.
-    """
-    create_label(title, layout)
-    widget = QListWidget()
-    widget.setEnabled(enabled)
-    for name in contents:
-        widget.addItem(name)
-    layout.addWidget(widget)
-    return widget
-
-def select_in_list(name: str, widget: QListWidget) -> None:
-    """
-    Selects the item with the given text in the list widget.
-    """
-    items = widget.findItems(name, Qt.MatchExactly)
-    if len(items) > 0:
-        widget.setCurrentItem(items[0])
 
 def create_button(title: str, layout: QLayout) -> QPushButton:
     """

@@ -9,7 +9,8 @@ import math
 
 class animation(anim.animation):
     def __init__(self) -> None:
-        super().__init__("Aztec Circle", "")
+        super().__init__("Aztec Circle", "Aztec artic circle tiling, as per the Mathologer you-tube video.")
+        
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
