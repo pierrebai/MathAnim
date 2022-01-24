@@ -33,6 +33,7 @@ def _fill_animation_controls_ui(animation: animation, scene: scene, animator: an
         was_playing = animation.playing
         animation.stop(scene, animator)
         animation.reset(scene, animator)
+        animation.current_shot_index = -1
         if was_playing:
             animation.play(scene, animator)
 

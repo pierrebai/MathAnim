@@ -124,7 +124,7 @@ class animation(anim.animation):
         self.anim_pointing_arrow(pos, self.anim_duration / 10, self.scene, self.animator)
 
     def _anim_increase_size(self):
-        def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             self.pointing_arrow_animated = False
             self.az.increase_size()
         self.add_shots(anim.shot(
@@ -136,7 +136,7 @@ class animation(anim.animation):
             prep_anim))
 
     def _anim_remove_collisions(self):
-        def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             self.pointing_arrow_animated = False
             self.az.remove_collisions()
         self.add_shots(anim.shot(
@@ -146,7 +146,7 @@ class animation(anim.animation):
             prep_anim))
 
     def _anim_move_tiles(self):
-        def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             self.pointing_arrow_animated = False
             self.az.move_tiles()
         self.add_shots(anim.shot(
@@ -157,7 +157,7 @@ class animation(anim.animation):
             prep_anim))
 
     def _anim_fill_holes(self):
-        def prep_anim(shot: anim.shot, scene: anim.scene, animator: anim.animator):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             self.pointing_arrow_animated = False
             self.az.fill_holes()
         self.add_shots(anim.shot(

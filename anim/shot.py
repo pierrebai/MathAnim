@@ -1,4 +1,4 @@
-from anim.actor import actor
+from anim.scene import scene
 from .named import named
 
 class shot(named):
@@ -34,7 +34,7 @@ class shot(named):
 
     def add_anim(self, prep_anim: callable, cleanup_anim: callable = None) -> None:
         """
-        Add an animation to the shot. The animation is made up of:
+        Adds an animation to the shot. The animation is made up of:
             - An optional prepare_anim function receiving the scene and animator.
             - An optional cleanup_anim function receiving the same scene and animator.
         """
@@ -43,3 +43,28 @@ class shot(named):
         if cleanup_anim:
             self.cleanup_anims.append(cleanup_anim)
 
+    def _prepare(self, prep_anim, animation, scene: scene, animator) -> None:
+        if callable(prep_anim):
+            prep_anim(self, animation, scene, animator)
+        else:
+            for prep in prep_anim:
+                self._prepare(prep, animation, scene, animator)
+
+    def prepare(self, animation, scene: scene, animator) -> None:
+        """
+        Calls all the prep_anim functions of the shot.
+        """
+        self._prepare(self.prepare_anims, animation, scene, animator)
+
+    def _cleanup(self, cleanup_anim, animation, scene: scene, animator) -> None:
+        if callable(cleanup_anim):
+            cleanup_anim(self, animation, scene, animator)
+        else:
+            for prep in cleanup_anim:
+                self._cleanup(prep, animation, scene, animator)
+
+    def cleanup(self, animation, scene: scene, animator) -> None:
+        """
+        Calls all the cleanup_anim functions of the shot.
+        """
+        self._cleanup(self.cleanup_anims, animation, scene, animator)

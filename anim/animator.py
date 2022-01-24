@@ -153,8 +153,7 @@ class animator(QObject):
         self.current_shot = shot
         self.current_scene = scene
         self.current_animation = animation
-        for prep in shot.prepare_anims:
-            prep(shot, scene, self)
+        shot.prepare(animation, scene, self)
         scene.ensure_all_contents_fit()
 
         self.anim_group.start()
@@ -206,8 +205,7 @@ class animator(QObject):
         self.current_scene = None
         self.current_animation = None
 
-        for cleanup in shot.cleanup_anims:
-            cleanup(shot, scene, self)
+        shot.cleanup(animation, scene, self)
 
         # If the cleanup queued more animations, keep playing them.
         if not self.are_all_anims_done():
