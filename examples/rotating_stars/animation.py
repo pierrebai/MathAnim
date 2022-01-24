@@ -195,12 +195,9 @@ def generate_shots(animation: anim.animation):
 
     def anim_other_inner_circle_dots(which_inner: int, which_dot: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-            dots = [inner_dots[which_inner][which_dot] for which_dot in range(1, dots_count())]
-            for dot in dots:
-                reveal = anim.reveal_item(dot)
-                animator.animate_value(0., 1., reveal_duration, reveal)
-            if dots:
-                animation.anim_pointing_arrow(dots[0].item.boundingRect().center(), reveal_duration / 2, scene, animator)
+            dot = inner_dots[which_inner][which_dot]
+            reveal = anim.reveal_item(dot)
+            animator.animate_value(0., 1., reveal_duration, reveal)
         return prep_anim
 
     animation.add_shots(anim.shot(
