@@ -1,4 +1,4 @@
-from ..point import point
+from .point import point
 
 from PySide6.QtWidgets import QGraphicsPolygonItem
 from PySide6.QtGui import QPolygonF

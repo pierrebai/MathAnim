@@ -1,5 +1,5 @@
 from .actor import actor
-from . import point
+from .items import point
 from . import trf
 
 from PySide6.QtCore import QPointF

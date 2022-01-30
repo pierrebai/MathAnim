@@ -1,4 +1,4 @@
-from ..point import point
+from .point import point
 
 from PySide6.QtWidgets import QGraphicsLineItem
 from PySide6.QtCore import QLineF

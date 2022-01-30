@@ -1,4 +1,4 @@
-from anim.scene import scene
+from .scene import scene
 from .named import named
 
 class shot(named):

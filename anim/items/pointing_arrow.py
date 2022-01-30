@@ -1,4 +1,4 @@
-from ..point import point
+from .point import point
 
 from PySide6.QtWidgets import QGraphicsPathItem
 from PySide6.QtCore import QPointF

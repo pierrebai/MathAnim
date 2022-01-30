@@ -7,6 +7,5 @@ from .scene import scene
 from .shot import shot
 from .items import *
 from .anims import *
-from .point import point, relative_point
 from . import ui
 from . import trf
