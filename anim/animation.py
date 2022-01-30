@@ -100,7 +100,6 @@ class animation(QObject, named):
         self.actors = set()
         self.shots = []
 
-        animator.stop()
         animator.reset()
         
         self.generate_actors(scene)
@@ -165,9 +164,11 @@ class animation(QObject, named):
         if self.reset_on_change:
             # The reset function regenerate the actors, anims and shots,
             # which will make the animator pick up the new animations on the fly.
+            was_playing = self.playing
             self.reset(scene, animator)
-            if self.playing:
-                self.resume_play(scene, animator)
+            self.resume_play(scene, animator)
+            if not was_playing:
+                self.stop(scene, animator)
 
     def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
         """
@@ -338,7 +339,7 @@ class animation(QObject, named):
         if not self.playing:
             self.playing = True
 
-        self.current_shot_index = self.current_shot_index % len(self.shots)
+        self.current_shot_index = max(0, self.current_shot_index) % len(self.shots)
         current_shot = self.shots[self.current_shot_index]
         scene.set_title(current_shot.name)
         scene.set_description(current_shot.description)

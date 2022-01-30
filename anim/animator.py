@@ -60,6 +60,7 @@ class animator(QObject):
         super().__init__()
         self.anim_speedup = 1.
         self.queued_anims = set()
+        self.ended_anims = set()
         self.anim_group = animation_group()
         self.current_scene = None
         self.current_shot = None
@@ -69,17 +70,17 @@ class animator(QObject):
     #
     # Animations
 
-    def animate_value(self, start_value, end_value, duration, on_changed, on_finished = None) -> None:
+    def animate_value(self, start_value, end_value, duration: float, on_changed = None, on_finished = None) -> None:
         """
         Animate the given scene item value.
 
-        A value will be animated from the start_value to the end_value over the given fraction
-        of the default animation duration.
+        A value will be animated from the start_value to the end_value over
+        the given animation duration, in seconds.
         
         The given optional on_changed callback is called every time the value changes during the animation.
         The given optional on_finished is called when the animation ends.
 
-        When all animations that were added are done, the class shot_ended is called.
+        When all animations that were added are done, the current animation shot_ended function is called.
         """
         anim = QVariantAnimation()
         anim.setStartValue(start_value)
@@ -88,14 +89,11 @@ class animator(QObject):
             connect_auto_signal(anim, anim.valueChanged, on_changed)
         self.animate(anim, duration, on_finished)
 
-    def animate(self, anim: QAbstractAnimation, duration, on_finished = None) -> None:
+    def animate(self, anim: QAbstractAnimation, duration: float, on_finished = None) -> None:
         """
-        Add the given animation (QAbstractAnimation) the given scene item.
+        Add the given animation (QAbstractAnimation) the given scene item
+        with the given animation duration, in seconds.
 
-        A value will be animated from the start_value to the end_value over the given fraction
-        of the default animation duration.
-        
-        The given optional on_changed callback is called every time the value changes during the animation.
         The given optional on_finished is called when the animation ends.
 
         When all animations that were added are done, the current animation shot_ended is called.
@@ -108,17 +106,18 @@ class animator(QObject):
         connect_auto_signal(anim, anim.finished, ended)
         self.anim_group.addAnimation(anim)
 
-    def _remove_anim(self, anim: QAbstractAnimation) -> None:
+    def _remove_all_anims(self) -> None:
         # Note: QParallelAnimationGroup clear deletes the animations,
         #       so we need to remove them before calling it, because
         #       sometimes we are being called within an animation signal
         #       and deleting the animation in that case would crash.
-        self.anim_group.removeAnimation(anim)
-        disconnect_auto_signals(anim)
-        self.queued_anims.remove(anim)
+        for anim in list(self.queued_anims):
+            self.anim_group.removeAnimation(anim)
+            disconnect_auto_signals(anim)
+            self.queued_anims.remove(anim)
 
     def _anim_ended(self, anim: QAbstractAnimation) -> None:
-        self._remove_anim(anim)
+        self.ended_anims.add(anim)
         self.check_all_anims_done()
 
     def play(self, shot: shot, animation, scene: scene) -> None:
@@ -130,25 +129,15 @@ class animator(QObject):
         Prepare all animations of the shot by calling their prepare_anim functions
         unless the shot is set to not be shown, in which case do nothing.
         """
-        if not shot.shown:
-            return
-
-        # Make sure the anim group is stopped.
-        self.stop()
-
-        # Clear the current shot to avoid triggering
-        # the shot_ended signal since we are restarting play,
-        # we don't want to confuse the caller and potentially
-        # cause a double-start.
-        self.current_shot = None
-
-        # Make sure all previous animation are at their end-time
-        # And their finished signal has been triggered.
-        for anim in list(self.queued_anims):
-            anim.setCurrentTime(anim.totalDuration())
-            anim.finished.emit()
-
+        # Make sure the anim group is stopped and everything
+        # from a previous shot is cleared.
         self.reset()
+
+        # if the shot is not shown, trigger the shot_ended and return.
+        if not shot.shown:
+            if animation:
+                animation.shot_ended(shot, scene, self)
+            return
 
         self.current_shot = shot
         self.current_scene = scene
@@ -159,6 +148,12 @@ class animator(QObject):
         self.anim_group.start()
         self.check_all_anims_done()
 
+    def stop(self) -> None:
+        """
+        Stops the anim group.
+        """
+        self.anim_group.stop()
+
     def set_current_time_fraction(self, frac: float):
         """
         Sets the current time of the animation in fraction of the duration,
@@ -167,26 +162,32 @@ class animator(QObject):
         duration = self.anim_group.totalDuration()
         self.anim_group.setCurrentTime(int(round(duration * frac)))
 
-    def stop(self) -> None:
-        """
-        Stops the anim group.
-        """
-        self.anim_group.stop()
-
     def reset(self):
         """
         Clears all animations without triggering anything.
         """
-        for anim in list(self.queued_anims):
-            self._remove_anim(anim)
-        self.queued_anims.clear()
-        self.anim_group.clear()
+        # Stop the animation before removing its elements.
+        self.stop()
+
         self.current_scene = None
         self.current_shot = None
         self.current_animation = None
 
+        # Make sure all previous animation are at their end-time
+        # And their finished signal has been triggered.
+        for anim in list(self.queued_anims):
+            anim.setCurrentTime(anim.totalDuration())
+            if not anim in self.ended_anims:
+                anim.finished.emit()
+
+        self._remove_all_anims()
+
+        self.queued_anims.clear()
+        self.ended_anims.clear()
+        self.anim_group.clear()
+
     def are_all_anims_done(self):
-        return not self.queued_anims
+        return len(self.queued_anims) == len(self.ended_anims)
 
     def check_all_anims_done(self) -> None:
         if not self.current_shot:
