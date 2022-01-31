@@ -4,24 +4,14 @@ from .animator import animator
 from .options import option
 from .scene import scene
 from .shot import shot
+from .types import is_of_type
 
 from typing import Dict, Any, List, Tuple
-
-import modulefinder
 
 class simple_animation(animation):
     """
     A simple animation made from the global variables of a module.
     """
-
-    @staticmethod
-    def _is_of_type(var, type) -> bool:
-        if isinstance(var, list) and len(var):
-            return simple_animation._is_of_type(var[0], type)
-        elif isinstance(var, tuple) and len(var):
-            return simple_animation._is_of_type(var[0], type)
-        else:
-            return isinstance(var, type)
 
     @staticmethod
     def from_module(module_dict: Dict[str, Any]) -> callable:
@@ -81,11 +71,11 @@ class simple_animation(animation):
                 custom_option_changed = var
             elif var_name == 'shot_ended':
                 custom_shot_ended = var
-            elif simple_animation._is_of_type(var, shot):
+            elif is_of_type(var, shot):
                 shots.append(var)
-            elif simple_animation._is_of_type(var, actor):
+            elif is_of_type(var, actor):
                 actors.append(var)
-            elif simple_animation._is_of_type(var, option):
+            elif is_of_type(var, option):
                 options.append(var)
 
         # Validate. No options and no actors are OK.

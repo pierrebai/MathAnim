@@ -7,6 +7,7 @@ from .polygon import polygon
 from .rectangle import rectangle, center_rectangle
 from .pointing_arrow import pointing_arrow
 from .point import point, relative_point
+from .text import scaling_text, fixed_size_text
 
 from typing import List as _List
 

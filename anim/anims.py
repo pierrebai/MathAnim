@@ -4,6 +4,26 @@ from . import trf
 
 from PySide6.QtCore import QPointF
 
+from typing import List
+
+
+##########################################
+# Float animations.
+
+def linear_serie(start: float, value: float, count: int) -> List[float]:
+    """
+    Create a list containing a geometric serie starting at a given value
+    with successive values increasing by the value.
+    """
+    return [start + value * i for i in range(count)]
+
+def geometric_serie(start: float, value: float, ratio: float, count: int) -> List[float]:
+    """
+    Create a list containing a geometric serie starting at a given value
+    with successive values being in the given ratio.
+    """
+    return [start + value * (ratio ** i) for i in range(count)]
+
 
 ##########################################
 # Point animations.
