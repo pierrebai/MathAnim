@@ -50,6 +50,12 @@ class point(QPointF):
             for u in self._users:
                 u.update_geometry()
 
+    def reset(self) -> None:
+        """
+        Resets the point to its original location.
+        """
+        self.set_point(self.original_point)
+
 
 class relative_point(point):
     """
@@ -77,3 +83,11 @@ class relative_point(point):
         """
         self._delta = new_point
         self.update_geometry()
+
+    def set_origin(self, new_origin) -> None:
+        """
+        Sets the relative point to be relative to a new origin.
+        """
+        self._origin = new_origin
+        self.update_geometry()
+

@@ -277,6 +277,6 @@ def generate_shots(animation: anim.animation):
 
 #################################################################
 #
-# Animtation
+# Animation
 
 animation = anim.simple_animation.from_module(globals())

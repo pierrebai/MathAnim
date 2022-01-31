@@ -15,6 +15,15 @@ class simple_animation(animation):
     """
 
     @staticmethod
+    def _is_of_type(var, type) -> bool:
+        if isinstance(var, list) and len(var):
+            return simple_animation._is_of_type(var[0], type)
+        elif isinstance(var, tuple) and len(var):
+            return simple_animation._is_of_type(var[0], type)
+        else:
+            return isinstance(var, type)
+
+    @staticmethod
     def from_module(module_dict: Dict[str, Any]) -> callable:
         """
         Create an animation from the global variables of a module.
@@ -23,8 +32,8 @@ class simple_animation(animation):
 
             - name: the name of the animation.
             - description: the description of the animation.
-            - loop: if the animation should loop when reaching the last shot.
-            - reset_on_change: should the animation reset when options change.
+            - loop: if the animation should loop when reaching the last shot. Defaults to False.
+            - reset_on_change: should the animation reset when options change. Defaults to True.
             - Variables that are instances of the shot class.
             - Variables that are instances of the actor class.
             - Variables that are instances of the option class.
@@ -58,7 +67,7 @@ class simple_animation(animation):
                 name = var
             elif var_name == 'description':
                 description = var
-            if var_name == 'loop':
+            elif var_name == 'loop':
                 loop = var
             elif var_name == 'reset_on_change':
                 reset_on_change = var
@@ -72,19 +81,12 @@ class simple_animation(animation):
                 custom_option_changed = var
             elif var_name == 'shot_ended':
                 custom_shot_ended = var
-            elif isinstance(var, shot):
+            elif simple_animation._is_of_type(var, shot):
                 shots.append(var)
-            elif isinstance(var, actor):
+            elif simple_animation._is_of_type(var, actor):
                 actors.append(var)
-            elif isinstance(var, option):
+            elif simple_animation._is_of_type(var, option):
                 options.append(var)
-            elif isinstance(var, list) and len(var):
-                if isinstance(var[0], shot):
-                    shots.append(var)
-                elif isinstance(var[0], actor):
-                    actors.append(var)
-                elif isinstance(var[0], option):
-                    options.append(var)
 
         # Validate. No options and no actors are OK.
         errors = []

@@ -248,6 +248,16 @@ class animation(QObject, named):
             for a in shots:
                 self.add_shots(a)
 
+    def place_anim_pointing_arrow(self, head_point: QPointF, scene: scene):
+        """
+        Place the pointing arrow to start at the description and
+        point to the given point.
+        """
+        desc_rect = scene.description_box.sceneBoundingRect()
+        desc_pos = desc_rect.topLeft()
+        scene.pointing_arrow.item.tail.set_point(desc_pos)
+        scene.pointing_arrow.item.head.set_point(head_point)
+
     def anim_pointing_arrow(self, head_point: QPointF, duration: float, scene: scene, animator: animator):
         """
         Animate the pointing arrow to point to the new point of interest.

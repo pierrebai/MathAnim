@@ -20,6 +20,8 @@ def _create_actor_ui(animation: animation, name: str, shown: bool, layout: QVBox
 def _fill_actors_ui(animation: animation, layout: QVBoxLayout) -> None:
     shown_by_names = animation.get_shown_actors_by_names()
     for name, shown in shown_by_names.items():
+        if not name:
+            continue
         # Note: connect must be out of the loop due to how variables
         #       are captured in inner functions.
         _create_actor_ui(animation, name, shown, layout)

@@ -11,12 +11,31 @@ class pointing_arrow(QGraphicsPathItem):
     """
     def __init__(self, tail: point, head: point, parent = None) -> None:
         super().__init__(parent)
-        self.tail = tail
-        self.head = head
         self.arrow_tail = None
         self.arrow_head = None
+        self.head = None
+        self.tail = tail
         tail.add_user(self)
-        head.add_user(self)
+        self.set_head(head)
+
+    def set_head(self, new_head) -> None:
+        """
+        Sets a new point to be the head.
+        """
+        if self.head:
+            self.head.remove_user(self)
+        self.head = new_head
+        new_head.add_user(self)
+        self.update_geometry()
+
+    def set_tail(self, new_tail) -> None:
+        """
+        Sets a new point to be the tail.
+        """
+        if self.tail:
+            self.tail.remove_user(self)
+        self.tail = new_tail
+        new_tail.add_user(self)
         self.update_geometry()
 
     def update_geometry(self) -> None:

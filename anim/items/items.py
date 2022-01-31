@@ -132,8 +132,16 @@ def create_center_rect(p1: point, half_width: float, half_height: float, color: 
 
 def create_polygon(pts: _List[point], color: _QColor = dark_gray_color, thickness = line_width, parent: _QGraphicsItem = None) -> polygon:
     """
-    Create a dynamic polygon of the giuven color and line thhicknes.
+    Create a dynamic polygon of the given color and line thhicknes.
     """
     item = polygon(pts)
     _prepare_item(item, _QPen(color, thickness), no_color, parent)
+    return item
+
+def create_filled_polygon(pts: _List[point], color: _QColor = dark_gray_color, thickness = line_width, parent: _QGraphicsItem = None) -> polygon:
+    """
+    Create a dynamic polygon of the given color and line thhicknes.
+    """
+    item = polygon(pts)
+    _prepare_item(item, no_color, color, parent)
     return item
