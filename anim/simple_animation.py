@@ -24,6 +24,8 @@ class simple_animation(animation):
             - description: the description of the animation.
             - loop: if the animation should loop when reaching the last shot. Defaults to False.
             - reset_on_change: should the animation reset when options change. Defaults to True.
+            - *_shot: the anim-preparation function of a shot, a shot will be created with the first
+                      line of the funciton doc as the name and the rest as its description.
             - Variables that are instances of the shot class.
             - Variables that are instances of the actor class.
             - Variables that are instances of the option class.
@@ -41,6 +43,7 @@ class simple_animation(animation):
         loop = False
         reset_on_change = True
         shots = []
+        prep_shots = []
         actors = []
         options = []
         custom_generate_actors = None
@@ -71,6 +74,8 @@ class simple_animation(animation):
                 custom_option_changed = var
             elif var_name == 'shot_ended':
                 custom_shot_ended = var
+            elif callable(var) and var_name.endswith('_shot'):
+                prep_shots.append(var)
             elif is_of_type(var, shot):
                 shots.append(var)
             elif is_of_type(var, actor):
@@ -86,12 +91,26 @@ class simple_animation(animation):
         if not description:
             errors.append("No animation description defined. Declare a 'description' global variable.")
 
-        if not shots and not custom_generate_shots:
+        if not shots and not prep_shots and not custom_generate_shots:
             errors.append("No animation shot defined. Declare instances of the anim.shot class as global variable or a function named 'generate_shots'.")
 
         if errors:
             print('\n'.join(errors))
             return None
+
+        for prep in prep_shots:
+            shot_name = "Shot"
+            shot_description = ""
+            if prep.__doc__:
+                lines: list[str] = prep.__doc__.strip().splitlines()
+                shot_name = lines[0]
+                if len(lines) > 1:
+                    first_line = 1
+                    while not lines[first_line].strip():
+                        first_line += 1
+                    shot_description = '\n'.join(lines[first_line:])
+            s = shot(shot_name, shot_description, prep)
+            shots.append(s)
 
         def maker():
             return simple_animation(

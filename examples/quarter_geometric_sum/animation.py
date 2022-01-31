@@ -85,64 +85,64 @@ def reset_relative_points():
 #
 # Shots
 
-def prepare_place_towers_side_by_side(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def place_towers_side_by_side_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Side-by-side Towers
+
+    Place the three square towers
+    side-by-side.
+    """
     reset_relative_points()
     animator.animate_value(zero,  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
     animator.animate_value(zero, right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))
     animation.place_anim_pointing_arrow(zero, scene)
 
-place_towers_side_by_side = anim.shot(
-    "Side-by-side Towers",
-    "Place the three square towers\n"
-    "side-by-side.",
-    prepare_place_towers_side_by_side)
+def combine_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Combine Towers
 
-def prepare_combine_towers(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    Slide the side-towers up the sides
+    of the central tower.
+    """
     animator.animate_value( left_tower_origin, QPointF(central_tower_left_point ), anim_duration, anim.anims.move_point( left_tower_base))
     animator.animate_value(right_tower_origin, QPointF(central_tower_right_point), anim_duration, anim.anims.move_point(right_tower_base))
 
-combine_towers = anim.shot(
-    "Combine Towers",
-    "Slide the side-towers up the sides\n"
-    "of the central tower.",
-    prepare_combine_towers)
+def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Form a Square
 
-def prepare_form_square(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    Slide all sub-squares of the
+    side-towers to form a square.
+    """
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
     for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
         half_size = size / 2.
         animator.animate_value(zero, QPointF( half_size, half_size), anim_duration, anim.anims.move_point(left ))
         animator.animate_value(zero, QPointF(-half_size, half_size), anim_duration, anim.anims.move_point(right))
 
-form_square = anim.shot(
-    "Form a Square",
-    "Slide all sub-squares of the\n"
-    "side-towers to form a square.",
-    prepare_form_square)
+def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Deconstruct the Square
 
-def prepare_break_up_square(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    Slide all sub-squares of the
+    side-towers out of the square.
+    """
     for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
         half_size = size / 2.
         animator.animate_value(QPointF( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
         animator.animate_value(QPointF(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
 
-break_up_square = anim.shot(
-    "Deconstruct the Square",
-    "Slide all sub-squares of the\n"
-    "side-towers out of the square.",
-    prepare_break_up_square)
-
-def prepare_separate_towers(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Separate Towers
+    
+    Slide the side-towers down the sides
+    of the central tower.
+    """
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))
     animator.animate_value(QPointF(central_tower_left_point ),  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
     animator.animate_value(QPointF(central_tower_right_point), right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
-
-separate_towers = anim.shot(
-    "Separate Towers",
-    "Slide the side-towers down the sides\n"
-    "of the central tower.",
-    prepare_separate_towers)
 
 
 #################################################################
