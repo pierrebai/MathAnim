@@ -15,10 +15,20 @@ from typing import List as _List
 Helpers to create various kind of scene items.
 """
 
+
+#################################################################
+#
+# Sizes
+
 outer_size = 1000.
 line_width = outer_size / 50.
 dot_size = line_width * 1.5
 tile_size = outer_size / 100.
+
+
+#################################################################
+#
+# Colors
 
 no_color = _QColor(0, 0, 0, 0)
 
@@ -42,6 +52,10 @@ pale_blue_color     = blue_color.lighter(130); pale_blue_color.setAlpha(120)
 no_pen   = _QPen(no_color, 0)
 no_brush = _QBrush(no_color)
 
+
+#################################################################
+#
+# Shapes
 
 cross_points = [
         point(1, 3), point(3, 1), point(tile_size / 2, 3),
@@ -77,6 +91,24 @@ def create_arrow(rotation_angle, color: _QColor = black_color, parent: _QGraphic
     _prepare_item(item, no_pen, color, parent)
     return item
 
+def create_pointing_arrow(tail: point, head: point, color: _QColor = pale_blue_color, parent: _QGraphicsItem = None) -> line:
+    """
+    Creates a dynamic pointing arrow of the given color.
+    """
+    item = pointing_arrow(tail, head)
+    _prepare_item(item, no_pen, color, parent)
+    return item
+
+
+#################################################################
+#
+# Points Series
+
+
+#################################################################
+#
+# Simple Geometries
+
 def create_circle(center: point, radius: float, color: _QColor = dark_blue_color, thickness = line_width, parent: _QGraphicsItem = None) -> circle:
     """
     Creates a dynamic circle of the given color and thicknes.
@@ -101,18 +133,15 @@ def create_line(p1: point, p2: point, color: _QColor = green_color, thickness = 
     _prepare_item(item, _QPen(color, thickness), no_color, parent)
     return item
 
-def create_pointing_arrow(tail: point, head: point, color: _QColor = pale_blue_color, parent: _QGraphicsItem = None) -> line:
-    """
-    Creates a dynamic pointing arrow of the given color.
-    """
-    item = pointing_arrow(tail, head)
-    _prepare_item(item, no_pen, color, parent)
-    return item
-
 def create_rect(x: float, y: float, width: float, height: float, color: _QColor = dark_gray_color, thickness = line_width, parent: _QGraphicsItem = None) -> _QGraphicsRectItem:
     item = _QGraphicsRectItem(0, 0, width, height)
     item.setPos(x, y)
     _prepare_item(item, _QPen(black_color, thickness), color, parent)
+    return item
+
+def create_invisible_rect(x: float, y: float, width: float, height: float, parent: _QGraphicsItem = None) -> _QGraphicsRectItem:
+    item = create_rect(x, y, width, height, no_color, 0)
+    item.setOpacity(0.)
     return item
 
 def create_two_points_rect(p1: point, p2: point, color: _QColor = dark_gray_color, thickness = line_width, parent: _QGraphicsItem = None) -> rectangle:
@@ -147,6 +176,28 @@ def create_filled_polygon(pts: _List[point], color: _QColor = dark_gray_color, t
     _prepare_item(item, no_color, color, parent)
     return item
 
+def create_filled_losange(base_point: point, size: float, color: _QColor) -> polygon:
+    """
+    Create a filled losange standing on the base point.
+    All points are relative to the given base.
+    """
+    return create_filled_polygon([
+        relative_point(base_point,         0.,  0.),
+        relative_point(base_point, -size / 2., -size / 2.),
+        relative_point(base_point,         0., -size),
+        relative_point(base_point,  size / 2., -size / 2.),
+    ], color)
+
+
+#################################################################
+#
+# Text
+
+def create_scaling_sans_text(label: str, pt: point, font_size: float) -> scaling_text:
+    new_text = scaling_text(label, pt)
+    new_text.set_sans_font(font_size)
+    return new_text
+
 def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling_text]:
     parts = equation.split()
     if not parts:
@@ -160,13 +211,11 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
         if as_exponent:
             pt = texts[-1].exponent_pos()
             font_size /= 2
-        new_text = scaling_text(part, pt)
-        new_text.set_sans_font(font_size)
-        if as_exponent:
-            exponents.append(new_text)
+            where = exponents
         else:
-            texts.append(new_text)
-        return relative_point(pt, new_text.sceneBoundingRect().width(), 0.)
+            where = texts
+        where.append(create_scaling_sans_text(part, pt, font_size))
+        return relative_point(pt, where[-1].sceneBoundingRect().width(), 0.)
 
     pt = create_eq_text(pt, parts[0], font_size)
 
@@ -180,5 +229,3 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
 
     texts.extend(exponents)
     return texts
-
-            

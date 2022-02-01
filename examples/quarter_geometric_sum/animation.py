@@ -16,15 +16,7 @@ reset_on_change = False
 
 #################################################################
 #
-# Actors
-
-def create_square(base_point: anim.point, size: float, color) -> anim.polygon:
-    return anim.create_filled_polygon([
-        anim.relative_point(base_point,         0.,  0.),
-        anim.relative_point(base_point, -size / 2., -size / 2.),
-        anim.relative_point(base_point,         0., -size),
-        anim.relative_point(base_point,  size / 2., -size / 2.),
-    ], color)
+# Points and geometries
 
 def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> List[anim.relative_point]:
     bases = []
@@ -37,7 +29,7 @@ def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> Li
 def create_tower_squares(base_points: List[anim.point], square_sizes: List[float], color) -> List[anim.polygon]:
     squares = []
     for base, size in zip(base_points, square_sizes):
-        squares.append(create_square(base, size, color))
+        squares.append(anim.create_filled_losange(base, size, color))
     return squares
 
 tower_count = 3
@@ -52,11 +44,6 @@ tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
 tower_square_base_points = [create_square_bases(base, square_sizes) for base in tower_base_points]
 tower_squares = [create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
 tower_tip_points = [squares[-1].points[2] for squares in tower_squares]
-tower_actors = [
-    [anim.actor("Square", "Squares forming a geometric serie of sizes.", square) for square in tower]
-    for tower in tower_squares
-]
-
 zero = QPointF(0., 0.)
 
 central_tower_origin = zero
@@ -74,41 +61,31 @@ right_tower_base = tower_base_points[2]
 right_tower_base_points = tower_square_base_points[2]
 
 quarter_texts = [ [
-        anim.scaling_text("1/4", square.points[0], size / 4).set_sans_font(size / 4).center_on(square)
+        anim.create_scaling_sans_text("1/4", square.points[0], size / 4).center_on(square)
         for square, size in zip(tower, square_sizes)
     ]
     for tower in tower_squares
 ]
 
 exponent_texts = [ [
-        anim.scaling_text(str(exponent+1), quarter.exponent_pos()).set_sans_font(quarter.get_font_size() / 2)
+        anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2)
         for exponent, quarter in zip(range(1, tower_height), tower[1:])
     ]
     for tower in quarter_texts
 ]
 
-quarter_actors = [ anim.actor("1/4", "", text) for text in anim.find_all_of_type(globals(), anim.scaling_text) ]
-
 tower_texts = anim.flatten([quarter_texts, exponent_texts])
 towers_and_texts = anim.flatten([tower_squares, quarter_texts, exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
-unit_square = create_square(unit_square_base, square_size * 2, anim.orange_color)
-unit_square_actor = anim.actor("Full Square", "Full square showing the total area.", unit_square)
-
-unit_text = anim.scaling_text("1", unit_square.points[0]).set_sans_font(square_size / 2).center_on(unit_square)
-unit_actor = anim.actor("1", "", unit_text)
-
+unit_square = anim.create_filled_losange(unit_square_base, square_size * 2, anim.orange_color)
+unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], square_size / 2).center_on(unit_square)
 unit_square_and_text = [unit_square, unit_text]
 
-third_texts = [anim.scaling_text("1/3", tip).set_sans_font(square_size / 4).place_above(tip) for tip in tower_tip_points]
-third_actors = [anim.actor("1/3", "", third) for third in third_texts]
+third_texts = [anim.create_scaling_sans_text("1/3", tip, square_size / 4).place_above(tip) for tip in tower_tip_points]
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.relative_point(third_texts[0]._pos, QPointF(0., -square_size / 4)), square_size / 5)
-equation_actors = [anim.actor("Equation", "", eq) for eq in equation_texts]
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0]._pos + QPointF(-square_size, -square_size / 4)), square_size / 6)
 
-invisible_field = anim.actor("", "", anim.create_rect(-square_size * 1.7, -square_size * 3, square_size * 3.4, square_size * 3, anim.no_color, 0))
-invisible_field.item.setOpacity(0.)
 
 def reset_relative_points():
     points = anim.find_all_of_type(globals(), anim.point)
@@ -129,6 +106,21 @@ def reset_opacities():
 
 reset_relative_points()
 reset_opacities()
+
+
+#################################################################
+#
+# Actors
+
+tower_actors = [ anim.actor("Square", "", square) for square in anim.flatten(tower_squares) ]
+unit_square_actor = anim.actor("Square", "Full square showing the total area.", unit_square)
+quarter_actors = [ anim.actor("Fraction", "", text) for text in anim.flatten(quarter_texts) ]
+exponent_actors = [ anim.actor("Fraction", "", text) for text in anim.flatten(exponent_texts) ]
+unit_actor = anim.actor("Fraction", "", unit_text)
+third_actors = [anim.actor("Fraction", "", third) for third in third_texts]
+equation_actors = [anim.actor("Equation", "", eq) for eq in equation_texts]
+invisible_field = anim.actor("", "", anim.create_invisible_rect(-square_size * 1.7, -square_size * 3, square_size * 3.4, square_size * 3))
+
 
 #################################################################
 #
