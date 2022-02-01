@@ -146,3 +146,39 @@ def create_filled_polygon(pts: _List[point], color: _QColor = dark_gray_color, t
     item = polygon(pts)
     _prepare_item(item, no_color, color, parent)
     return item
+
+def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling_text]:
+    parts = equation.split()
+    if not parts:
+        return []
+
+    texts: _List[scaling_text] = []
+    exponents: _List[scaling_text] = []
+
+    def create_eq_text(pt: point, part: str, font_size: float, as_exponent = False) -> relative_point:
+        nonlocal texts, exponents
+        if as_exponent:
+            pt = texts[-1].exponent_pos()
+            font_size /= 2
+        new_text = scaling_text(part, pt)
+        new_text.set_sans_font(font_size)
+        if as_exponent:
+            exponents.append(new_text)
+        else:
+            texts.append(new_text)
+        return relative_point(pt, new_text.sceneBoundingRect().width(), 0.)
+
+    pt = create_eq_text(pt, parts[0], font_size)
+
+    next_as_exponent = False
+    for part in parts[1:]:
+        if part == '^':
+            next_as_exponent = True
+            continue
+        pt = create_eq_text(pt, part, font_size, next_as_exponent)
+        next_as_exponent = False
+
+    texts.extend(exponents)
+    return texts
+
+            

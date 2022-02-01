@@ -27,19 +27,21 @@ class point(QPointF):
         """
         return self._start_pos
 
-    def add_user(self, user) -> None:
+    def add_user(self, user) -> QPointF:
         """
         Adds a user of the popint that will be notified when the point moves.
         """
         self._users.append(user)
+        return self
 
-    def remove_user(self, user) -> None:
+    def remove_user(self, user) -> QPointF:
         """
         Removes a user of the popint that was notified when the point moved.
         """
         self._users.remove(user)
+        return self
 
-    def set_point(self, new_point: QPointF) -> None:
+    def set_point(self, new_point: QPointF) -> QPointF:
         """
         Updates the point position and notifies its users.
         """
@@ -49,12 +51,21 @@ class point(QPointF):
 
             for u in self._users:
                 u.update_geometry()
+        return self
 
-    def reset(self) -> None:
+    def set_absolute_point(self, new_point: QPointF) -> QPointF:
+        """
+        Updates the point absolute position and notifies its users.
+        """
+        self.set_point(new_point)
+        return self
+
+    def reset(self) -> QPointF:
         """
         Resets the point to its original location.
         """
         self.set_point(self.original_point)
+        return self
 
 
 class relative_point(point):
@@ -64,10 +75,9 @@ class relative_point(point):
 
     def __init__(self, origin: point, *args) -> None:
         super().__init__(*args)
-        self._origin = origin
-        self._delta = self._start_pos
-        origin.add_user(self)
-        self.update_geometry()
+        self._origin = None
+        self._delta = QPointF(self._start_pos)
+        self.set_origin(origin)
 
     def update_geometry(self):
         """
@@ -77,17 +87,30 @@ class relative_point(point):
         if new_pos != self:
             super().set_point(new_pos)
 
-    def set_point(self, new_point: QPointF) -> None:
+    def set_point(self, new_point: QPointF) -> point:
         """
         Updates the point position relative to its origin and notifies its users.
         """
-        self._delta = new_point
+        self._delta = QPointF(new_point)
         self.update_geometry()
+        return self
 
-    def set_origin(self, new_origin) -> None:
+    def set_absolute_point(self, new_point: QPointF) -> point:
+        """
+        Updates the point absolute position and notifies its users.
+        """
+        self._delta = new_point - self._origin
+        self.update_geometry()
+        return self
+
+    def set_origin(self, new_origin: point) -> point:
         """
         Sets the relative point to be relative to a new origin.
         """
+        if self._origin:
+            self._origin.remove_user(self)
         self._origin = new_origin
+        new_origin.add_user(self)
         self.update_geometry()
+        return self
 

@@ -18,7 +18,7 @@ class pointing_arrow(QGraphicsPathItem):
         tail.add_user(self)
         self.set_head(head)
 
-    def set_head(self, new_head) -> None:
+    def set_head(self, new_head) -> QGraphicsPathItem:
         """
         Sets a new point to be the head.
         """
@@ -27,8 +27,9 @@ class pointing_arrow(QGraphicsPathItem):
         self.head = new_head
         new_head.add_user(self)
         self.update_geometry()
+        return self
 
-    def set_tail(self, new_tail) -> None:
+    def set_tail(self, new_tail) -> QGraphicsPathItem:
         """
         Sets a new point to be the tail.
         """
@@ -37,6 +38,7 @@ class pointing_arrow(QGraphicsPathItem):
         self.tail = new_tail
         new_tail.add_user(self)
         self.update_geometry()
+        return self
 
     def update_geometry(self) -> None:
         """

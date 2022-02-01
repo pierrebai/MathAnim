@@ -2,7 +2,7 @@ from .actor import actor
 from .items import point
 from . import trf
 
-from PySide6.QtCore import QPointF
+from PySide6.QtGui import QFont
 
 from typing import List
 
@@ -28,7 +28,7 @@ def geometric_serie(start: float, value: float, ratio: float, count: int) -> Lis
 ##########################################
 # Point animations.
 
-def _rotate_point_around(point: point, center: point, angle: float):
+def _rotate_point_around(point: point, center: point, angle: float) -> None:
     point.set_point(trf.rotate_around(point.original_point, center, angle))
 
 def rotate_point_around(point: point, center: point):
@@ -57,6 +57,21 @@ def reveal_item(item):
     if isinstance(item, actor):
         item = item.item
     return lambda opacity: item.setOpacity(opacity) if item else None
+
+def _scale_text_item(item, size) -> None:
+    font = item.font()
+    new_font = QFont(font.name())
+    new_font.setPointSizeF(max(0.5, size))
+    item.setFont(new_font)
+
+def scale_text_item(item):
+    """
+    Returns a function that animate the font size of the actor or item.
+    The returned function only takes the font size as parameter.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    return lambda size: _scale_text_item(item, size) if item else None
 
 def rotate_item(item):
     """
