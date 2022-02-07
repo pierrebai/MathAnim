@@ -9,9 +9,13 @@ from typing import Tuple
 def _fill_animation_controls_ui(animation: animation, scene: scene, animator: animator, layout: QVBoxLayout) -> None:
     buttons_layout = create_horiz_container(layout)
     layout.play_button = create_button("Play", buttons_layout)
+    add_button_shortcut(layout.play_button, QKeyCombination(Qt.ShiftModifier, Qt.Key_Space))
     layout.step_button = create_button("Step", buttons_layout)
+    add_button_shortcut(layout.step_button, Qt.Key_Space)
     layout.stop_button = create_button("Stop", buttons_layout)
+    add_button_shortcut(layout.stop_button, Qt.Key_Escape)
     layout.reset_button = create_button("Reset", buttons_layout)
+    add_button_shortcut(layout.reset_button, Qt.Key_Backspace)
     layout.current_time_box = create_number_slider("Current time", 0, 1000, 0, layout)
     add_stretch(layout)
 
