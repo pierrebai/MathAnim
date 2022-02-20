@@ -152,6 +152,11 @@ def generate_shots(animation: anim.animation):
             circle = inner_circles[which_inner]
             reveal = anim.reveal_item(circle)
             animator.animate_value(0., 1., reveal_duration, reveal)
+        return prep_anim
+
+    def anim_inner_circle_arrow(which_inner: int):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            circle = inner_circles[which_inner]
             animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
@@ -159,7 +164,7 @@ def generate_shots(animation: anim.animation):
             "Draw an inner circle",
             "This is one of the inner circle that\n"
             "rotates inside the outer circle.",
-            anim_inner_circle(0)))
+            [anim_inner_circle(0), anim_inner_circle_arrow(0)]))
 
     def anim_inner_circle_dot(which_inner: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -211,6 +216,11 @@ def generate_shots(animation: anim.animation):
             poly = inner_polygons[which_inner]
             reveal = anim.reveal_item(poly)
             animator.animate_value(0., 1., reveal_duration, reveal)
+        return prep_anim
+
+    def anim_inner_circle_polygon_arrow(which_inner: int):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            poly = inner_polygons[which_inner]
             animation.anim_pointing_arrow(poly.item.scene_rect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
@@ -219,17 +229,20 @@ def generate_shots(animation: anim.animation):
         "This is the polygon that will\n"
         "follow the inner circle in its\n"
         "rotation.",
-        anim_inner_circle_polygon(0)))
+        [anim_inner_circle_polygon(0), anim_inner_circle_polygon_arrow(0)]))
 
     animation.add_shots(anim.shot(
         "Draw the other inner circles",
         "These are all the other inner circles,\n"
         "their dots and their polygons.",
         [
-            [ anim_inner_circle(which_inner),
-            [ anim_other_inner_circle_dots(which_inner, which_dots) for which_dots in range(0, dots_count())],
-            anim_inner_circle_polygon(which_inner) ]
-            for which_inner in range(1, inner_count())
+            anim_inner_circle_polygon_arrow(1),
+            [
+                [ anim_inner_circle(which_inner),
+                [ anim_other_inner_circle_dots(which_inner, which_dots) for which_dots in range(0, dots_count())],
+                anim_inner_circle_polygon(which_inner) ]
+                for which_inner in range(1, inner_count())
+            ]
         ]))
 
     def anim_inter_circle_polygons(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -261,7 +274,7 @@ def generate_shots(animation: anim.animation):
                 animator.animate_value(0., -inner_angle, 2. * animation_speedup(), rot_dot)
 
         outer_circle_rect = outer_circle.item.scene_rect()
-        outer_circle_radius = outer_circle_rect.width / 2.75
+        outer_circle_radius = outer_circle_rect.width() / 2.75
         outer_circle_corner = outer_circle_rect.center() + anim.static_point(outer_circle_radius, -outer_circle_radius)
         animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
 

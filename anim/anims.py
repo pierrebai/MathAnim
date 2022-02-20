@@ -41,7 +41,7 @@ def move_point(point: point):
     Returns a function that animate the movement of the point to a destination point.
     The returned function only takes the position as parameter.
     """
-    return lambda pt: point.set_point(static_point(pt.x(), pt.y()))
+    return lambda pt: point.set_point(pt)
 
 
 ##########################################

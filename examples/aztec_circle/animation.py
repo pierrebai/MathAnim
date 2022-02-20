@@ -172,7 +172,7 @@ class animation(anim.animation):
     #
     # Aztec circle feedback
 
-    def pos_to_scene(self, x: int, y: int) -> tuple:
+    def pos_to_scene(self, x: int, y: int) -> anim.point:
         return anim.point(x * anim.items.tile_size, y * anim.items.tile_size)
 
     def middle_pos_to_scene(self, x: int, y: int, tile) -> tuple:
@@ -256,8 +256,8 @@ class animation(anim.animation):
             )
 
         self.animator.animate_value(
-            self.pos_to_scene(x1 - center, y1 - center),
-            self.pos_to_scene(x2 - center, y2 - center),
+            anim.static_point(self.pos_to_scene(x1 - center, y1 - center)),
+            anim.static_point(self.pos_to_scene(x2 - center, y2 - center)),
             self.anim_duration,
             anim.anims.move_point(item.p1)
         )

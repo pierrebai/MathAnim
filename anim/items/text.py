@@ -11,7 +11,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     Text graphics item that follows the scene.
     """
     def __init__(self, label: str, pos: point, font_size: float = 10., fixed_size = False) -> None:
-        super().__init__(None)
+        super().__init__(label, None)
         if isinstance(pos, relative_point):
             self._pos = relative_point(pos._origin, pos._start_pos)
         else:
@@ -50,7 +50,6 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         other_center = other_rect.center()
         delta = other_center - self_center
         self._pos.set_absolute_point(self._pos + delta)
-        self.update_geometry()
         return self
 
     def place_above(self, pt: static_point) -> _QGraphicsSimpleTextItem:
@@ -58,7 +57,6 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         bottom_center = static_point(rect.center().x(), rect.center().y() + rect.height() / 2)
         delta = pt - bottom_center
         self._pos.set_absolute_point(self._pos + delta)
-        self.update_geometry()
         return self
 
     def exponent_pos(self) -> relative_point:
