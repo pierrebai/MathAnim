@@ -122,12 +122,12 @@ def create_disk(center: point, radius: float, fill_color: color = gray_color) ->
     _prepare_item(item, no_pen, fill_color)
     return item
 
-def create_line(p1: point, p2: point, fill_color: color = green_color, thickness: float = line_width) -> line:
+def create_line(p1: point, p2: point, line_color: color = green_color, thickness: float = line_width) -> line:
     """
     Creates a dynamic line of the given color and thicknes.
     """
     item = line(p1, p2)
-    _prepare_item(item, pen(fill_color, thickness), no_color)
+    item.set_outline(line_color)
     return item
 
 def create_rect(x: float, y: float, width: float, height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:

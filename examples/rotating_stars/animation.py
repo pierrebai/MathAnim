@@ -138,7 +138,7 @@ def generate_shots(animation: anim.animation):
         circle = outer_circle
         animator.animate_value(0., 1., reveal_duration, anim.reveal_item(circle))
         animator.animate_value(0., 1., reveal_duration, anim.reveal_item(scene.pointing_arrow))
-        animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+        # animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
 
     animation.add_shots(anim.shot(
         "Draw the outer circle",
@@ -157,7 +157,7 @@ def generate_shots(animation: anim.animation):
     def anim_inner_circle_arrow(which_inner: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             circle = inner_circles[which_inner]
-            animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -171,7 +171,7 @@ def generate_shots(animation: anim.animation):
             dot = inner_dots[which_inner][0]
             reveal = anim.reveal_item(dot)
             animator.animate_value(0., 1., reveal_duration, reveal)
-            animation.anim_pointing_arrow(dot.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(dot.item.scene_rect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -221,7 +221,7 @@ def generate_shots(animation: anim.animation):
     def anim_inner_circle_polygon_arrow(which_inner: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
             poly = inner_polygons[which_inner]
-            animation.anim_pointing_arrow(poly.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(poly.item.scene_rect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -276,7 +276,7 @@ def generate_shots(animation: anim.animation):
         outer_circle_rect = outer_circle.item.scene_rect()
         outer_circle_radius = outer_circle_rect.width() / 2.75
         outer_circle_corner = outer_circle_rect.center() + anim.static_point(outer_circle_radius, -outer_circle_radius)
-        animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
+        # animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
 
     animation.add_shots(anim.shot(
         "Animate all",

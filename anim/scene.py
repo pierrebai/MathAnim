@@ -1,5 +1,5 @@
 from .actor import actor
-from .items import no_pen, create_pointing_arrow, point, item
+from .items import create_pointing_arrow, point, item
 
 from PySide6.QtGui import QPainter, QFont, QPen, QColor
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsSimpleTextItem, QGraphicsRectItem

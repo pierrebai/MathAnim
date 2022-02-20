@@ -26,22 +26,22 @@ def geometric_serie(start: float, value: float, ratio: float, count: int) -> Lis
 ##########################################
 # Point animations.
 
-def _rotate_point_around(point: point, center: point, angle: float) -> None:
-    point.set_point(trf.rotate_around(point.original_point, center, angle))
+def _rotate_point_around(moved_point: point, center: point, angle: float) -> None:
+    moved_point.set_point(trf.rotate_around(moved_point.original_point, center, angle))
 
-def rotate_point_around(point: point, center: point):
+def rotate_point_around(moved_point: point, center: point):
     """
     Creates a function that will rotates a point around another point of the given angle.
     The returned function only takes the angle in degrees as parameter.
     """
-    return lambda angle: _rotate_point_around(point, center, angle)
+    return lambda angle: _rotate_point_around(moved_point, center, angle)
 
-def move_point(point: point):
+def move_point(moved_point: point):
     """
     Returns a function that animate the movement of the point to a destination point.
     The returned function only takes the position as parameter.
     """
-    return lambda pt: point.set_point(pt)
+    return lambda pt: moved_point.set_point(point(pt))
 
 
 ##########################################
