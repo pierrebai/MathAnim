@@ -84,10 +84,6 @@ class animator(QObject):
         When all animations that were added are done, the current animation shot_ended function is called.
         """
         anim = QVariantAnimation()
-        if isinstance(start_value, static_point):
-            start_value = QPointF(start_value.x, start_value.y)
-        if isinstance(end_value, static_point):
-            end_value = QPointF(end_value.x, end_value.y)
         anim.setStartValue(start_value)
         anim.setEndValue(end_value)
         if on_changed:

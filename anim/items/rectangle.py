@@ -1,60 +1,57 @@
 from .point import point, static_point
 from .item import item
 
-class static_rectangle:
-    def __init__(self, p1: static_point, p2: static_point):
-        self.p1 = p1
-        self.p2 = p2
+from PySide6.QtWidgets import QGraphicsRectItem as _QGraphicsRectItem
+from PySide6.QtCore import QRectF as _QRectF, QPointF as _QPointF
 
-    @property
-    def center(self) -> static_point:
-        return (self.p1 + self.p2) / 2
 
-    @property
-    def width(self) -> float:
-        return abs(self.p2.x - self.p1.x)
+static_rectangle = _QRectF
 
-    @property
-    def height(self) -> float:
-        return abs(self.p2.y - self.p1.y)
-
-    @property
-    def top_right(self) -> static_point:
-        return static_point(max(self.p2.x, self.p1.x), min(self.p2.y, self.p1.y))
-
-    def scene_rect(self):
-        return self
-
-class rectangle(static_rectangle, item):
+class rectangle(_QGraphicsRectItem, item):
     """
     A rectangle graphics item that is dynamically updated when the two corner points move.
     """
     def __init__(self, p1: point, p2: point):
-        static_rectangle.__init__(self, p1, p2)
-        item.__init__(self, item.concrete.rectangle())
+        super().__init__()
+        self.p1 = p1
+        self.p2 = p2
         p1.add_user(self)
         p2.add_user(self)
         self.update_geometry()
 
-class center_rectangle(item):
+    def scene_rect(self):
+        return self
+
+    def update_geometry(self):
+        """
+        Updates the rectangle geometry after the rectangle points moved.
+        """
+        current_rect = _QRectF(_QPointF(self.p1.x(), self.p1.y()), _QPointF(self.p2.x(), self.p2.y()))
+        if current_rect != self.rect():
+            self.prepareGeometryChange()
+            self.setRect(current_rect)
+
+class center_rectangle(_QGraphicsRectItem, item):
     """
     A rectangle graphics item that is dynamically updated when its center point moves.
     """
-    def __init__(self, center: point, half_width: float, half_height: float):
-        super().__init__(item.concrete.rectangle())
+    def __init__(self, center: point, width: float, height: float):
+        super().__init__()
         self.center = center
-        self.corner_delta = static_point(half_width, half_height)
+        self.extent = point(width, height)
         center.add_user(self)
+        self.extent.add_user(self)
         self.update_geometry()
 
-    @property
-    def p1(self):
-        return self.center - self.corner_delta
+    def scene_rect(self):
+        return self
 
-    @property
-    def p2(self):
-        return self.center + self.corner_delta
-
-    def scene_rect(self) -> static_rectangle:
-        return static_rectangle(self.p1, self.p2)
-
+    def update_geometry(self):
+        """
+        Updates the rectangle geometry after the rectangle points moved.
+        """
+        corner = self.center - self.extent / 2
+        current_rect = _QRectF(corner.x(), corner.y(), self.extent.x(), self.extent.y())
+        if current_rect != self.rect():
+            self.prepareGeometryChange()
+            self.setRect(current_rect)

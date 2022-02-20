@@ -1,79 +1,6 @@
-class static_point:
-    """
-    A static point that does not propagate its position.
-    Supports all kind of math operations: +, -, * etc.
-    The additive operations take another point.
-    The multiplicative operations take a floating-point value.
-    """
-    def __init__(self, *args):
-        if len(args) == 0:
-            x = 0
-            y = 0
-        elif len(args) == 1:
-            x = args[0].x
-            y = args[0].y
-        else:
-            x = args[0]
-            y = args[1]
-        self.x = x
-        self.y = y
+from PySide6.QtCore import QPointF as _QPointF
 
-    def __neg__(self):
-        return static_point(-self.x, -self.y)
-
-    def __pos__(self):
-        return static_point(self.x, self.y)
-
-    def __abs__(self):
-        return static_point(abs(self.x), abs(self.y))
-
-    def __add__(self, pt):
-        return static_point(self.x + pt.x, self.y + pt.y)
-
-    def __sub__(self, pt):
-        return static_point(self.x - pt.x, self.y - pt.y)
-    
-    def __mul__(self, val: float):
-        return static_point(self.x * val, self.y * val)
-    
-    def __matmul__(self, val: float):
-        return static_point(self.x @ val, self.y @ val)
-    
-    def __iadd__(self, pt):
-        self.x += pt.x
-        self.y += pt.y
-        return self
-
-    def __isub__(self, pt):
-        self.x -= pt.x
-        self.y -= pt.y
-        return self
-    
-    def __imul__(self, val: float):
-        self.x *= val
-        self.y *= val
-        return self
-    
-    def __imatmul__(self, val: float):
-        self.x @= val
-        self.y @= val
-        return self
-    
-    def __rmul__(self, val: float):
-        return static_point(self.x * val, self.y * val)
-    
-    def __rmatmul__(self, val: float):
-        return static_point(self.x @ val, self.y @ val)
-    
-    def __truediv__(self, val: float):
-        return static_point(self.x / val, self.y / val)
-    
-    def __floordiv__(self, val: float):
-        return static_point(self.x // val, self.y // val)
-    
-    def __pow__(self, val: float):
-        return static_point(self.x ** val, self.y ** val)
-    
+static_point= _QPointF
     
 class point(static_point):
     """
@@ -82,8 +9,17 @@ class point(static_point):
     """
 
     def __init__(self, *args) -> None:
-        super().__init__(*args)
-        self._start_pos = static_point(self.x, self.y)
+        if len(args) == 0:
+            x = 0
+            y = 0
+        elif len(args) == 1:
+            x = args[0].x()
+            y = args[0].y()
+        else:
+            x = args[0]
+            y = args[1]
+        super().__init__(x, y)
+        self._start_pos = static_point(x, y)
         self._users = []
 
     @property
@@ -112,7 +48,8 @@ class point(static_point):
         Updates the point position and notifies its users.
         """
         if self != new_point:
-            self.x, self.y = new_point.x, new_point.y
+            self.setX(new_point.x())
+            self.setY(new_point.y())
 
             for u in self._users:
                 u.update_geometry()

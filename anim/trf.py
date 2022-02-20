@@ -1,14 +1,12 @@
 from .items.point import static_point
 
-from PySide6.QtGui import QTransform
-from PySide6.QtCore import QPointF
+from PySide6.QtGui import QTransform as _QTransform
 
 def rotate_around(pt: static_point, center: static_point, angle: float) -> static_point:
     """
     Rotates a point around another point of the given angle in degrees.
     """
-    rot_pt = QTransform().translate(center.x, center.y).rotate(angle).translate(-center.x, -center.y).map(QPointF(pt.x, pt.y))
-    return static_point(rot_pt.x(), rot_pt.y())
+    return _QTransform().translate(center.x(), center.y()).rotate(angle).translate(-center.x(), -center.y()).map(pt)
 
 def rotate_around_origin(pt: static_point, angle: float) -> static_point:
     """

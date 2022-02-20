@@ -1,60 +1,42 @@
-import anim_qt
+from .color import color
+from .pen import pen
+
+from PySide6.QtGui import QBrush as _QBrush
 
 class item:
     """
     Item that can be animated.
-    Uses a concrete_item internally to do the rendering.
     """
-    concrete = anim_qt.items
-
-    def __init__(self, co_item):
-        self.co_item = co_item
+    def __init__(self, _) -> None:
+        pass
     
-    def update_geometry(self):
-        """
-        Updates the geometry of the concrete item by passing itself to it.
-        """
-        if self.co_item:
-            self.co_item.update_geometry(self)
-
-    def set_outline(self, pen):
+    def set_outline(self, new_pen: pen) -> None:
         """
         Sets the pen used to draw the outline of the item.
         """
-        if self.co_item:
-            self.co_item.set_outline(pen)
+        self.setPen(new_pen)
         
-    def set_fill(self, color):
+    def set_fill(self, new_color: color) -> None:
         """
         Sets the color used to fill the item.
         """
-        if self.co_item:
-            self.co_item.set_fill(color)
+        self.setBrush(_QBrush(new_color))
 
-    def set_opacity(self, opacity):
+    def set_opacity(self, opacity) -> None:
         """
         Sets the opacity of the item, between 0 and 1.
         """
-        if self.co_item:
-            self.co_item.set_opacity(opacity)
+        self.setOpacity(opacity)
 
-    def show(self, shown: bool) -> None:
+    def set_shown(self, shown: bool) -> None:
         """
         Shows or hides the item.
         """
-        if self.co_item:
-            self.co_item.set_shown(shown)
+        self.setVisible(shown)
 
     @property
     def shown(self) -> bool:
         """
         Verifies if the item is shown.
         """
-        return self.co_item and self.co_item.get_shown()
-
-    def reset(self) -> None:
-        """
-        Resets the item, get rid of the concrete item.
-        """
-        self.co_item = None
-
+        return self.isVisible()

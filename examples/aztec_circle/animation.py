@@ -49,6 +49,7 @@ class animation(anim.animation):
 
     def generate_actors(self, scene: anim.scene) -> None:
         self.cross = anim.actor("cross", "", anim.items.create_cross(anim.point()))
+        self.cross.item.set_opacity(0)
         self.add_actors(self.cross, scene)
 
         self.arrow = anim.actor("arrow", "", self.create_arrow_for_tile(anim.point(0., 0.), None))
@@ -80,7 +81,7 @@ class animation(anim.animation):
     def create_cross(self, origin):
         cross = anim.items.create_cross(origin)
         if self.cross:
-            cross.show(self.cross.shown)
+            cross.set_shown(self.cross.shown)
         return cross
 
     tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
@@ -89,7 +90,7 @@ class animation(anim.animation):
         angle = animation.tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
         arrow = anim.items.create_arrow(origin, angle)
         if self.arrow:
-            arrow.show(self.arrow.shown)
+            arrow.set_shown(self.arrow.shown)
         return arrow
 
     tile_colors = [ [anim.items.orange_color, anim.items.red_color], [anim.items.blue_color, anim.items.green_color] ]

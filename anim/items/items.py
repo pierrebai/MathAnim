@@ -6,7 +6,6 @@ from .pointing_arrow import pointing_arrow
 from .point import point, relative_point, static_point
 from .text import scaling_text, fixed_size_text
 from .item import item
-from .concrete_item import concrete_item
 from .pen import pen
 from .color import color
 from .. import trf
@@ -50,7 +49,7 @@ dark_cyan_color     = cyan_color.darker(130)
 dark_gray_color     = gray_color.darker(130)
 dark_red_color      = red_color.darker(130)
 
-pale_blue_color     = blue_color.lighter(130).with_alpha(120)
+pale_blue_color     = blue_color.lighter(130); pale_blue_color.setAlpha(120)
 
 no_pen   = pen(no_color, 0)
 
@@ -149,11 +148,11 @@ def create_two_points_rect(p1: point, p2: point, fill_color: color = dark_gray_c
     _prepare_item(item, pen(black_color, thickness), fill_color)
     return item
 
-def create_center_rect(p1: point, half_width: float, half_height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:
+def create_center_rect(p1: point, width: float, height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:
     """
     Creates a dynamic rectangle out of its center position and half-width and half-height of the given color.
     """
-    item = center_rectangle(p1, half_width, half_height)
+    item = center_rectangle(p1, width, height)
     _prepare_item(item, pen(black_color, thickness), fill_color)
     return item
 
@@ -212,7 +211,7 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
         else:
             where = texts
         where.append(create_scaling_sans_text(part, pt, font_size))
-        return relative_point(pt, where[-1].scene_rect().width, 0.)
+        return relative_point(pt, where[-1].scene_rect().width(), 0.)
 
     pt = create_eq_text(pt, parts[0], font_size)
 

@@ -64,15 +64,14 @@ class scene:
     # Actors
 
     def add_item(self, item: item) -> None:
-        self.scene.addItem(item.co_item)
+        self.scene.addItem(item)
 
     def add_actor(self, actor: actor) -> None:
         self.add_item(actor.item)
 
     def remove_item(self, item: item) -> None:
-        if item.co_item and item.co_item.scene() == self.scene:
-            self.scene.removeItem(item.co_item)
-            item.co_item = None
+        if item.scene() == self.scene:
+            self.scene.removeItem(item)
 
     def remove_actor(self, actor: actor) -> None:
         self.remove_item(actor.item)
@@ -138,13 +137,13 @@ class scene:
         self.scene.removeItem(self.title_box)
         self.scene.removeItem(self.description)
         self.scene.removeItem(self.description_box)
-        self.scene.removeItem(self.pointing_arrow.item.co_item)
+        self.scene.removeItem(self.pointing_arrow.item)
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
         self.scene.addItem(self.title_box)
         self.scene.addItem(self.description_box)
-        self.scene.addItem(self.pointing_arrow.item.co_item)
+        self.scene.addItem(self.pointing_arrow.item)
 
         scene_rect = self.scene.itemsBoundingRect()
 

@@ -264,13 +264,13 @@ class animation(QObject, named):
         Animate the pointing arrow to point to the new point of interest.
         Used in shots created by the sub-classes.
         """
-        tail_pos = QPointF(scene.pointing_arrow.item.tail.x, scene.pointing_arrow.item.tail.y)
+        tail_pos = QPointF(scene.pointing_arrow.item.tail.x(), scene.pointing_arrow.item.tail.y())
         desc_rect = scene.description_box.sceneBoundingRect()
         desc_pos = desc_rect.topLeft()
         animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
 
-        head_pos = QPointF(scene.pointing_arrow.item.head.x, scene.pointing_arrow.item.head.y)
-        what_pos = QPointF(head_point.x, head_point.y)
+        head_pos = QPointF(scene.pointing_arrow.item.head.x(), scene.pointing_arrow.item.head.y())
+        what_pos = QPointF(head_point.x(), head_point.y())
         animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
 
 
