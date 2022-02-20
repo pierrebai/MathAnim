@@ -1,7 +1,5 @@
 import anim
 
-from PySide6.QtCore import QPointF
-
 from typing import List
 
 #################################################################
@@ -44,11 +42,11 @@ tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
 tower_square_base_points = [create_square_bases(base, square_sizes) for base in tower_base_points]
 tower_squares = [create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
 tower_tip_points = [squares[-1].points[2] for squares in tower_squares]
-zero = QPointF(0., 0.)
+zero = anim.static_point(0., 0.)
 
 central_tower_origin = zero
-left_tower_origin  = QPointF(-square_size, 0.)
-right_tower_origin = QPointF( square_size, 0.)
+left_tower_origin  = anim.static_point(-square_size, 0.)
+right_tower_origin = anim.static_point( square_size, 0.)
 
 central_tower_base = tower_base_points[1]
 central_tower_left_point = tower_squares[1][0].points[1]
@@ -84,7 +82,7 @@ unit_square_and_text = [unit_square, unit_text]
 
 third_texts = [anim.create_scaling_sans_text("1/3", tip, square_size / 4).place_above(tip) for tip in tower_tip_points]
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0]._pos + QPointF(-square_size, -square_size / 4)), square_size / 6)
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0]._pos + anim.static_point(-square_size, -square_size / 4)), square_size / 6)
 
 
 def reset_relative_points():
@@ -94,15 +92,15 @@ def reset_relative_points():
 
 def reset_opacities():
     for item in unit_square_and_text:
-        item.setOpacity(0.)
+        item.set_opacity(0.)
     for item in third_texts:
-        item.setOpacity(0.)
+        item.set_opacity(0.)
     for item in anim.flatten(tower_squares):
-        item.setOpacity(1.)
+        item.set_opacity(1.)
     for item in tower_texts:
-        item.setOpacity(0.)
+        item.set_opacity(0.)
     for item in equation_texts:
-        item.setOpacity(0.)
+        item.set_opacity(0.)
 
 reset_relative_points()
 reset_opacities()
@@ -148,8 +146,8 @@ def combine_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     sides of the central tower
     to show they fit together.
     """
-    animator.animate_value( left_tower_origin, QPointF(central_tower_left_point ), anim_duration, anim.anims.move_point( left_tower_base))
-    animator.animate_value(right_tower_origin, QPointF(central_tower_right_point), anim_duration, anim.anims.move_point(right_tower_base))
+    animator.animate_value( left_tower_origin, anim.static_point(central_tower_left_point ), anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value(right_tower_origin, anim.static_point(central_tower_right_point), anim_duration, anim.anims.move_point(right_tower_base))
 
 def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -163,8 +161,8 @@ def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
     for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
         half_size = size / 2.
-        animator.animate_value(zero, QPointF( half_size, half_size), anim_duration, anim.anims.move_point(left ))
-        animator.animate_value(zero, QPointF(-half_size, half_size), anim_duration, anim.anims.move_point(right))
+        animator.animate_value(zero, anim.static_point( half_size, half_size), anim_duration, anim.anims.move_point(left ))
+        animator.animate_value(zero, anim.static_point(-half_size, half_size), anim_duration, anim.anims.move_point(right))
 
 def show_unit_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -219,8 +217,8 @@ def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
     for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
         half_size = size / 2.
-        animator.animate_value(QPointF( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
-        animator.animate_value(QPointF(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
+        animator.animate_value(anim.static_point( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
+        animator.animate_value(anim.static_point(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
 
 def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -231,8 +229,8 @@ def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim
     central tower.
     """
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))
-    animator.animate_value(QPointF(central_tower_left_point ),  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
-    animator.animate_value(QPointF(central_tower_right_point), right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
+    animator.animate_value(anim.static_point(central_tower_left_point ),  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value(anim.static_point(central_tower_right_point), right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
 
 def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """

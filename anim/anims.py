@@ -1,8 +1,6 @@
 from .actor import actor
-from .items import point
+from .items import point, static_point
 from . import trf
-
-from PySide6.QtGui import QFont
 
 from typing import List
 
@@ -43,7 +41,7 @@ def move_point(point: point):
     Returns a function that animate the movement of the point to a destination point.
     The returned function only takes the position as parameter.
     """
-    return lambda pt: point.set_point(pt)
+    return lambda pt: point.set_point(static_point(pt.x(), pt.y()))
 
 
 ##########################################
@@ -56,13 +54,10 @@ def reveal_item(item):
     """
     if isinstance(item, actor):
         item = item.item
-    return lambda opacity: item.setOpacity(opacity) if item else None
+    return lambda opacity: item.set_opacity(opacity) if item else None
 
 def _scale_text_item(item, size) -> None:
-    font = item.font()
-    new_font = QFont(font.name())
-    new_font.setPointSizeF(max(0.5, size))
-    item.setFont(new_font)
+    item.set_font(item.get_font_name(), max(0.5, size))
 
 def scale_text_item(item):
     """
@@ -72,21 +67,3 @@ def scale_text_item(item):
     if isinstance(item, actor):
         item = item.item
     return lambda size: _scale_text_item(item, size) if item else None
-
-def rotate_item(item):
-    """
-    Returns a function that animate the rotation of the actor or item around its own center.
-    The returned function only takes the angle in degrees as parameter.
-    """
-    if isinstance(item, actor):
-        item = item.item
-    return lambda angle: item.setRotation(angle) if item else None
-
-def move_item(item):
-    """
-    Returns a function that animate the movement of the actor or item to a destination point.
-    The returned function only takes the position as parameter.
-    """
-    if isinstance(item, actor):
-        item = item.item
-    return lambda pt: item.setPos(pt) if item else None

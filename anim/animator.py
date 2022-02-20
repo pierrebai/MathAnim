@@ -1,8 +1,9 @@
 from .ui.ui import connect_auto_signal, disconnect_auto_signals
 from .shot import shot
 from .scene import scene
+from .items import static_point
 
-from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject, Qt
+from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject, Qt, QPointF
 
 
 class animation_group(QParallelAnimationGroup):
@@ -83,6 +84,10 @@ class animator(QObject):
         When all animations that were added are done, the current animation shot_ended function is called.
         """
         anim = QVariantAnimation()
+        if isinstance(start_value, static_point):
+            start_value = QPointF(start_value.x, start_value.y)
+        if isinstance(end_value, static_point):
+            end_value = QPointF(end_value.x, end_value.y)
         anim.setStartValue(start_value)
         anim.setEndValue(end_value)
         if on_changed:

@@ -1,8 +1,8 @@
 from .actor import actor
-from .items import no_pen, create_pointing_arrow, point
+from .items import no_pen, create_pointing_arrow, point, item
 
-from PySide6.QtGui import QPainter, QFont
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsItem, QGraphicsSimpleTextItem, QGraphicsRectItem
+from PySide6.QtGui import QPainter, QFont, QPen, QColor
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsSimpleTextItem, QGraphicsRectItem
 from PySide6.QtCore import Qt, QMarginsF, QRectF, QPoint, QRect
 
 from typing import Tuple
@@ -63,15 +63,16 @@ class scene:
     #
     # Actors
 
-    def add_item(self, item: QGraphicsItem) -> None:
-        self.scene.addItem(item)
+    def add_item(self, item: item) -> None:
+        self.scene.addItem(item.co_item)
 
     def add_actor(self, actor: actor) -> None:
         self.add_item(actor.item)
 
-    def remove_item(self, item: QGraphicsItem) -> None:
-        if item.scene() == self.scene:
-            self.scene.removeItem(item)
+    def remove_item(self, item: item) -> None:
+        if item.co_item and item.co_item.scene() == self.scene:
+            self.scene.removeItem(item.co_item)
+            item.co_item = None
 
     def remove_actor(self, actor: actor) -> None:
         self.remove_item(actor.item)
@@ -89,7 +90,7 @@ class scene:
         self.scene.addItem(self.title)
 
         self.title_box = QGraphicsRectItem(0, 0, 6, 2)
-        self.title_box.setPen(no_pen)
+        self.title_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
         self.scene.addItem(self.title_box)
 
         self.description = QGraphicsSimpleTextItem()
@@ -98,7 +99,7 @@ class scene:
         self.scene.addItem(self.description)
 
         self.description_box = QGraphicsRectItem(0, 0, 2, 6)
-        self.description_box.setPen(no_pen)
+        self.description_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
         self.scene.addItem(self.description_box)
 
         arrow = create_pointing_arrow(point(0, 0), point(0, 0))
@@ -137,13 +138,13 @@ class scene:
         self.scene.removeItem(self.title_box)
         self.scene.removeItem(self.description)
         self.scene.removeItem(self.description_box)
-        self.scene.removeItem(self.pointing_arrow.item)
+        self.scene.removeItem(self.pointing_arrow.item.co_item)
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
         self.scene.addItem(self.title_box)
         self.scene.addItem(self.description_box)
-        self.scene.addItem(self.pointing_arrow.item)
+        self.scene.addItem(self.pointing_arrow.item.co_item)
 
         scene_rect = self.scene.itemsBoundingRect()
 

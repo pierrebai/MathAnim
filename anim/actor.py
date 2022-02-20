@@ -23,12 +23,12 @@ class actor(named):
         """
         Shows or hides the actor's item.
         """
-        self.item.setVisible(shown)
+        self.item.show(shown)
 
     @property
     def shown(self) -> bool:
         """
         Verifies if the actor is shown.
         """
-        return self.item.isVisible()
+        return self.item.shown
 

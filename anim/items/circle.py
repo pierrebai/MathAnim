@@ -1,59 +1,59 @@
-from .point import point
-
-from PySide6.QtWidgets import QGraphicsEllipseItem
-from PySide6.QtCore import QRectF, QPointF
+from .point import point, static_point
+from .rectangle import static_rectangle
+from .item import item
 
 import math
 
-class _circle_base(QGraphicsEllipseItem):
+class _circle_base(item):
     """
-    A circle graphics item that is dynamically updated when points defining it move.
+    A circle item that is dynamically updated when points defining it move.
     """
-    def __init__(self, parent = None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__(item.concrete.circle())
 
-    def update_circle_geometry(self, center: QPointF, radius: float):
+    def get_center_and_radius(self, center: point, radius: float):
         """
-        Updates the circle geometry after the points defining it moved.
+        Retrieves the center and radius.
         """
-        diameter = radius * 2.0
-        current_rect = QRectF(center.x() - radius, center.y() - radius, diameter, diameter)
-        if current_rect != self.rect():
-            self.prepareGeometryChange()
-            self.setRect(current_rect)
+        pass
+
+    def scene_rect(self) -> static_rectangle:
+        center, radius = self.get_center_and_radius()
+        delta = static_point(radius, radius)
+        return static_rectangle(center - delta, center + delta)
 
 class circle(_circle_base):
     """
-    A circle graphics item that is dynamically updated when the center-point or radius move.
+    A circle item that is dynamically updated when the center-point or radius move.
     """
-    def __init__(self, center: point, radius: float, parent = None):
-        super().__init__(parent)
+    def __init__(self, center: point, radius: float):
+        super().__init__()
         self.center = center
         self.radius = radius
         center.add_user(self)
         self.update_geometry()
 
-    def update_geometry(self):
+    def get_center_and_radius(self):
         """
-        Updates the circle geometry after the center-point or radius moved.
+        Retrieves the center and radius.
         """
-        self.update_circle_geometry(self.center, self.radius)
+        return (self.center, self.radius)
 
 class diameter_circle(_circle_base):
     """
-    A circle graphics item that is dynamically updated when its diameter end-points move.
+    A circle item that is dynamically updated when its diameter end-points move.
     """
-    def __init__(self, diam_p1: point, diam_p2: point, parent = None):
-        super().__init__(parent)
+    def __init__(self, diam_p1: point, diam_p2: point):
+        super().__init__()
         self.diameter_p1 = diam_p1
         self.diameter_p2 = diam_p2
         diam_p1.add_user(self)
         diam_p2.add_user(self)
         self.update_geometry()
 
-    def update_geometry(self):
+    def get_center_and_radius(self):
         """
-        Updates the circle geometry after its diameter end-points moved.
+        Retrieves the center and radius.
         """
         p1 = self.diameter_p1
         p2 = self.diameter_p2
@@ -62,23 +62,23 @@ class diameter_circle(_circle_base):
         dy2 = (center.y() - p2.y()) ** 2
         radius = math.sqrt(dx2 + dy2)
 
-        self.update_circle_geometry(center, radius)
+        return (center, radius)
 
 class radius_circle(_circle_base):
     """
-    A circle graphics item that is dynamically updated when its radius end-points move.
+    A circle item that is dynamically updated when its radius end-points move.
     """
-    def __init__(self, center: point, radius_point: point, parent = None):
-        super().__init__(parent)
+    def __init__(self, center: point, radius_point: point):
+        super().__init__()
         self.center = center
         self.radius_point = radius_point
         center.add_user(self)
         radius_point.add_user(self)
         self.update_geometry()
 
-    def update_geometry(self):
+    def get_center_and_radius(self):
         """
-        Updates the circle geometry after its diameter end-points moved.
+        Retrieves the center and radius.
         """
         center = self.center
         rad_pt = self.radius_point
@@ -86,4 +86,4 @@ class radius_circle(_circle_base):
         dy2 = (center.y() - rad_pt.y()) ** 2
         radius = math.sqrt(dx2 + dy2)
 
-        self.update_circle_geometry(center, radius)
+        return (center, radius)

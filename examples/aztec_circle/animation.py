@@ -1,9 +1,8 @@
 import anim
+from anim.items.point import relative_point
 
 from .aztec_circle import aztec
 from .tile_generator import sequence_tile_generator
-
-from PySide6.QtCore import QPointF
 
 import math
 
@@ -49,14 +48,11 @@ class animation(anim.animation):
         super().reset(scene, animator)
 
     def generate_actors(self, scene: anim.scene) -> None:
-        self.cross = anim.actor("cross", "", anim.items.create_cross())
-        self.cross.item.setZValue(100.)
-        self.cross.item.setOpacity(0.)
+        self.cross = anim.actor("cross", "", anim.items.create_cross(anim.point()))
         self.add_actors(self.cross, scene)
 
-        self.arrow = anim.actor("arrow", "", self.create_arrow_for_tile(None))
-        self.arrow.item.setZValue(100.)
-        self.arrow.item.setOpacity(0.)
+        self.arrow = anim.actor("arrow", "", self.create_arrow_for_tile(anim.point(0., 0.), None))
+        self.arrow.item.set_opacity(0.)
         self.add_actors(self.arrow, scene)
 
     def generate_shots(self) -> None:
@@ -81,19 +77,19 @@ class animation(anim.animation):
     #
     # Actors
 
-    def create_cross(self):
-        cross = anim.items.create_cross()
+    def create_cross(self, origin):
+        cross = anim.items.create_cross(origin)
         if self.cross:
-            cross.setVisible(self.cross.shown)
+            cross.show(self.cross.shown)
         return cross
 
     tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
 
-    def create_arrow_for_tile(self, tile):
+    def create_arrow_for_tile(self, origin, tile):
         angle = animation.tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
-        arrow = anim.items.create_arrow(angle)
+        arrow = anim.items.create_arrow(origin, angle)
         if self.arrow:
-            arrow.setVisible(self.arrow.shown)
+            arrow.show(self.arrow.shown)
         return arrow
 
     tile_colors = [ [anim.items.orange_color, anim.items.red_color], [anim.items.blue_color, anim.items.green_color] ]
@@ -103,10 +99,11 @@ class animation(anim.animation):
         return animation.tile_colors[tile.is_horizontal][tile.is_positive]
 
     def create_scene_tile(self, x: int, y: int, tile):
-        x, y = self.pos_to_scene(x, y)
+        p1 = self.pos_to_scene(x, y)
         width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
         height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
-        item = anim.items.create_rect(x, y, width, height, animation.tile_to_color(tile), 1)
+        p2 = relative_point(p1, width, height)
+        item = anim.items.create_two_points_rect(p1, p2, animation.tile_to_color(tile), 1)
         self.scene.add_item(item)
         return item
 
@@ -119,9 +116,8 @@ class animation(anim.animation):
         if self.pointing_arrow_animated:
             return
         self.pointing_arrow_animated = True
-        pos = QPointF(*self.middle_pos_to_scene(x, y, tile))
-        pos.setX(pos.x() + anim.items.tile_size / 2.)
-        pos.setY(pos.y() + anim.items.tile_size / 2.)
+        x, y = self.middle_pos_to_scene(x, y, tile)
+        pos = anim.static_point(x + anim.items.tile_size / 2., y + anim.items.tile_size / 2.)
         self.anim_pointing_arrow(pos, self.anim_duration / 10, self.scene, self.animator)
 
     def _anim_increase_size(self):
@@ -176,14 +172,16 @@ class animation(anim.animation):
     # Aztec circle feedback
 
     def pos_to_scene(self, x: int, y: int) -> tuple:
-        return (x * anim.items.tile_size, y * anim.items.tile_size)
+        return anim.point(x * anim.items.tile_size, y * anim.items.tile_size)
 
     def middle_pos_to_scene(self, x: int, y: int, tile) -> tuple:
         if tile:
             if tile.is_horizontal:
-                x += 0.5
-            else:
+                x += 1
                 y += 0.5
+            else:
+                x += 0.5
+                y += 1
         return (x * anim.items.tile_size, y * anim.items.tile_size)
 
     def reallocate(self, az, old_amount: int, new_amount: int):
@@ -210,8 +208,8 @@ class animation(anim.animation):
 
         center = self.center
         tile = az.tiles()[x][y] if az else None
-        cross = self.create_cross()
-        cross.setPos(*self.middle_pos_to_scene(x - center, y - center, tile))
+        origin = anim.point(*self.middle_pos_to_scene(x - center, y - center, tile))
+        cross = self.create_cross(origin)
         self.scene.add_item(cross)
 
         self.anim_pointing_arrow_to_tile(x - center, y - center, tile)
@@ -239,28 +237,28 @@ class animation(anim.animation):
         self.new_items[x2][y2] = item
 
         if self.skip_animations:
-            item.setPos(*self.pos_to_scene(x2 - center, y2 - center))
+            item.p1.set_point(self.pos_to_scene(x2 - center, y2 - center))
             return
 
         if self.arrow.shown:
             tile = az.tiles()[x1][y1] if az else None
-            arrow = self.create_arrow_for_tile(tile)
-            arrow.setPos(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
-            arrow.setOpacity(1.)
+            origin = anim.point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
+            arrow = self.create_arrow_for_tile(origin, tile)
+            arrow.set_opacity(1.)
             self.scene.add_item(arrow)
             self.animator.animate_value(
-                QPointF(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
-                QPointF(*self.middle_pos_to_scene(x2 - center, y2 - center, tile)),
+                anim.static_point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
+                anim.static_point(*self.middle_pos_to_scene(x2 - center, y2 - center, tile)),
                 self.anim_duration,
-                anim.anims.move_item(arrow),
+                anim.anims.move_point(origin),
                 lambda: self.scene.remove_item(arrow)
             )
 
         self.animator.animate_value(
-            QPointF(*self.pos_to_scene(x1 - center, y1 - center)),
-            QPointF(*self.pos_to_scene(x2 - center, y2 - center)),
+            self.pos_to_scene(x1 - center, y1 - center),
+            self.pos_to_scene(x2 - center, y2 - center),
             self.anim_duration,
-            anim.anims.move_item(item)
+            anim.anims.move_point(item.p1)
         )
 
         tile = az.tiles()[x2][y2] if az else None
@@ -275,10 +273,10 @@ class animation(anim.animation):
         self.new_items[x][y] = item
 
         if self.skip_animations:
-            item.setOpacity(1.)
+            item.set_opacity(1.)
             self.animator.animate_value(1., 1., 0.001, anim.anims.reveal_item(item))
         else:
-            item.setOpacity(0.)
+            item.set_opacity(0.)
             self.animator.animate_value(0., 1., self.anim_duration, anim.anims.reveal_item(item))
             self.anim_pointing_arrow_to_tile(x - center, y - center, tile)
 
