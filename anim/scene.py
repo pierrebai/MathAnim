@@ -30,16 +30,12 @@ class scene:
         super().__init__()
         self.default_margin = margin
 
-        self.scene = QGraphicsScene()
-        self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
-
         self.view = QGraphicsView()
         self.view.setInteractive(False)
         self.view.setResizeAnchor(QGraphicsView.AnchorViewCenter)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.view.setScene(self.scene)
 
         self.remove_all_items()
 
@@ -81,6 +77,7 @@ class scene:
         Removes all items from the scene.
         """
         self.scene = QGraphicsScene()
+        self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.setScene(self.scene)
 
         self.title = QGraphicsSimpleTextItem()
@@ -101,7 +98,7 @@ class scene:
         self.description_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
         self.scene.addItem(self.description_box)
 
-        arrow = create_pointing_arrow(point(0, 0), point(0, 0))
+        arrow = create_pointing_arrow(point(0., 0.), point(20., 20.))
         self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
         self.add_actor(self.pointing_arrow)
 

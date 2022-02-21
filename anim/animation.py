@@ -103,6 +103,8 @@ class animation(QObject, named):
         self.actors = set()
         self.shots = []
 
+        self._handle_speed_options(scene, animator, self.anim_speed_option)
+        
         self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)

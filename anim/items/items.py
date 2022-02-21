@@ -200,17 +200,15 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
         return []
 
     texts: _List[scaling_text] = []
-    exponents: _List[scaling_text] = []
 
     def create_eq_text(pt: point, part: str, font_size: float, as_exponent = False) -> relative_point:
-        nonlocal texts, exponents
+        nonlocal texts
         if as_exponent:
             pt = texts[-1].exponent_pos()
             font_size /= 2
-            where = exponents
-        else:
-            where = texts
-        where.append(create_scaling_sans_text(part, pt, font_size))
+        elif len(texts):
+            part = ' ' + part
+        texts.append(create_scaling_sans_text(part, pt, font_size))
         return relative_point(pt, where[-1].scene_rect().width(), 0.)
 
     pt = create_eq_text(pt, parts[0], font_size)
@@ -223,5 +221,4 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
         pt = create_eq_text(pt, part, font_size, next_as_exponent)
         next_as_exponent = False
 
-    texts.extend(exponents)
     return texts

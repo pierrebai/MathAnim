@@ -156,8 +156,9 @@ def generate_shots(animation: anim.animation):
 
     def anim_inner_circle_arrow(which_inner: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-            circle = inner_circles[which_inner]
+            # circle = inner_circles[which_inner]
             # animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+            pass
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -220,8 +221,9 @@ def generate_shots(animation: anim.animation):
 
     def anim_inner_circle_polygon_arrow(which_inner: int):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-            poly = inner_polygons[which_inner]
+            # poly = inner_polygons[which_inner]
             # animation.anim_pointing_arrow(poly.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+            pass
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -273,9 +275,9 @@ def generate_shots(animation: anim.animation):
                 rot_dot = anim.rotate_point_around(dot, anim.point(0., 0.))
                 animator.animate_value(0., -inner_angle, 2. * animation_speedup(), rot_dot)
 
-        outer_circle_rect = outer_circle.item.scene_rect()
-        outer_circle_radius = outer_circle_rect.width() / 2.75
-        outer_circle_corner = outer_circle_rect.center() + anim.static_point(outer_circle_radius, -outer_circle_radius)
+        # outer_circle_rect = outer_circle.item.scene_rect()
+        # outer_circle_radius = outer_circle_rect.width() / 2.75
+        # outer_circle_corner = outer_circle_rect.center() + anim.static_point(outer_circle_radius, -outer_circle_radius)
         # animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
 
     animation.add_shots(anim.shot(

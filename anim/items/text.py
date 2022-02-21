@@ -64,6 +64,16 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         delta = corner - self._pos
         return relative_point(self._pos, delta)
 
+    def subscript_pos(self) -> relative_point:
+        corner = self.sceneBoundingRect().bottomRight()
+        delta = corner - self._pos
+        return relative_point(self._pos, delta)
+
+    def top_left(self) -> relative_point:
+        corner = self.sceneBoundingRect().topLeft()
+        delta = corner - self._pos
+        return relative_point(self._pos, delta)
+
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()
 
