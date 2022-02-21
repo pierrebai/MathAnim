@@ -1,8 +1,9 @@
+from sqlite3 import connect
 from ..named import named
 
-from PySide6.QtCore import QTimer, Qt, Signal
+from PySide6.QtCore import QTimer, Qt, Signal, QKeyCombination
 from PySide6.QtWidgets import *
-from PySide6.QtGui import QIntValidator, QDoubleValidator
+from PySide6.QtGui import QIntValidator, QDoubleValidator, QShortcut, QKeySequence 
 
 from typing import Tuple, Union, List
 
@@ -131,6 +132,18 @@ def create_button(title: str, layout: QLayout) -> QPushButton:
     widget = QPushButton(title)
     layout.addWidget(widget)
     return widget
+
+def add_button_shortcut(button: QPushButton, key: Union[QKeySequence, QKeyCombination, Qt.Key]) -> QShortcut:
+    """
+    Adds a shortcut for the given button.
+    """
+    if isinstance(key, Qt.Key):
+        key = QKeyCombination(key)
+    if isinstance(key, QKeyCombination):
+        key = QKeySequence(key)
+    shortcut = QShortcut(key, button)
+    shortcut.activated.connect(button.animateClick)
+    return shortcut    
 
 def create_horiz_container(layout: QLayout) -> QHBoxLayout:
     """
