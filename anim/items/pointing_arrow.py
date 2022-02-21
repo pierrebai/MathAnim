@@ -28,7 +28,7 @@ class pointing_arrow(_QGraphicsPathItem, item):
             self.head.remove_user(self)
         self.head = new_head
         new_head.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
         return self
 
     def set_tail(self, new_tail):
@@ -39,13 +39,13 @@ class pointing_arrow(_QGraphicsPathItem, item):
             self.tail.remove_user(self)
         self.tail = new_tail
         new_tail.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
         return self
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
 
-    def update_geometry(self) -> None:
+    def _update_geometry(self) -> None:
         """
         Updates the pointing_arrow geometry after the points moved.
         """

@@ -16,12 +16,12 @@ class line(_QGraphicsLineItem, item):
         self.p2 = p2
         p1.add_user(self)
         p2.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the line geometry if the line moved.
         """

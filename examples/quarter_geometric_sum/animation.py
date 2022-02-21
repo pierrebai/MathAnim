@@ -217,6 +217,19 @@ def show_quarter_powers_shot(shot: anim.shot, animation: anim.animation, scene: 
     for item in quarter_with_power_texts:
         animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
 
+def show_thirds_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Tower Individual Areas
+
+    All three towers combine
+    to form a square of unit
+    area. So each tower must
+    have an area equal to 1/3.
+    """
+    scene.pointing_arrow.item.set_head(anim.relative_point(third_texts[2].exponent_pos()))
+    for item in third_texts:
+        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+
 def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
     Deconstruct the Square
@@ -230,19 +243,6 @@ def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim
         half_size = size / 2.
         animator.animate_value(anim.static_point( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
         animator.animate_value(anim.static_point(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
-
-def show_thirds_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    """
-    Tower Individual Areas
-
-    All three towers combine
-    to form a square of unit
-    area. So each tower must
-    have an area equal to 1/3.
-    """
-    scene.pointing_arrow.item.set_head(anim.relative_point(third_texts[2].exponent_pos()))
-    for item in third_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
 
 def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -273,10 +273,8 @@ def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     powers of 1/4 is equal to
     1/3!
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(equation_texts[-1].exponent_pos()))
+    scene.pointing_arrow.item.set_head(anim.relative_point(equation_texts[len(equation_texts) // 2].exponent_pos()))
     for item in third_texts:
-        animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
-    for item in tower_texts:
         animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
     for item in equation_texts:
         animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))

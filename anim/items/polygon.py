@@ -18,7 +18,7 @@ class polygon(_QGraphicsPolygonItem, item):
         self.points = points
         for pt in points:
             pt.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def center(self) -> relative_point:
         if not self.points:
@@ -45,7 +45,7 @@ class polygon(_QGraphicsPolygonItem, item):
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the polygon geometry.
         """

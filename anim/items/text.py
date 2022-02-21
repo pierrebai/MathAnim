@@ -20,7 +20,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         self._pos.add_user(self)
         if fixed_size:
             self.set_fixed_size()
-        self.update_geometry()
+        self._update_geometry()
 
     def set_font(self, font_name, font_size) -> _QGraphicsSimpleTextItem:
         font = _QFont(font_name)
@@ -77,7 +77,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the text position after the point moved.
         """

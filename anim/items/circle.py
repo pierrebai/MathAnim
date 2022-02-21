@@ -4,10 +4,10 @@ from .item import item
 
 import math
 
-from PySide6.QtWidgets import QGraphicsEllipseItem
+from PySide6.QtWidgets import QGraphicsEllipseItem as _QGraphicsEllipseItem
 from PySide6.QtCore import QRectF as _QRectF
 
-class _circle_base(QGraphicsEllipseItem, item):
+class _circle_base(_QGraphicsEllipseItem, item):
     """
     A circle item that is dynamically updated when points defining it move.
     """
@@ -23,7 +23,7 @@ class _circle_base(QGraphicsEllipseItem, item):
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the circle geometry if the rectangle changed.
         """
@@ -44,12 +44,12 @@ class circle(_circle_base):
         self.center = center
         self.radius = radius
         center.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def set_radius(self, new_radius):
         if new_radius != self.radius:
             self.radius = new_radius
-            self.update_geometry()
+            self._update_geometry()
 
     def get_center_and_radius(self):
         """
@@ -67,7 +67,7 @@ class diameter_circle(_circle_base):
         self.diameter_p2 = diam_p2
         diam_p1.add_user(self)
         diam_p2.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def get_center_and_radius(self):
         """
@@ -92,7 +92,7 @@ class radius_circle(_circle_base):
         self.radius_point = radius_point
         center.add_user(self)
         radius_point.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def get_center_and_radius(self):
         """

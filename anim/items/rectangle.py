@@ -17,12 +17,12 @@ class rectangle(_QGraphicsRectItem, item):
         self.p2 = p2
         p1.add_user(self)
         p2.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def scene_rect(self):
         return self
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the rectangle geometry after the rectangle points moved.
         """
@@ -41,12 +41,12 @@ class center_rectangle(_QGraphicsRectItem, item):
         self.extent = point(width, height)
         center.add_user(self)
         self.extent.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
 
     def scene_rect(self):
         return self
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the rectangle geometry after the rectangle points moved.
         """

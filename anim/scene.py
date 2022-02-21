@@ -98,7 +98,7 @@ class scene:
         self.description_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
         self.scene.addItem(self.description_box)
 
-        arrow = create_pointing_arrow(point(0., 0.), point(20., 20.))
+        arrow = create_pointing_arrow(point(0., 0.), point(0., 0.))
         self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
         self.add_actor(self.pointing_arrow)
 

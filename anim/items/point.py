@@ -52,7 +52,7 @@ class point(static_point):
             self.setY(new_point.y())
 
             for u in self._users:
-                u.update_geometry()
+                u._update_geometry()
         return self
 
     def set_absolute_point(self, new_point: static_point):
@@ -89,10 +89,10 @@ class relative_point(point):
             self._origin.remove_user(self)
         self._origin = new_origin
         new_origin.add_user(self)
-        self.update_geometry()
+        self._update_geometry()
         return self
 
-    def update_geometry(self):
+    def _update_geometry(self):
         """
         Updates the point position relative to its origin when the point it is relative to has moved.
         """
@@ -105,7 +105,7 @@ class relative_point(point):
         Updates the point position relative to its origin and notifies its users.
         """
         self._delta = static_point(new_point)
-        self.update_geometry()
+        self._update_geometry()
         return self
 
     def set_absolute_point(self, new_point: static_point) -> point:
@@ -113,6 +113,6 @@ class relative_point(point):
         Updates the point absolute position and notifies its users.
         """
         self._delta = new_point - self._origin
-        self.update_geometry()
+        self._update_geometry()
         return self
 
