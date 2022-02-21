@@ -209,7 +209,7 @@ def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling
         elif len(texts):
             part = ' ' + part
         texts.append(create_scaling_sans_text(part, pt, font_size))
-        return relative_point(pt, where[-1].scene_rect().width(), 0.)
+        return relative_point(pt, texts[-1].scene_rect().width(), 0.)
 
     pt = create_eq_text(pt, parts[0], font_size)
 
