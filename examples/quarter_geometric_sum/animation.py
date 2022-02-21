@@ -69,13 +69,13 @@ quarter_texts = [ [
 
 exponent_texts = [ [
         anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2)
-        for exponent, quarter in zip(range(1, tower_height), tower[1:])
+        for exponent, quarter in zip(range(1, tower_height), quarters[1:])
     ]
-    for tower in quarter_texts
+    for quarters in quarter_texts
 ]
 
 tower_texts = anim.flatten([quarter_texts, exponent_texts])
-towers_and_texts = anim.flatten([tower_squares, quarter_texts, exponent_texts])
+quarter_with_power_texts = anim.flatten([[quarters[1:] for quarters in quarter_texts], exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
 unit_square = anim.create_filled_losange(unit_square_base, square_size * 2, anim.orange_color)
@@ -84,7 +84,7 @@ unit_square_and_text = [unit_square, unit_text]
 
 third_texts = [anim.create_scaling_sans_text("1/3", tip, square_size / 4).place_above(tip) for tip in tower_tip_points]
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0]._pos + QPointF(-square_size, -square_size / 4)), square_size / 6)
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0].top_left() + QPointF(-square_size, -square_size / 4)), square_size / 6)
 
 
 def reset_relative_points():
@@ -144,9 +144,11 @@ def combine_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     """
     Combine Towers
 
-    Slide the side-towers up the
-    sides of the central tower
-    to show they fit together.
+    The left and right towers
+    can slide up the sides of
+    the central tower. This
+    shows that they perfectly
+    fit together.
     """
     animator.animate_value( left_tower_origin, QPointF(central_tower_left_point ), anim_duration, anim.anims.move_point( left_tower_base))
     animator.animate_value(right_tower_origin, QPointF(central_tower_right_point), anim_duration, anim.anims.move_point(right_tower_base))
@@ -155,8 +157,10 @@ def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
     """
     Form a Square
 
-    Slide all sub-squares of
-    the side-towers to show
+    All sub-squares of the left
+    and right towers can slide
+    down to fit snuggly with the
+    central tower. We can see that
     they combine with the central
     tower to form a complete square.
     """
@@ -168,44 +172,51 @@ def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
 
 def show_unit_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
-    Show Equivalent Square
+    Equivalent Square
 
-    Show the unit square that
-    has an area equal to the
-    combined tower.
-
-    The base-square of each
-    tower is a quarter of the
-    full unit square.
+    We can replace the combined
+    towers with a single square
+    of unit area. All three
+    towers together cover the
+    same area as this unit square.
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[3]))
+    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[2]))
     for item in unit_square_and_text:
         animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
-    for item in quarter_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item[0]))
     for item in anim.flatten(tower_squares):
         animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
 
-def hide_unit_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def show_quarters_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
-    Hide Equivalent Square
+    Quarter Squares
 
-    Show again the towers,
-    underlining that each
-    one represent a third
-    of the total unit area.
-
-    Show that as we go up
-    in each tower, each
-    smaller square is a
-    quarter the size of
-    the preceding square.
+    The base-square of each
+    tower is a quarter of the
+    full unit square area.
     """
+    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[3]))
     for item in unit_square_and_text:
         animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
-    for item in towers_and_texts:
+    for item in quarter_texts:
+        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item[0]))
+    for item in anim.flatten(tower_squares):
         animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
-    for item in third_texts:
+
+def show_quarter_powers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Powers of 1/4
+
+    Each successive smaller
+    square in each tower has
+    an area that is a quarter
+    the area of the lower square
+    in the same tower.
+
+    This forms a serie of 1/4
+    powers as each square gets
+    smaller and smaller.
+    """
+    for item in quarter_with_power_texts:
         animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
 
 def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -222,6 +233,19 @@ def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim
         animator.animate_value(QPointF( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
         animator.animate_value(QPointF(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
 
+def show_thirds_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Tower Individual Areas
+
+    All three towers combine
+    to form a square of unit
+    area. So each tower must
+    have an area equal to 1/3.
+    """
+    scene.pointing_arrow.item.set_head(anim.relative_point(third_texts[2].exponent_pos()))
+    for item in third_texts:
+        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+
 def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
     Separate Towers
@@ -236,7 +260,7 @@ def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim
 
 def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
-    Show the final equation
+    Final Equation
 
     The sum of the area of
     the squares of one tower
@@ -246,8 +270,12 @@ def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     But the sum of the area
     of the squares is also
     the sum of powers of 1/4.
+
+    This means the sum of the
+    powers of 1/4 is equal to
+    1/3!
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(equation_texts[-1]._pos))
+    scene.pointing_arrow.item.set_head(anim.relative_point(equation_texts[-1].exponent_pos()))
     for item in third_texts:
         animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
     for item in tower_texts:

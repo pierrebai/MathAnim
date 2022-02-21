@@ -140,7 +140,7 @@ def generate_shots(animation: anim.animation):
         circle = outer_circle
         animator.animate_value(0., 1., reveal_duration, anim.reveal_item(circle))
         animator.animate_value(0., 1., reveal_duration, anim.reveal_item(scene.pointing_arrow))
-        animation.anim_pointing_arrow(circle.item.boundingRect().center(), reveal_duration /2, scene, animator)
+        # animation.anim_pointing_arrow(circle.item.boundingRect().center(), reveal_duration /2, scene, animator)
 
     animation.add_shots(anim.shot(
         "Draw the outer circle",
@@ -154,7 +154,7 @@ def generate_shots(animation: anim.animation):
             circle = inner_circles[which_inner]
             reveal = anim.reveal_item(circle)
             animator.animate_value(0., 1., reveal_duration, reveal)
-            animation.anim_pointing_arrow(circle.item.boundingRect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(circle.item.boundingRect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -168,7 +168,7 @@ def generate_shots(animation: anim.animation):
             dot = inner_dots[which_inner][0]
             reveal = anim.reveal_item(dot)
             animator.animate_value(0., 1., reveal_duration, reveal)
-            animation.anim_pointing_arrow(dot.item.boundingRect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(dot.item.boundingRect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -182,7 +182,7 @@ def generate_shots(animation: anim.animation):
     def anim_star(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         reveal = anim.reveal_item(star)
         animator.animate_value(0., 1., reveal_duration, reveal)
-        animation.anim_pointing_arrow(star.item.boundingRect().center(), reveal_duration / 2, scene, animator)
+        # animation.anim_pointing_arrow(star.item.boundingRect().center(), reveal_duration / 2, scene, animator)
 
     animation.add_shots(anim.shot(
         "Draw the star",
@@ -213,7 +213,7 @@ def generate_shots(animation: anim.animation):
             poly = inner_polygons[which_inner]
             reveal = anim.reveal_item(poly)
             animator.animate_value(0., 1., reveal_duration, reveal)
-            animation.anim_pointing_arrow(poly.item.boundingRect().center(), reveal_duration / 2, scene, animator)
+            # animation.anim_pointing_arrow(poly.item.boundingRect().center(), reveal_duration / 2, scene, animator)
         return prep_anim
 
     animation.add_shots(anim.shot(
@@ -265,7 +265,7 @@ def generate_shots(animation: anim.animation):
         outer_circle_rect = outer_circle.item.boundingRect()
         outer_circle_radius = outer_circle_rect.width() / 2.75
         outer_circle_corner = outer_circle_rect.center() + QPointF(outer_circle_radius, -outer_circle_radius)
-        animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
+        # animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
 
     animation.add_shots(anim.shot(
         "Animate all",

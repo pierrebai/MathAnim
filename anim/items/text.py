@@ -55,6 +55,16 @@ class scaling_text(QGraphicsSimpleTextItem):
         delta = corner - self._pos
         return relative_point(self._pos, delta)
 
+    def subscript_pos(self) -> relative_point:
+        corner = self.sceneBoundingRect().bottomRight()
+        delta = corner - self._pos
+        return relative_point(self._pos, delta)
+
+    def top_left(self) -> relative_point:
+        corner = self.sceneBoundingRect().topLeft()
+        delta = corner - self._pos
+        return relative_point(self._pos, delta)
+
     def update_geometry(self):
         """
         Updates the text position after the point moved.
