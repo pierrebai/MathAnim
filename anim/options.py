@@ -4,7 +4,7 @@ class option(named):
     """
     Animation option, let the user control different aspects of an animation.
     """
-    def __init__(self, name: str, description: str, value, low_value: None, high_value: None) -> None:
+    def __init__(self, name: str, description: str, value, low_value = None, high_value = None) -> None:
         """
         Creates a named option, with a value and optional low and high limits.
         The value is also the default value.

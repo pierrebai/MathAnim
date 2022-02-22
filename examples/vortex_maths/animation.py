@@ -18,9 +18,14 @@ reset_on_change = True
 # Options
 
 number_of_points = anim.option("Number of points", 'The number of points around the circle.', 9, 2, 10000)
-number_of_colors = anim.option('Number of colors', 'The number of colors used to draw the lines', 40, 1, 100)
 point_multiplier = anim.option('Multiplier', 'The multiplication factor to go from one point to another.', 2, 2, 100)
-line_width = anim.option('Line width', 'Width of the line between points.', 1., 0.1, 1000.)
+line_width = anim.option('Line width', 'Width of the line between points.', 10, 0, 200)
+
+color_gradient = anim.option('Color gradient', 'Color swatches applied to lines according to their length', 'Rainbow', list(anim.gradients.keys()))
+interpolate_colors = anim.option('Interpolate colors', 'Interpolate the colors to have a smoother gradient', True)
+reverse_color_gradient = anim.option('Reverse colors', 'Reverse the order of colors in the gradient', False)
+black_background = anim.option('Black background', 'Use a black background', False)
+
 
 #################################################################
 #
@@ -48,22 +53,6 @@ def gen_lengths(lines: List[Tuple[anim.point]]) -> List[float]:
     dys = [p1.y() - p2.y() for p1, p2 in lines]
     return [max(20., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
 
-def gen_colors(count: int) -> List[anim.color]:
-    return [anim.color.fromHsvF(i * 1.0 / count, 1.0, 1.0, 0.5) for i in range(count)]
-
-def get_color(length, min_length, max_length, colors):
-
-    if min_length >= max_length:
-        return colors[0]
-    if length < min_length:
-        return colors[0]
-    if length > max_length:
-        return colors[-1]
-    length -= min_length
-    length *= len(colors)
-    length /= max_length - min_length
-    return colors[math.floor(length) - 1]
-
 
 #################################################################
 #
@@ -72,13 +61,15 @@ def get_color(length, min_length, max_length, colors):
 def generate_actors(animation: anim.animation, scene: anim.scene):
     point_count = number_of_points.value
     multiplier = point_multiplier.value
-    color_count = number_of_colors.value
-    width = line_width.value
+    width = line_width.value / 10.
 
     points = gen_points(point_count)
     lines = gen_lines(multiplier, points)
     lengths = gen_lengths(lines)
-    colors = gen_colors(color_count)
+
+    colors = anim.gradients[color_gradient.value].interpolated(interpolate_colors.value)
+    if reverse_color_gradient.value:
+        colors = colors.reversed()
 
     min_length = min(lengths)
     max_length = max(lengths)
@@ -87,11 +78,19 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     lengths_and_lines.sort(key=lambda x: x[0])
     lengths_and_lines.reverse()
 
-    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
-    point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10., anim.orange_color)) for pt in points]
-    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, get_color(length, min_length, max_length, colors), width)) for length, line in lengths_and_lines]
+    background_color = anim.black_color if black_background.value else anim.white_color
 
-    animation.add_actors([circle, point_actors, line_actors], scene)
+    background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.25, background_color))
+    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
+
+    if len(points) <= 30:
+        point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10., anim.orange_color)) for pt in points]
+    else:
+        point_actors = []
+
+    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, colors.get_color(length, min_length, max_length), width)) for length, line in lengths_and_lines]
+
+    animation.add_actors([background, circle, point_actors, line_actors], scene)
 
 
 #################################################################

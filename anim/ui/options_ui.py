@@ -50,7 +50,7 @@ def _create_bool_ui(option: option, scene: scene, animation: animation, animator
             pass
     connect_auto_signal(ui, ui.stateChanged, on_changed)
 
-def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
+def _create_list_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     items = [(name, "") for name in option.low_value]
     ui = create_list(option.name, items, layout)
     _add_ui_description(ui, option)
@@ -83,7 +83,7 @@ def create_option_ui(option: option, scene: scene, animation: animation, animato
     Create the UI for a single option.
     """
     try:
-        maker = _ui_makers[type(option.value)]
+        maker = _ui_makers[type(option.low_value if option.low_value else option.value)]
     except:
         return None
     return maker(option, scene, animation, animator, layout)
