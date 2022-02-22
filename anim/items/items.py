@@ -127,7 +127,7 @@ def create_line(p1: point, p2: point, line_color: color = green_color, thickness
     Creates a dynamic line of the given color and thicknes.
     """
     item = line(p1, p2)
-    item.set_outline(line_color)
+    item.set_outline(pen(line_color, thickness))
     return item
 
 def create_rect(x: float, y: float, width: float, height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:

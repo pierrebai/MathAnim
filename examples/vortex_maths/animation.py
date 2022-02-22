@@ -20,6 +20,7 @@ reset_on_change = True
 number_of_points = anim.option("Number of points", 'The number of points around the circle.', 9, 2, 10000)
 number_of_colors = anim.option('Number of colors', 'The number of colors used to draw the lines', 40, 1, 100)
 point_multiplier = anim.option('Multiplier', 'The multiplication factor to go from one point to another.', 2, 2, 100)
+line_width = anim.option('Line width', 'Width of the line between points.', 1., 0.1, 1000.)
 
 #################################################################
 #
@@ -37,16 +38,9 @@ def gen_points(count: int) -> List[anim.point]:
 def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.point]]:
     count = len(points)
     lines = [None] * count
-    for i in range(0, count):
-        if lines[i]:
-            continue
-        p1 = i
-        while True:
-            if lines[p1]:
-                break
-            p2 = (p1 * multiplier) % count
-            lines[p1] = (points[p1], points[p2])
-            p1 = p2
+    for p1 in range(0, count):
+        p2 = (p1 * multiplier) % count
+        lines[p1] = (points[p1], points[p2])
     return lines
 
 def gen_lengths(lines: List[Tuple[anim.point]]) -> List[float]:
@@ -58,8 +52,13 @@ def gen_colors(count: int) -> List[anim.color]:
     return [anim.color.fromHsvF(i * 1.0 / count, 1.0, 1.0, 0.5) for i in range(count)]
 
 def get_color(length, min_length, max_length, colors):
+
     if min_length >= max_length:
         return colors[0]
+    if length < min_length:
+        return colors[0]
+    if length > max_length:
+        return colors[-1]
     length -= min_length
     length *= len(colors)
     length /= max_length - min_length
@@ -74,6 +73,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     point_count = number_of_points.value
     multiplier = point_multiplier.value
     color_count = number_of_colors.value
+    width = line_width.value
 
     points = gen_points(point_count)
     lines = gen_lines(multiplier, points)
@@ -83,9 +83,13 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     min_length = min(lengths)
     max_length = max(lengths)
 
-    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 2.))
-    point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 3.)) for pt in points]
-    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, get_color(length, min_length, max_length, colors))) for line, length in zip(lines, lengths)]
+    lengths_and_lines = [(length, line) for length, line in zip(lengths, lines)]
+    lengths_and_lines.sort(key=lambda x: x[0])
+    lengths_and_lines.reverse()
+
+    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
+    point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10., anim.orange_color)) for pt in points]
+    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, get_color(length, min_length, max_length, colors), width)) for length, line in lengths_and_lines]
 
     animation.add_actors([circle, point_actors, line_actors], scene)
 

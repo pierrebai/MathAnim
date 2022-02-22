@@ -21,24 +21,33 @@ def _create_int_ui(option: option, scene: scene, animation: animation, animator:
     _add_ui_description(ui, option)
 
     def on_changed(value):
-        option.value = int(value)
-        animation.option_changed(scene, animator, option)
+        try:
+            option.value = int(value)
+            animation.option_changed(scene, animator, option)
+        except:
+            pass
     connect_auto_signal(ui, ui.valueChanged, on_changed)
 
 def _create_float_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_number_text(option.name, option.low_value, option.high_value, option.value, layout)
     _add_ui_description(ui, option)
     def on_changed(value):
-        option.value = float(value)
-        animation.option_changed(scene, animator, option)
-    connect_auto_signal(ui, ui.valueChanged, on_changed)
+        try:
+            option.value = float(value)
+            animation.option_changed(scene, animator, option)
+        except:
+            pass
+    connect_auto_signal(ui, ui.textChanged, on_changed)
 
 def _create_bool_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:
     ui = create_checkbox(option.name, layout, option.value)
     _add_ui_description(ui, option)
     def on_changed(state):
-        option.value = bool(state)
-        animation.option_changed(scene, animator, option)
+        try:
+            option.value = bool(state)
+            animation.option_changed(scene, animator, option)
+        except:
+            pass
     connect_auto_signal(ui, ui.stateChanged, on_changed)
 
 def _create_list_ui(option: option, scene: scene, animation: animation, layout: QLayout) -> None:
@@ -46,8 +55,11 @@ def _create_list_ui(option: option, scene: scene, animation: animation, layout: 
     ui = create_list(option.name, items, layout)
     _add_ui_description(ui, option)
     def on_changed(value):
-        option.value = str(value)
-        animation.option_changed(scene, animator, option)
+        try:
+            option.value = str(value)
+            animation.option_changed(scene, animator, option)
+        except:
+            pass
     connect_auto_signal(ui, ui.currentTextChanged, on_changed)
 
 def _create_text_ui(option: option, scene: scene, animation: animation, animator: animator, layout: QLayout) -> None:

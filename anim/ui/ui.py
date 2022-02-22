@@ -199,9 +199,7 @@ def create_number_text(title: str, low: IntOrFloat, high: IntOrFloat, value: Int
     and current value in the given layout.
     """
     widget = create_text(title, str((low + high)/2), str(value), layout)
-    if value is float:
-        widget.setValidator(QDoubleValidator(low, high))
-    else:
+    if isinstance(value, int):
         widget.setValidator(QIntValidator(low, high))
     return widget
 
