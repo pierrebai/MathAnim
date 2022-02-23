@@ -41,11 +41,20 @@ Based on this [Mathologer video](https://www.youtube.com/watch?v=Yy7Q8IWNfHM)
 
 ![Aztec Circle](https://github.com/pierrebai/MathAnim/blob/main/examples/aztec_circle/Aztec-Circle.png "Aztec Circle")
 
-
 ### Rotating Stars
 
 Based on this [Mathologer video](https://www.youtube.com/watch?v=oEN0o9ZGmOM&t=1261s)
 
 ![Rotating Stars](https://github.com/pierrebai/MathAnim/blob/main/examples/rotating_stars/Rotating-Stars.png "Rotating Stars")
 
+### Geometric Sum of Quarters
 
+Based on this [Mathologer video](https://www.youtube.com/watch?v=SOBz-aFOH2I)
+
+![Quarter Sum](https://github.com/pierrebai/MathAnim/blob/main/examples/quarter_geometric_sum/Quarter-Sum.png "Quarter Sum")
+
+### Vortex Maths
+
+Based on this [Mathologer video](https://www.youtube.com/watch?v=6ZrO90AI0c8&t=7s)
+
+![Vortex Maths](https://github.com/pierrebai/MathAnim/blob/main/examples/vortex_maths/Vortext-Maths.png "Vortex Maths")

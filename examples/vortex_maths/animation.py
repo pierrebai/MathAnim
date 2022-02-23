@@ -40,6 +40,18 @@ def gen_points(count: int) -> List[anim.point]:
         points.append(anim.point(math.cos(theta) * radius, math.sin(theta) * radius))
     return points
 
+def gen_texts(points: List[anim.point]) -> List[anim.scaling_text]:
+    texts = []
+    count = len(points)
+    zero = anim.point(0., 0.)
+    for i in range(count):
+        theta = -math.pi / 2 + i * 2 * math.pi / count
+        angle = 90 + i * 360 / count
+        text = anim.scaling_text(str(i), points[i], 20)
+        text.place_around(points[i] + anim.static_point(math.cos(theta) * 20, math.sin(theta) * 20), angle)
+        texts.append(text)
+    return texts
+
 def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.point]]:
     count = len(points)
     lines = [None] * count
@@ -51,7 +63,7 @@ def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.poin
 def gen_lengths(lines: List[Tuple[anim.point]]) -> List[float]:
     dxs = [p1.x() - p2.x() for p1, p2 in lines]
     dys = [p1.y() - p2.y() for p1, p2 in lines]
-    return [max(20., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
+    return [max(1., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
 
 
 #################################################################
@@ -64,6 +76,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     width = line_width.value / 10.
 
     points = gen_points(point_count)
+    texts = gen_texts(points)
     lines = gen_lines(multiplier, points)
     lengths = gen_lengths(lines)
 
@@ -83,14 +96,19 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.25, background_color))
     circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
 
-    if len(points) <= 30:
+    if len(points) <= 60:
+        text_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', text) for text in texts]
+    else:
+        text_actors = []
+        
+    if len(points) <= 360:
         point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10., anim.orange_color)) for pt in points]
     else:
         point_actors = []
 
     line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, colors.get_color(length, min_length, max_length), width)) for length, line in lengths_and_lines]
 
-    animation.add_actors([background, circle, point_actors, line_actors], scene)
+    animation.add_actors([background, circle, point_actors, text_actors, line_actors], scene)
 
 
 #################################################################

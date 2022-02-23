@@ -7,7 +7,7 @@ from typing import List
 # Description
 
 name = "Quarter Geometric Sum"
-description = "Mathologer."
+description = "Mathologer video: https://www.youtube.com/watch?v=SOBz-aFOH2I"
 loop = False
 reset_on_change = False
 
