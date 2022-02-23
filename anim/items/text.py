@@ -5,6 +5,7 @@ from .item import item
 from PySide6.QtWidgets import QGraphicsSimpleTextItem as _QGraphicsSimpleTextItem
 from PySide6.QtGui import QFont as _QFont
 
+import math
 
 class scaling_text(_QGraphicsSimpleTextItem, item):
     """
@@ -73,34 +74,27 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         self._pos.set_absolute_point(self._pos + delta)
         return self
 
-    _quadrant_to_rect_pos = [
-        lambda r: (r.topRight() + r.bottomRight()) / 2,
-        lambda r: r.topRight(),
-        lambda r: (r.topRight() + r.topLeft()) / 2,
-        lambda r: r.topLeft(),
-        lambda r: (r.topLeft() + r.bottomLeft()) / 2,
-        lambda r: r.bottomLeft(),
-        lambda r: (r.bottomLeft() + r.bottomRight()) / 2,
-        lambda r: r.bottomRight(),
-    ]
+    def place_around(self, pt: static_point, angle_from_point: float, distance_from_point: float) -> _QGraphicsSimpleTextItem:
+        """
+        Places the text around the given point in the given direction from the point, in radians.
+        Zero is on the right, and turns counter-clockwise.
+        """
+        while angle_from_point < 0:
+            angle_from_point += 2 * math.pi
 
-    def place_around(self, pt: static_point, angle_from_point: float) -> _QGraphicsSimpleTextItem:
-        """
-        Places the text around the given point in the given direction from the point, in degrees.
-        Zero degress is on the right, and turns counter-clockwise.
-        """
+        dist = static_point(math.cos(angle_from_point), math.sin(angle_from_point)) * distance_from_point
+
         rect = self.scene_rect()
-        quadrant = (359 - (round(angle_from_point + 337.5) % 360)) // 45
-        rect_pos_func = scaling_text._quadrant_to_rect_pos[quadrant]
-        delta = pt - rect_pos_func(rect)
+
+        delta = pt + dist- rect.center()
         self._pos.set_absolute_point(self._pos + delta)
         return self
 
-    def place_above(self, pt: static_point) -> _QGraphicsSimpleTextItem:
+    def place_above(self, pt: static_point, distance_from_point: float = 0) -> _QGraphicsSimpleTextItem:
         """
         Places the text above the given point.
         """
-        return self.place_around(pt, 90)
+        return self.place_around(pt, 90, distance_from_point)
 
     def exponent_pos(self) -> relative_point:
         """

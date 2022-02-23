@@ -46,9 +46,8 @@ def gen_texts(points: List[anim.point]) -> List[anim.scaling_text]:
     zero = anim.point(0., 0.)
     for i in range(count):
         theta = -math.pi / 2 + i * 2 * math.pi / count
-        angle = 90 + i * 360 / count
         text = anim.scaling_text(str(i), points[i], 20)
-        text.place_around(points[i] + anim.static_point(math.cos(theta) * 20, math.sin(theta) * 20), angle)
+        text.place_around(points[i], theta, 40)
         texts.append(text)
     return texts
 
@@ -63,7 +62,7 @@ def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.poin
 def gen_lengths(lines: List[Tuple[anim.point]]) -> List[float]:
     dxs = [p1.x() - p2.x() for p1, p2 in lines]
     dys = [p1.y() - p2.y() for p1, p2 in lines]
-    return [max(1., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
+    return [max(10., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
 
 
 #################################################################
@@ -92,8 +91,8 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     lengths_and_lines.reverse()
 
     background_color = anim.black_color if black_background.value else anim.white_color
-
     background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.25, background_color))
+
     circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
 
     if len(points) <= 60:
