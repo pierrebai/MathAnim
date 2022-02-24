@@ -76,6 +76,8 @@ class animation(QObject, named):
         self.anim_speed_option = option("Animation speed", "How fast the animations is played.", 20, 1, 100)
         self.add_options(self.anim_speed_option)
 
+        self.zoom_option = option("Zoom", "Zoom on the scene.", 10, 10, 200)
+        self.add_options(self.zoom_option)
 
     on_shot_changed = Signal(scene, animator, shot)
 
@@ -104,6 +106,7 @@ class animation(QObject, named):
         self.shots = []
 
         self._handle_speed_options(scene, animator, self.anim_speed_option)
+        self._handle_zoom_options(scene, animator, self.zoom_option)
         
         self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
@@ -163,6 +166,8 @@ class animation(QObject, named):
         options when they do their work.
         """
         self._handle_speed_options(scene, animator, option)
+        if self._handle_zoom_options(scene, animator, option):
+            return
 
         if self.reset_on_change:
             # The reset function regenerate the actors, anims and shots,
@@ -294,12 +299,21 @@ class animation(QObject, named):
             for opt in options:
                 self.add_options(opt)
 
-    def _handle_speed_options(self, scene: scene, animator: animator, option: option) -> None:
+    def _handle_speed_options(self, scene: scene, animator: animator, option: option) -> bool:
         """
         Handles the animation speed option, which all animations get.
         """
         if option == self.anim_speed_option:
             animator.anim_speedup = int(option.value) / 20.
+            return True
+
+    def _handle_zoom_options(self, scene: scene, animator: animator, option: option) -> bool:
+        """
+        Handles the scene zoom option, which all animations get.
+        """
+        if option == self.zoom_option:
+            scene.set_zoom_factor(option.value / 10.)
+            return True
 
 
     ########################################################################

@@ -29,6 +29,7 @@ class scene:
         """
         super().__init__()
         self.default_margin = margin
+        self.zoom = 1.
 
         self.view = QGraphicsView()
         self.view.setInteractive(False)
@@ -76,9 +77,21 @@ class scene:
         """
         Removes all items from the scene.
         """
+        trf = self.view.transform() if self.view else None
+        dx = self.view.horizontalScrollBar().value()
+        dy = self.view.verticalScrollBar().value()
+
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.setScene(self.scene)
+
+        self.view.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.view.setOptimizationFlag(QGraphicsView.DontSavePainterState)
+
+        if trf:
+            self.view.setTransform(trf)
+        self.view.horizontalScrollBar().setValue(dx)
+        self.view.verticalScrollBar().setValue(dy)
 
         self.title = QGraphicsSimpleTextItem()
         self.title.setFont(QFont("Georgia", 24))
@@ -173,7 +186,7 @@ class scene:
         actors_rect, scene_rect = self._get_actors_rect()
 
         view_top_left = self.view.mapFromScene(actors_rect.topLeft())
-        top_left = self.view.mapToScene(view_top_left - QPoint(0, self.title.font().pointSize() * 4))
+        top_left = self.view.mapToScene(view_top_left - QPoint(0, self.title.font().pointSize() * 1.5))
         self.title.setPos(top_left)
         self.title_box.setPos(top_left)
 
@@ -183,7 +196,11 @@ class scene:
         self.description_box.setPos(top_left)
 
         return scene_rect
-    
+
+    def set_zoom_factor(self, zoom: float):
+        self.zoom = zoom
+        self.ensure_all_contents_fit()
+
     def ensure_all_contents_fit(self, margin: int = None) -> None:
         """
         If the scene contents does not fit the view then call _adjust_view_to_fit()
@@ -199,4 +216,13 @@ class scene:
         Fits the whole contents of the scene with the given margin
         or the default margin all around.
         """
+        dx = self.view.horizontalScrollBar().value()
+        dy = self.view.verticalScrollBar().value()
         self.view.fitInView(scene_rect, Qt.KeepAspectRatio)
+        if dx or dy or self.zoom > 1.:
+            trf = self.view.transform()
+            trf = trf.scale(self.zoom, self.zoom)
+            self.view.setTransform(trf)
+            self.view.horizontalScrollBar().setValue(dx)
+            self.view.verticalScrollBar().setValue(dy)
+

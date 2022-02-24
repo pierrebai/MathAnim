@@ -91,7 +91,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     lengths_and_lines.reverse()
 
     background_color = anim.black_color if black_background.value else anim.white_color
-    background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.25, background_color))
+    background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.05, background_color))
 
     circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
 
