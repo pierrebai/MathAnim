@@ -1,5 +1,7 @@
 import anim
 
+import math
+
 name = "Rotating Stars"
 description = "Mathologer 3-4-7 Miracle: rotating interlinked polygons following a star trajectory."
 
@@ -97,7 +99,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
         anim.items.create_polygon(pts).outline(anim.items.dark_gray_color))
 
     outer_circle = anim.actor("outer circle", "",
-        anim.items.create_circle(anim.point(0., 0.), anim.items.outer_size + anim.items.line_width).outline(anim.items.dark_blue_color).thickness(anim.items.line_width * 2))
+        anim.items.create_circle(anim.point(0., 0.), anim.items.outer_size).outline(anim.items.dark_blue_color).thickness(anim.items.line_width * 2))
 
     inner_circles = []
     inner_radius = inner_circle_ratio() * anim.items.outer_size
@@ -267,21 +269,10 @@ def generate_shots(animation: anim.animation):
         anim_inter_circle_polygons))
 
     def anim_all(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-        outer_angle = 360. * skip()
-        inner_angle = 360. * inner_count()
         for which_inner in range(inner_count()):
-            center = inner_centers[which_inner]
-            rot_center = anim.rotate_point_around(center, anim.point(0., 0.))
-            animator.animate_value(0., outer_angle, 2. * animation_speedup(), rot_center)
-            for which_dot in range(dots_count()):
-                dot = inner_dots_pos[which_inner][which_dot]
-                rot_dot = anim.rotate_point_around(dot, anim.point(0., 0.))
-                animator.animate_value(0., -inner_angle, 2. * animation_speedup(), rot_dot)
+            anim.roll_circle_in_circle(animator, 2. * animation_speedup(), inner_circles[which_inner].item, outer_circle.item, skip(), inner_dots_pos[which_inner])
 
-        outer_circle_rect = outer_circle.item.scene_rect()
-        outer_circle_radius = outer_circle_rect.width() / 2.75
-        outer_circle_corner = outer_circle_rect.center() + anim.static_point(outer_circle_radius, -outer_circle_radius)
-        animation.anim_pointing_arrow(outer_circle_corner, reveal_duration, scene, animator)
+        animation.anim_pointing_arrow(outer_circle.item.get_circumference_point(-math.pi / 4), reveal_duration, scene, animator)
 
     animation.add_shots(anim.shot(
         "Animate all",

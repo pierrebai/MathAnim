@@ -1,9 +1,10 @@
 from .color import color
 from .pen import pen
+from .point import point
 
 from PySide6.QtGui import QBrush as _QBrush
 
-from typing import ClassVar
+from typing import List as _List
 
 class item:
     """
@@ -11,7 +12,23 @@ class item:
     """
     def __init__(self, _) -> None:
         pass
-    
+
+
+    ########################################################################
+    #
+    # Points
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return []
+
+
+    ########################################################################
+    #
+    # Colors
+
     def outline(self, new_color: color):
         """
         Sets the color of the pen used to draw the outline of the item.
@@ -32,6 +49,11 @@ class item:
         """
         self.setBrush(_QBrush(new_color))
         return self
+
+
+    ########################################################################
+    #
+    # Visibility
 
     def set_opacity(self, opacity):
         """

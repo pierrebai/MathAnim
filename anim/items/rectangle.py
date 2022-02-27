@@ -4,6 +4,8 @@ from .item import item
 from PySide6.QtWidgets import QGraphicsRectItem as _QGraphicsRectItem
 from PySide6.QtCore import QRectF as _QRectF, QPointF as _QPointF
 
+from typing import List as _List
+
 
 static_rectangle = _QRectF
 
@@ -18,6 +20,12 @@ class rectangle(_QGraphicsRectItem, item):
         p1.add_user(self)
         p2.add_user(self)
         self._update_geometry()
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.p1, self.p2]
 
     def scene_rect(self):
         return self
@@ -42,6 +50,12 @@ class center_rectangle(_QGraphicsRectItem, item):
         center.add_user(self)
         self.extent.add_user(self)
         self._update_geometry()
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.center]
 
     def scene_rect(self):
         return self

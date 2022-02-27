@@ -1,8 +1,9 @@
-from .point import point, static_point
+from .point import point, relative_point
 from .rectangle import static_rectangle
 from .item import item
 
 import math
+from typing import Tuple as _Tuple, List as _List
 
 from PySide6.QtWidgets import QGraphicsEllipseItem as _QGraphicsEllipseItem
 from PySide6.QtCore import QRectF as _QRectF
@@ -14,11 +15,20 @@ class _circle_base(_QGraphicsEllipseItem, item):
     def __init__(self):
         super().__init__(None)
 
-    def get_center_and_radius(self, center: point, radius: float):
+    def get_center_and_radius(self, center: point, radius: float) -> _Tuple[relative_point, float]:
         """
         Retrieves the center and radius.
         """
         pass
+
+    def get_circumference_point(self, radian_angle: float) -> relative_point:
+        """
+        Creates a relative point on the circle circumference.
+        """
+        center, radius = self.get_center_and_radius()
+        dx = math.cos(radian_angle) * radius
+        dy = math.sin(radian_angle) * radius
+        return relative_point(center, dx, dy)
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
@@ -57,6 +67,13 @@ class circle(_circle_base):
         """
         return (self.center, self.radius)
 
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.center]
+
+
 class diameter_circle(_circle_base):
     """
     A circle item that is dynamically updated when its diameter end-points move.
@@ -72,15 +89,23 @@ class diameter_circle(_circle_base):
     def get_center_and_radius(self):
         """
         Retrieves the center and radius.
+        The center is relative to p1.
         """
         p1 = self.diameter_p1
         p2 = self.diameter_p2
-        center = (p1 + p2) * 0.5
+        center = relative_point(p1, (p2 - p1) * 0.5)
         dx2 = (center.x() - p2.x()) ** 2
         dy2 = (center.y() - p2.y()) ** 2
         radius = math.sqrt(dx2 + dy2)
 
         return (center, radius)
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.diameter_p1, self.diameter_p2]
+
 
 class radius_circle(_circle_base):
     """
@@ -105,3 +130,9 @@ class radius_circle(_circle_base):
         radius = math.sqrt(dx2 + dy2)
 
         return (center, radius)
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.center, self.radius_point]

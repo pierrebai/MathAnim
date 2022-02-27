@@ -5,6 +5,7 @@ from .rectangle import static_rectangle
 from PySide6.QtWidgets import QGraphicsLineItem as _QGraphicsLineItem
 from PySide6.QtCore import QLineF as _QLineF, QPointF as _QPointF
 
+from typing import List as _List
 
 class line(_QGraphicsLineItem, item):
     """
@@ -17,6 +18,12 @@ class line(_QGraphicsLineItem, item):
         p1.add_user(self)
         p2.add_user(self)
         self._update_geometry()
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.p1, self.p2]
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        

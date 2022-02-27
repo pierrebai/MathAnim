@@ -5,7 +5,7 @@ from .rectangle import static_rectangle
 from PySide6.QtWidgets import QGraphicsPolygonItem as _QGraphicsPolygonItem
 from PySide6.QtGui import QPolygonF as _QPolygonF
 
-from typing import List
+from typing import List as _List
 
 static_polygon = _QPolygonF
 
@@ -13,7 +13,7 @@ class polygon(_QGraphicsPolygonItem, item):
     """
     A polygon graphics item that is dynamically updated when its points move.
     """
-    def __init__(self, points: List[point]):
+    def __init__(self, points: _List[point]):
         super().__init__(None)
         self.points = points
         for pt in points:
@@ -41,6 +41,12 @@ class polygon(_QGraphicsPolygonItem, item):
         corner = static_point(min_x, min_y)
         delta = corner - self.points[0]
         return relative_point(self.points[0], delta)
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return self.points
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        

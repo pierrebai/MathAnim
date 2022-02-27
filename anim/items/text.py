@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QGraphicsSimpleTextItem as _QGraphicsSimpleTextIte
 from PySide6.QtGui import QFont as _QFont
 
 import math
+from typing import List as _List
 
 class scaling_text(_QGraphicsSimpleTextItem, item):
     """
@@ -119,6 +120,12 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         corner = self.sceneBoundingRect().topLeft()
         delta = corner - self._pos
         return relative_point(self._pos, delta)
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self._pos]
 
     def scene_rect(self) -> static_rectangle:
         """

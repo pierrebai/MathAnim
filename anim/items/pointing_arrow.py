@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QGraphicsPathItem as _QGraphicsPathItem
 from PySide6.QtCore import QPointF as _QPointF
 from PySide6.QtGui import QPainterPath as _QPainterPath
 
+from typing import List as _List
 
 class pointing_arrow(_QGraphicsPathItem, item):
     """
@@ -41,6 +42,12 @@ class pointing_arrow(_QGraphicsPathItem, item):
         new_tail.add_user(self)
         self._update_geometry()
         return self
+
+    def get_all_points(self) -> _List[point]:
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.head, self.tail]
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        
