@@ -73,9 +73,6 @@ class animation(QObject, named):
         self.loop = False
         self.reset_on_change = True
 
-        self.zoom_option = option("Zoom", "Zoom on the scene.", 10, 10, 200)
-        self.add_options(self.zoom_option)
-
     on_shot_changed = Signal(scene, animator, shot)
 
 
@@ -102,8 +99,6 @@ class animation(QObject, named):
         self.actors = set()
         self.shots = []
 
-        self._handle_zoom_options(scene, animator, self.zoom_option)
-        
         self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
         self.apply_shown_to_actors(shown_by_names)
@@ -152,18 +147,11 @@ class animation(QObject, named):
         Called when an option value is changed. The base class handles
         change to the animation-speed option.
         
-        If the reset_on_change flag is True then it calls the
-        reset function and continues playing the animation with the new
-        settings.
-        
         Override in sub-classes to react to option changes, if needed.
         You can instead react to the options in reset() or just let the
         generate_actors and generate_shots functions react to the new
         options when they do their work.
         """
-        if self._handle_zoom_options(scene, animator, option):
-            return
-
         self.reset_play(scene, animator)
 
     def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
@@ -287,15 +275,6 @@ class animation(QObject, named):
             for opt in options:
                 self.add_options(opt)
 
-    def _handle_zoom_options(self, scene: scene, animator: animator, option: option) -> bool:
-        """
-        Handles the scene zoom option, which all animations get.
-        """
-        if option == self.zoom_option:
-            scene.view.set_zoom(option.value / 10.)
-            scene.ensure_all_contents_fit()
-            return True
-
 
     ########################################################################
     #
@@ -318,6 +297,10 @@ class animation(QObject, named):
     def reset_play(self, scene: scene, animator: animator) -> None:
         """
         Reset the current playing shot, if any, when a setting changes.
+
+        If the reset_on_change flag is True then it calls the
+        reset function and continues playing the animation with the new
+        settings.
         """
         if self.reset_on_change:
             # The reset function regenerate the actors, anims and shots,
