@@ -85,14 +85,15 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     outer_angle = 360. * skip()
     inner_angle = 360. * inner_count()
     center = anim.point(inner_centers[0].original_point)
-    dot = anim.relative_point(center, inner_dots_pos[0][0].original_point)
+    delta = inner_dots_pos[0][0].delta
+    dot = anim.relative_point(center, delta)
     pts = []
     star_segment_count = 240
     for i in range(star_segment_count):
         angle = outer_angle * float(i) / float(star_segment_count)
         center.set_point(anim.trf.rotate_around_origin(center.original_point, angle))
         angle = -inner_angle * float(i) / float(star_segment_count)
-        dot.set_point(anim.trf.rotate_around_origin(dot.original_point, angle))
+        dot.set_delta(anim.trf.rotate_around_origin(delta, angle))
         pts.append(anim.point(dot))
 
     star = anim.actor("star", "The star that the dots on the inner circle follow.",
@@ -270,7 +271,7 @@ def generate_shots(animation: anim.animation):
 
     def anim_all(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for which_inner in range(inner_count()):
-            anim.roll_circle_in_circle(animator, 2. * animation_speedup(), inner_circles[which_inner].item, outer_circle.item, skip(), inner_dots_pos[which_inner])
+            anim.roll_points_on_circle_in_circle(animator, 2. * animation_speedup(), inner_circles[which_inner].item, outer_circle.item, skip(), inner_dots_pos[which_inner])
 
         animation.anim_pointing_arrow(outer_circle.item.get_circumference_point(-math.pi / 4), reveal_duration, scene, animator)
 

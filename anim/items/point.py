@@ -23,27 +23,27 @@ class point(static_point):
         self._users = []
 
     @property
-    def original_point(self):
+    def original_point(self) -> static_point:
         """
         The original position of the point, useful to animate from the starting position.
         """
         return self._start_pos
 
-    def add_user(self, user):
+    def add_user(self, user) -> static_point:
         """
         Adds a user of the popint that will be notified when the point moves.
         """
         self._users.append(user)
         return self
 
-    def remove_user(self, user):
+    def remove_user(self, user) -> static_point:
         """
         Removes a user of the popint that was notified when the point moved.
         """
         self._users.remove(user)
         return self
 
-    def set_point(self, new_point: static_point):
+    def set_point(self, new_point: static_point) -> static_point:
         """
         Updates the point position and notifies its users.
         """
@@ -55,14 +55,14 @@ class point(static_point):
                 u._update_geometry()
         return self
 
-    def set_absolute_point(self, new_point: static_point):
+    def set_absolute_point(self, new_point: static_point) -> static_point:
         """
         Updates the point absolute position and notifies its users.
         """
         self.set_point(new_point)
         return self
 
-    def reset(self):
+    def reset(self) -> static_point:
         """
         Resets the point to its original location.
         """
@@ -78,8 +78,14 @@ class relative_point(point):
     def __init__(self, origin: point, *args) -> None:
         super().__init__(*args)
         self._origin = None
-        self._delta = static_point(self._start_pos)
+        self.delta = static_point(self._start_pos)
         self.set_origin(origin)
+
+    def set_delta(self, new_delta: static_point) -> point:
+        if self.delta != new_delta:
+            self.delta = new_delta
+            self._update_geometry()
+        return self
 
     def set_origin(self, new_origin: point) -> point:
         """
@@ -92,11 +98,11 @@ class relative_point(point):
         self._update_geometry()
         return self
 
-    def _update_geometry(self):
+    def _update_geometry(self) -> None:
         """
         Updates the point position relative to its origin when the point it is relative to has moved.
         """
-        new_pos = self._origin + self._delta
+        new_pos = self._origin + self.delta
         if new_pos != self:
             super().set_point(new_pos)
 
@@ -104,7 +110,7 @@ class relative_point(point):
         """
         Updates the point position relative to its origin and notifies its users.
         """
-        self._delta = static_point(new_point)
+        self.delta = static_point(new_point)
         self._update_geometry()
         return self
 
@@ -112,7 +118,7 @@ class relative_point(point):
         """
         Updates the point absolute position and notifies its users.
         """
-        self._delta = new_point - self._origin
+        self.delta = new_point - self._origin
         self._update_geometry()
         return self
 

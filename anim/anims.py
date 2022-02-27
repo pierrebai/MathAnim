@@ -3,7 +3,7 @@ from .animator import animator
 from .items import point, circle
 from . import trf
 
-from typing import List as _List
+from typing import List as _List, Tuple as _Tuple
 
 
 #################################################################
@@ -51,16 +51,22 @@ def move_point(moved_point: point):
 #
 # Complex animations
 
-def roll_circle_in_circle(animator: animator, duration: float, inner_circle: circle, outer_circle: circle, rotation_count: float, points_on_inner: _List[point]):
-    # TODO: the following code assumes the points to be moved are relative to the inner circle center.
-    outer_center, outer_radius = outer_circle.get_center_and_radius()
-    inner_center, inner_radius = inner_circle.get_center_and_radius()
-    outer_angle = 360. * rotation_count
+def roll_circle_in_circle_angles(inner_radius: float, outer_radius: float, rotation_count: float) -> _Tuple[float, float]:
+    """
+    Calculates and returns the inner circle center rotation angle and inner circle perimeter rotation angle.
+    """
+    inner_center_angle = 360. * rotation_count
     radius_ratio = inner_radius / outer_radius
-    inner_angle = 360. * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
-    animator.animate_value(0., outer_angle, duration, rotate_point_around(inner_center, outer_center))
+    inner_prim_angle = -360. * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
+    return inner_center_angle, inner_prim_angle
+
+def roll_points_on_circle_in_circle(animator: animator, duration: float, inner_circle: circle, outer_circle: circle, rotation_count: float, points_on_inner: _List[point]):
+    inner_center, inner_radius = inner_circle.get_center_and_radius()
+    outer_center, outer_radius = outer_circle.get_center_and_radius()
+    inner_center_angle, inner_prim_angle = roll_circle_in_circle_angles(inner_radius, outer_radius, rotation_count)
+    animator.animate_value(0., inner_center_angle, duration, rotate_point_around(inner_center, outer_center))
     for pt in points_on_inner:
-        animator.animate_value(0., -inner_angle, duration, rotate_point_around(pt, point()))
+        animator.animate_value(0., inner_prim_angle, duration, rotate_point_around(pt, point()))
 
 
 #################################################################
