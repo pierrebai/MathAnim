@@ -91,9 +91,9 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     lengths_and_lines.reverse()
 
     background_color = anim.black_color if black_background.value else anim.white_color
-    background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.05, background_color))
+    background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.05).fill(background_color))
 
-    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius, anim.pale_blue_color, 10.))
+    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius).outline(anim.pale_blue_color).thickness(10.))
 
     if len(points) <= 60:
         text_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', text) for text in texts]
@@ -101,11 +101,11 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
         text_actors = []
         
     if len(points) <= 360:
-        point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10., anim.orange_color)) for pt in points]
+        point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10.).fill(anim.orange_color)) for pt in points]
     else:
         point_actors = []
 
-    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line, colors.get_color(length, min_length, max_length), width)) for length, line in lengths_and_lines]
+    line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line).outline(colors.get_color(length, min_length, max_length)).thickness(width)) for length, line in lengths_and_lines]
 
     animation.add_actors([background, circle, point_actors, text_actors, line_actors], scene)
 

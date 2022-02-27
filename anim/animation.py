@@ -73,9 +73,6 @@ class animation(QObject, named):
         self.loop = False
         self.reset_on_change = True
 
-        self.anim_speed_option = option("Animation speed", "How fast the animations is played.", 20, 1, 100)
-        self.add_options(self.anim_speed_option)
-
         self.zoom_option = option("Zoom", "Zoom on the scene.", 10, 10, 200)
         self.add_options(self.zoom_option)
 
@@ -105,7 +102,6 @@ class animation(QObject, named):
         self.actors = set()
         self.shots = []
 
-        self._handle_speed_options(scene, animator, self.anim_speed_option)
         self._handle_zoom_options(scene, animator, self.zoom_option)
         
         self.generate_actors(scene)
@@ -165,18 +161,10 @@ class animation(QObject, named):
         generate_actors and generate_shots functions react to the new
         options when they do their work.
         """
-        self._handle_speed_options(scene, animator, option)
         if self._handle_zoom_options(scene, animator, option):
             return
 
-        if self.reset_on_change:
-            # The reset function regenerate the actors, anims and shots,
-            # which will make the animator pick up the new animations on the fly.
-            was_playing = self.playing
-            self.reset(scene, animator)
-            self.resume_play(scene, animator)
-            if not was_playing:
-                self.stop(scene, animator)
+        self.reset_play(scene, animator)
 
     def shot_ended(self, ended_shot: shot, ended_scene: scene, ended_animator: animator):
         """
@@ -299,14 +287,6 @@ class animation(QObject, named):
             for opt in options:
                 self.add_options(opt)
 
-    def _handle_speed_options(self, scene: scene, animator: animator, option: option) -> bool:
-        """
-        Handles the animation speed option, which all animations get.
-        """
-        if option == self.anim_speed_option:
-            animator.anim_speedup = int(option.value) / 20.
-            return True
-
     def _handle_zoom_options(self, scene: scene, animator: animator, option: option) -> bool:
         """
         Handles the scene zoom option, which all animations get.
@@ -333,6 +313,19 @@ class animation(QObject, named):
         if not start_at_shot_index is None:
             self.current_shot_index = start_at_shot_index - 1
         self.play_next_shot(scene, animator)
+
+    def reset_play(self, scene: scene, animator: animator) -> None:
+        """
+        Reset the current playing shot, if any, when a setting changes.
+        """
+        if self.reset_on_change:
+            # The reset function regenerate the actors, anims and shots,
+            # which will make the animator pick up the new animations on the fly.
+            was_playing = self.playing
+            self.reset(scene, animator)
+            self.resume_play(scene, animator)
+            if not was_playing:
+                self.stop(scene, animator)
 
     def play_next_shot(self, scene: scene, animator: animator) -> None:
         """

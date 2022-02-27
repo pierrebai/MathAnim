@@ -3,6 +3,8 @@ from .pen import pen
 
 from PySide6.QtGui import QBrush as _QBrush
 
+from typing import ClassVar
+
 class item:
     """
     Item that can be animated.
@@ -10,23 +12,33 @@ class item:
     def __init__(self, _) -> None:
         pass
     
-    def set_outline(self, new_pen: pen) -> None:
+    def outline(self, new_color: color):
         """
-        Sets the pen used to draw the outline of the item.
+        Sets the color of the pen used to draw the outline of the item.
         """
-        self.setPen(new_pen)
+        self.setPen(pen(new_color, self.pen().widthF()))
+        return self
         
-    def set_fill(self, new_color: color) -> None:
+    def thickness(self, new_width: float):
+        """
+        Sets the thickness of the pen used to draw the outline of the item.
+        """
+        self.setPen(pen(self.pen().color(), new_width))
+        return self
+        
+    def fill(self, new_color: color):
         """
         Sets the color used to fill the item.
         """
         self.setBrush(_QBrush(new_color))
+        return self
 
-    def set_opacity(self, opacity) -> None:
+    def set_opacity(self, opacity):
         """
         Sets the opacity of the item, between 0 and 1.
         """
         self.setOpacity(opacity)
+        return self
 
     def set_shown(self, shown: bool) -> None:
         """

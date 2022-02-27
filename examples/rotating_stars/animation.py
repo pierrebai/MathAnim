@@ -94,10 +94,10 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
         pts.append(anim.point(dot))
 
     star = anim.actor("star", "The star that the dots on the inner circle follow.",
-        anim.items.create_polygon(pts, anim.items.dark_gray_color))
+        anim.items.create_polygon(pts).outline(anim.items.dark_gray_color))
 
     outer_circle = anim.actor("outer circle", "",
-        anim.items.create_circle(anim.point(0., 0.), anim.items.outer_size + anim.items.line_width, anim.items.dark_blue_color, anim.items.line_width * 2))
+        anim.items.create_circle(anim.point(0., 0.), anim.items.outer_size + anim.items.line_width).outline(anim.items.dark_blue_color).thickness(anim.items.line_width * 2))
 
     inner_circles = []
     inner_radius = inner_circle_ratio() * anim.items.outer_size
@@ -110,18 +110,18 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
         inner_dots.append(list())
         for which_dot in range(0, dots_count()):
             center = inner_dots_pos[which_inner][which_dot]
-            dot = anim.items.create_disk(center, anim.items.dot_size, anim.items.orange_color)
+            dot = anim.items.create_disk(center, anim.items.dot_size).fill(anim.items.orange_color)
             inner_dots[which_inner].append(anim.actor("inner circle dot", "", dot))
 
     inner_polygons = []
     for which_inner in range(0, inner_count()):
-        poly = anim.items.create_polygon(inner_dots_pos[which_inner], anim.items.green_color, anim.items.line_width)
+        poly = anim.items.create_polygon(inner_dots_pos[which_inner]).outline(anim.items.green_color)
         inner_polygons.append(anim.actor("inner polygon", "", poly))
 
     inter_polygons = []
     for which_dot in range(0, dots_count()):
         pts = [inner_dots_pos[which_inner][which_dot] for which_inner in range(0, inner_count())]
-        poly = anim.items.create_polygon(pts, anim.items.blue_color)
+        poly = anim.items.create_polygon(pts).outline(anim.items.blue_color)
         inter_polygons.append(anim.actor("outer polygon", "", poly))
 
     animation.add_actors([outer_circle, inner_circles, inner_dots, inner_polygons, inter_polygons, star], scene)

@@ -10,7 +10,7 @@ def _create_actor_ui(animation: animation, name: str, shown: bool, layout: QVBox
     Connects the check box changed signal to a function that updates
     the shown state of the anmation actors.
     """
-    ui = create_checkbox(f"Draw {name}", layout, shown)
+    ui = create_checkbox(name.title(), layout, shown)
     def on_changed(state):
         for actor in animation.actors:
             if actor.name == name:
@@ -19,12 +19,13 @@ def _create_actor_ui(animation: animation, name: str, shown: bool, layout: QVBox
 
 def _fill_actors_ui(animation: animation, layout: QVBoxLayout) -> None:
     shown_by_names = animation.get_shown_actors_by_names()
-    for name, shown in shown_by_names.items():
+    sorted_names = list(shown_by_names.keys()); sorted_names.sort()
+    for name in sorted_names:
         if not name:
             continue
         # Note: connect must be out of the loop due to how variables
         #       are captured in inner functions.
-        _create_actor_ui(animation, name, shown, layout)
+        _create_actor_ui(animation, name, shown_by_names[name], layout)
     add_stretch(layout)
 
 def create_actors_ui(animation: animation) -> Tuple[QDockWidget, QVBoxLayout]:

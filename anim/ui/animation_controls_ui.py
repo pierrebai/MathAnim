@@ -17,6 +17,7 @@ def _fill_animation_controls_ui(animation: animation, scene: scene, animator: an
     layout.reset_button = create_button("Reset", buttons_layout)
     add_button_shortcut(layout.reset_button, Qt.Key_Backspace)
     layout.current_time_box = create_number_slider("Current time", 0, 1000, 0, layout)
+    layout.animation_speed_box = create_number_slider("Animation speed", 1, 100, 20, layout)
     add_stretch(layout)
 
 
@@ -51,6 +52,11 @@ def _connect_animation_controls_ui(animation: animation, scene: scene, animator:
         layout.current_time_box.setValue(int(round(1000 * value)))
     connect_auto_signal(animator.anim_group, animator.anim_group.current_time_changed, on_anim_current_time_changed)
 
+    def on_anim_speed_changed(value: float):
+        animator.anim_speedup = float(value) / 20.
+        animation.reset_play(scene, animator)
+    connect_auto_signal(layout.animation_speed_box, layout.animation_speed_box.valueChanged, on_anim_speed_changed)
+
 
 def _disconnect_animation_controls_ui(animation: animation, scene: scene, animator: animator, layout: QVBoxLayout) -> None:
     disconnect_auto_signals(layout.play_button)
@@ -58,6 +64,7 @@ def _disconnect_animation_controls_ui(animation: animation, scene: scene, animat
     disconnect_auto_signals(layout.stop_button)
     disconnect_auto_signals(layout.reset_button)
     disconnect_auto_signals(layout.current_time_box)
+    disconnect_auto_signals(layout.animation_speed_box)
     disconnect_auto_signals(animator.anim_group)
 
 

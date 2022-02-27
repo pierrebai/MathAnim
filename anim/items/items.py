@@ -73,20 +73,19 @@ _arrow_points = [
     point(-1,  half_tile_size - 1), point(-1, -half_tile_size + 4), 
 ]
 
-def _prepare_item(item: item, pen: pen, fill_color: color) -> None:
-    item.set_outline(pen)
-    item.set_fill(fill_color)
+def _prepare_item(item: item, outline_color: color, thickness:float, fill_color: color) -> None:
+    item.outline(outline_color).thickness(thickness).fill(fill_color)
 
 def create_cross(origin: point, fill_color: color = red_color) -> polygon:
     poly_points = [relative_point(origin, pt) for pt in _cross_points]
     item = polygon(poly_points)
-    _prepare_item(item, pen(fill_color.darker(130), 1), fill_color)
+    _prepare_item(item, fill_color.darker(130), 1., fill_color)
     return item
 
 def create_arrow(origin: point, rotation_angle, fill_color: color = black_color) -> polygon:
     poly_points = [relative_point(origin, trf.rotate_around_origin(pt, rotation_angle)) for pt in _arrow_points]
     item = polygon(poly_points)
-    _prepare_item(item, no_pen, fill_color)
+    _prepare_item(item, no_color, 0., fill_color)
     return item
 
 def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blue_color) -> line:
@@ -94,7 +93,7 @@ def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blu
     Creates a dynamic pointing arrow of the given color.
     """
     item = pointing_arrow(tail, head)
-    _prepare_item(item, no_pen, fill_color)
+    _prepare_item(item, no_color, 0, fill_color)
     return item
 
 
@@ -107,83 +106,78 @@ def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blu
 #
 # Simple Geometries
 
-def create_circle(center: point, radius: float, fill_color: color = dark_blue_color, thickness: float = line_width) -> circle:
+def create_circle(center: point, radius: float) -> circle:
     """
-    Creates a dynamic circle of the given color and thicknes.
-    """
-    item = circle(center, radius)
-    _prepare_item(item, pen(fill_color, thickness), no_color)
-    return item
-
-def create_disk(center: point, radius: float, fill_color: color = gray_color) -> circle:
-    """
-    Creates a dynamic filled disk of the given color.
+    Creates a dynamic dark blue circle.
     """
     item = circle(center, radius)
-    _prepare_item(item, no_pen, fill_color)
+    _prepare_item(item, dark_blue_color, line_width, no_color)
     return item
 
-def create_line(p1: point, p2: point, line_color: color = green_color, thickness: float = line_width) -> line:
+def create_disk(center: point, radius: float) -> circle:
     """
-    Creates a dynamic line of the given color and thicknes.
+    Creates a dynamic gray filled disk.
+    """
+    item = circle(center, radius)
+    _prepare_item(item, no_color, 0., gray_color)
+    return item
+
+def create_line(p1: point, p2: point) -> line:
+    """
+    Creates a dynamic green line.
     """
     item = line(p1, p2)
-    item.set_outline(pen(line_color, thickness))
+    item.outline(green_color).thickness(line_width)
     return item
 
-def create_rect(x: float, y: float, width: float, height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:
+def create_rect(x: float, y: float, width: float, height: float) -> rectangle:
+    """
+    Creates a gray rectangle outlined in black.
+    """
     item = rectangle(point(x, y), point(x+width, y+height))
-    _prepare_item(item, pen(black_color, thickness), fill_color)
+    _prepare_item(item, black_color, line_width, dark_gray_color)
     return item
 
 def create_invisible_rect(x: float, y: float, width: float, height: float) -> rectangle:
-    item = create_rect(x, y, width, height, no_color, 0)
+    item = create_rect(x, y, width, height).fill(no_color).outline(no_color).thickness(0)
     item.set_opacity(0.)
     return item
 
-def create_two_points_rect(p1: point, p2: point, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:
+def create_two_points_rect(p1: point, p2: point) -> rectangle:
     """
-    Creates a dynamic rectangle out of two corners of the given color.
+    Creates a dynamic dark gray rectangle out of two corners outlined in black.
     """
     item = rectangle(p1, p2)
-    _prepare_item(item, pen(black_color, thickness), fill_color)
+    _prepare_item(item, black_color, line_width, dark_gray_color)
     return item
 
-def create_center_rect(p1: point, width: float, height: float, fill_color: color = dark_gray_color, thickness: float = line_width) -> rectangle:
+def create_center_rect(p1: point, width: float, height: float) -> rectangle:
     """
-    Creates a dynamic rectangle out of its center position and half-width and half-height of the given color.
+    Creates a dynamic dark gray rectangle out of its center position and width and height, outlined in black.
     """
     item = center_rectangle(p1, width, height)
-    _prepare_item(item, pen(black_color, thickness), fill_color)
+    _prepare_item(item, black_color, line_width, dark_gray_color)
     return item
 
-def create_polygon(pts: _List[point], fill_color: color = dark_gray_color, thickness: float = line_width) -> polygon:
+def create_polygon(pts: _List[point]) -> polygon:
     """
-    Create a dynamic polygon of the given color and line thhicknes.
+    Create a dynamic polygo, outlined in dark gray.
     """
     item = polygon(pts)
-    _prepare_item(item, pen(fill_color, thickness), no_color)
+    _prepare_item(item, dark_gray_color, line_width, no_color)
     return item
 
-def create_filled_polygon(pts: _List[point], fill_color: color = dark_gray_color, thickness: float = line_width) -> polygon:
+def create_losange(base_point: point, height: float) -> polygon:
     """
-    Create a dynamic polygon of the given color and line thhicknes.
-    """
-    item = polygon(pts)
-    _prepare_item(item, no_pen, fill_color)
-    return item
-
-def create_filled_losange(base_point: point, size: float, fill_color: color) -> polygon:
-    """
-    Create a filled losange standing on the base point.
+    Create a losange standing on the base point.
     All points are relative to the given base.
     """
-    return create_filled_polygon([
+    return create_polygon([
         relative_point(base_point,         0.,  0.),
-        relative_point(base_point, -size / 2., -size / 2.),
-        relative_point(base_point,         0., -size),
-        relative_point(base_point,  size / 2., -size / 2.),
-    ], fill_color)
+        relative_point(base_point, -height / 2., -height / 2.),
+        relative_point(base_point,         0., -height),
+        relative_point(base_point,  height / 2., -height / 2.),
+    ]).outline(no_color).thickness(0)
 
 
 #################################################################

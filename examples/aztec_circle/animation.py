@@ -104,7 +104,7 @@ class animation(anim.animation):
         width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
         height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
         p2 = relative_point(p1, width, height)
-        item = anim.items.create_two_points_rect(p1, p2, animation.tile_to_color(tile), 1)
+        item = anim.items.create_two_points_rect(p1, p2).fill(animation.tile_to_color(tile)).thickness(1)
         self.scene.add_item(item)
         return item
 

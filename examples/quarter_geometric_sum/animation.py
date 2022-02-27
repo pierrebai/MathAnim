@@ -27,17 +27,17 @@ def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> Li
 def create_tower_squares(base_points: List[anim.point], square_sizes: List[float], color) -> List[anim.polygon]:
     squares = []
     for base, size in zip(base_points, square_sizes):
-        squares.append(anim.create_filled_losange(base, size, color))
+        squares.append(anim.create_losange(base, size).fill(color))
     return squares
 
 tower_count = 3
 tower_height = 8
-square_size = anim.outer_size / 4.
+losange_height = anim.outer_size / 4.
 anim_duration = 3.
 
 tower_colors = [ anim.red_color, anim.green_color, anim.blue_color ]
 
-square_sizes = anim.geometric_serie(0., square_size, 1. / 2., tower_height)
+square_sizes = anim.geometric_serie(0., losange_height, 1. / 2., tower_height)
 tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
 tower_square_base_points = [create_square_bases(base, square_sizes) for base in tower_base_points]
 tower_squares = [create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
@@ -45,8 +45,8 @@ tower_tip_points = [squares[-1].points[2] for squares in tower_squares]
 zero = anim.static_point(0., 0.)
 
 central_tower_origin = zero
-left_tower_origin  = anim.static_point(-square_size, 0.)
-right_tower_origin = anim.static_point( square_size, 0.)
+left_tower_origin  = anim.static_point(-losange_height, 0.)
+right_tower_origin = anim.static_point( losange_height, 0.)
 
 central_tower_base = tower_base_points[1]
 central_tower_left_point = tower_squares[1][0].points[1]
@@ -76,13 +76,13 @@ tower_texts = anim.flatten([quarter_texts, exponent_texts])
 quarter_with_power_texts = anim.flatten([[quarters[1:] for quarters in quarter_texts], exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
-unit_square = anim.create_filled_losange(unit_square_base, square_size * 2, anim.orange_color)
-unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], square_size / 2).center_on(unit_square)
+unit_square = anim.create_losange(unit_square_base, losange_height * 2).fill(anim.orange_color)
+unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], losange_height / 2).center_on(unit_square)
 unit_square_and_text = [unit_square, unit_text]
 
-third_texts = [anim.create_scaling_sans_text("1/3", tip, square_size / 4).place_above(tip) for tip in tower_tip_points]
+third_texts = [anim.create_scaling_sans_text("1/3", tip, losange_height / 4).place_above(tip) for tip in tower_tip_points]
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0].top_left() + anim.static_point(-square_size, -square_size / 4)), square_size / 6)
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0].top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6)
 
 
 def reset_relative_points():
@@ -117,7 +117,7 @@ exponent_actors = [ anim.actor("Fraction", "", text) for text in anim.flatten(ex
 unit_actor = anim.actor("Fraction", "", unit_text)
 third_actors = [anim.actor("Fraction", "", third) for third in third_texts]
 equation_actors = [anim.actor("Equation", "", eq) for eq in equation_texts]
-invisible_field = anim.actor("", "", anim.create_invisible_rect(-square_size * 1.7, -square_size * 3, square_size * 3.4, square_size * 3))
+invisible_field = anim.actor("", "", anim.create_invisible_rect(-losange_height * 1.7, -losange_height * 3, losange_height * 3.4, losange_height * 3))
 
 
 #################################################################
