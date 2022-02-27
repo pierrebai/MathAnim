@@ -292,7 +292,8 @@ class animation(QObject, named):
         Handles the scene zoom option, which all animations get.
         """
         if option == self.zoom_option:
-            scene.set_zoom_factor(option.value / 10.)
+            scene.view.set_zoom(option.value / 10.)
+            scene.ensure_all_contents_fit()
             return True
 
 

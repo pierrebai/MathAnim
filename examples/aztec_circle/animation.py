@@ -13,14 +13,33 @@ class animation(anim.animation):
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
+        self.show_boundary = anim.option('Show boundary', 'Draw a rectangle around the diamond', False)
 
-        self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option])
+        self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option, self.show_boundary])
 
         self.loop = True
         self.reset_on_change = False
 
         self.scene: anim.scene = None
         self.animator: anim.animator = None
+
+    def reset(self, scene: anim.scene, animator: anim.animator):
+        self.scene: anim.scene = scene
+        scene.view.set_margin(anim.tile_size)
+        self.animator: anim.animator = animator
+        self.anim_duration = 1.
+        self.size = 1
+        self.items = []
+        self.new_items = []
+        self.cross = None
+        self.arrow = None
+        self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
+        super().reset(scene, animator)
+
+
+    ########################################################################
+    #
+    # Options.
 
     @property
     def tiles_sequence(self) -> str:
@@ -34,18 +53,29 @@ class animation(anim.animation):
     def skip_animations(self) -> bool:
         return self.size > self.animate_limit_option.value
 
-    def reset(self, scene: anim.scene, animator: anim.animator):
-        self.scene: anim.scene = scene
-        self.animator: anim.animator = animator
-        self.anim_duration = 1.
-        self.size = 1
-        self.items = []
-        self.new_items = []
-        self.show_boundary = False
-        self.cross = None
-        self.arrow = None
-        self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
-        super().reset(scene, animator)
+    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        """
+        Called when an option value is changed.
+        Override base-class behavior to not interrupt the animations.
+        """
+        super().option_changed(scene, animator, option)
+        self._handle_generator_options(scene, animator, option)
+        self._handle_show_boundary_option(scene, animator, option)
+
+    def _handle_generator_options(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        if option == self.seed_option or option == self.tiles_sequence_option:
+            self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
+
+    def _handle_show_boundary_option(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        if option == self.show_boundary:
+            show = self.show_boundary.value
+            self.boundary.outline(anim.dark_gray_color if show else anim.no_color)
+            self.boundary.thickness(1. if show else 0.)
+
+
+    #################################################################
+    #
+    # Actors
 
     def generate_actors(self, scene: anim.scene) -> None:
         self.cross = anim.actor("cross", "", anim.items.create_cross(anim.point()))
@@ -56,27 +86,8 @@ class animation(anim.animation):
         self.arrow.item.set_opacity(0.)
         self.add_actors(self.arrow, scene)
 
-    def generate_shots(self) -> None:
-        self._anim_increase_size()
-        self._anim_remove_collisions()
-        self._anim_move_tiles()
-        self._anim_fill_holes()
-
-    def _handle_generator_options(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
-        if option == self.seed_option or option == self.tiles_sequence_option:
-            self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
-
-    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
-        """
-        Called when an option value is changed.
-        Override base-class behavior to not interrupt the animations.
-        """
-        super().option_changed(scene, animator, option)
-        self._handle_generator_options(scene, animator, option)
-
-    #################################################################
-    #
-    # Actors
+        self.boundary = anim.create_rect(0., 0., 1., 1.).outline(anim.no_color).fill(anim.no_color)
+        scene.add_item(self.boundary)
 
     def create_cross(self, origin):
         cross = anim.items.create_cross(origin)
@@ -112,6 +123,12 @@ class animation(anim.animation):
     #################################################################
     #
     # Shots
+
+    def generate_shots(self) -> None:
+        self._anim_increase_size()
+        self._anim_remove_collisions()
+        self._anim_move_tiles()
+        self._anim_fill_holes()
 
     def _anim_increase_size(self):
         def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -178,13 +195,9 @@ class animation(anim.animation):
         self.center = new_amount // 2
 
     def increase_size(self, az, origin, size):
-        if self.show_boundary:
-            coord = anim.items.tile_size * (origin - self.center) - 8
-            width = anim.items.tile_size * size * 2 + 16
-            if not self.boundary:
-                self.boundary = self.scene.addRect(coord, coord, width, width, anim.items.gray_pen)
-            else:
-                self.boundary.setRect(coord, coord, width, width)
+        coord = anim.items.tile_size * (origin - self.center) - 8
+        width = anim.items.tile_size * size * 2 + 16
+        self.boundary.setRect(coord, coord, width, width)
         self.size = size
         self.anim_duration = 1. / math.sqrt(size / 4)
 
@@ -252,6 +265,7 @@ class animation(anim.animation):
 
     def moves_done(self, az):
         self.animator.check_all_anims_done()
+        self.scene.ensure_all_contents_fit()
 
     def fill(self, az, x, y, tile):
         center = self.center
@@ -267,4 +281,4 @@ class animation(anim.animation):
 
     def fills_done(self, az):
         self.items, self.new_items = self.new_items, self.items
-        self.scene.ensure_all_contents_fit(self.scene.default_margin + anim.items.tile_size * 2)
+        self.scene.ensure_all_contents_fit()

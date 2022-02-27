@@ -1,7 +1,7 @@
 from .circle import circle, radius_circle, diameter_circle
 from .line import line
 from .polygon import polygon
-from .rectangle import rectangle, center_rectangle
+from .rectangle import rectangle, center_rectangle, static_rectangle
 from .pointing_arrow import pointing_arrow
 from .point import point, relative_point, static_point
 from .text import scaling_text, fixed_size_text

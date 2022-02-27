@@ -1,9 +1,9 @@
 from .actor import actor
-from .items import create_pointing_arrow, point, item, static_point
+from .view import view
+from .items import create_pointing_arrow, point, item, static_point, static_rectangle
 
-from PySide6.QtGui import QPainter, QFont, QPen, QColor
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsSimpleTextItem, QGraphicsRectItem
-from PySide6.QtCore import Qt, QMarginsF, QRectF, QPoint, QRect
+from PySide6.QtGui import QFont, QPen, QColor
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsRectItem
 
 from typing import Tuple
 
@@ -23,22 +23,10 @@ class scene:
 
     def __init__(self, margin: int = 80) -> None:
         """
-        Creates the scene (QGraphicsScene) and the view (QGraphicsView).
-        Sets some useful default: anchored in teh center, no scrollbars,
-        antialiasing and smooth pixmap transforms.
+        Creates the scene (QGraphicsScene) and the view.
         """
         super().__init__()
-        self.default_margin = margin
-        self.zoom = 1.
-        self._prev_delta = None
-
-        self.view = QGraphicsView()
-        self.view.setInteractive(False)
-        self.view.setResizeAnchor(QGraphicsView.AnchorViewCenter)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-
+        self.view = view()
         self.remove_all_items()
 
     def reset(self, margin: int = None) -> None:
@@ -48,12 +36,12 @@ class scene:
         """
         self.title = ""
         self.description = ""
-        self.preserve_transform()
-        self.ensure_all_contents_fit(margin)
+        self.view.preserve_transform()
+        self.ensure_all_contents_fit()
         
-    def get_widget(self) -> QGraphicsView:
+    def get_widget(self) -> view:
         """
-        Retrieves the view (QGraphicsView).
+        Retrieves the view.
         """
         return self.view
 
@@ -75,35 +63,13 @@ class scene:
     def remove_actor(self, actor: actor) -> None:
         self.remove_item(actor.item)
 
-    def preserve_transform(self) -> None:
-        """
-        Preserve the current transaltion so it can be reapplied.
-        """
-        self._prev_delta = static_point(
-            self.view.horizontalScrollBar().value(),
-            self.view.verticalScrollBar().value())
-
-    def apply_transform(self, trf) -> None:
-        """
-        Reapply the zoom and translation to the scene.
-        """
-        if trf:
-            trf = trf.scale(self.zoom, self.zoom)
-            self.view.setTransform(trf)
-        if self._prev_delta:
-            self.view.horizontalScrollBar().setValue(self._prev_delta.x())
-            self.view.verticalScrollBar().setValue(self._prev_delta.y())
-
     def remove_all_items(self) -> None:
         """
         Removes all items from the scene.
         """
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
-        self.view.setScene(self.scene)
-
-        self.view.setDragMode(QGraphicsView.ScrollHandDrag)
-        self.view.setOptimizationFlag(QGraphicsView.DontSavePainterState)
+        self.view.set_scene(self)
 
         self.title = QGraphicsSimpleTextItem()
         self.title.setFont(QFont("Georgia", 24))
@@ -137,7 +103,7 @@ class scene:
         Sets the title and redo its placement.
         """
         self.title.setText(title)
-        self.preserve_transform()
+        self.view.preserve_transform()
         self.ensure_all_contents_fit()
 
     def set_description(self, description: str) -> None:
@@ -145,7 +111,7 @@ class scene:
         Sets the description and redo its placement.
         """
         self.description.setText(description)
-        self.preserve_transform()
+        self.view.preserve_transform()
         self.ensure_all_contents_fit()
 
 
@@ -153,7 +119,7 @@ class scene:
     #
     # View Fitting
 
-    def _get_actors_rect(self) -> Tuple[QRectF, QRectF]:
+    def _get_items_rect(self) -> Tuple[static_rectangle, static_rectangle]:
         """
         Returns the boundary of non-title items and all items including title.
         """
@@ -183,53 +149,38 @@ class scene:
         We use invisible boxes to fix that.
         """
         letter_count = len(self.title.text())
-        r = self.view.mapToScene(QRect(0, 0, 15 * letter_count, 40)).boundingRect()
-        self.title_box.setRect(QRectF(0, 0, r.width(), r.height()))
+        r = self.view.map_rect_to_scene(static_rectangle(0, 0, 15 * letter_count, 40))
+        self.title_box.setRect(static_rectangle(0, 0, r.width(), r.height()))
         lines = self.description.text().splitlines()
         lineCount = len(lines)
         letter_count = max(36, max([len(line) for line in lines]) if lines else 1)
-        r = self.view.mapToScene(QRect(0, 0, int(6.5 * letter_count), 20 * lineCount)).boundingRect()
-        self.description_box.setRect(QRectF(0, 0, r.width(), r.height()))
+        r = self.view.map_rect_to_scene(static_rectangle(0, 0, int(6.5 * letter_count), 20 * lineCount))
+        self.description_box.setRect(static_rectangle(0, 0, r.width(), r.height()))
 
-    def _place_title_and_desc(self) -> QRectF:
+    def _place_title_and_desc(self) -> static_rectangle:
         """
         Places the title above other items the description to their right.
         """
         self._size_text_boxes()
 
-        actors_rect, scene_rect = self._get_actors_rect()
+        actors_rect, scene_rect = self._get_items_rect()
 
-        view_top_left = self.view.mapFromScene(actors_rect.topLeft())
-        top_left = self.view.mapToScene(view_top_left - QPoint(0, self.title.font().pointSize() * 1.5))
+        view_top_left = self.view.map_point_from_scene(actors_rect.topLeft())
+        top_left = self.view.map_point_to_scene(view_top_left - static_point(0, self.title.font().pointSize() * 1.5))
         self.title.setPos(top_left)
         self.title_box.setPos(top_left)
 
-        view_top_right = self.view.mapFromScene(actors_rect.topRight())
-        top_left = self.view.mapToScene(view_top_right + QPoint(30, 0))
+        view_top_right = self.view.map_point_from_scene(actors_rect.topRight())
+        top_left = self.view.map_point_to_scene(view_top_right + static_point(30, 0))
         self.description.setPos(top_left)
         self.description_box.setPos(top_left)
 
         return scene_rect
 
-    def set_zoom_factor(self, zoom: float):
-        self.zoom = zoom
-        self.ensure_all_contents_fit()
-
-    def ensure_all_contents_fit(self, margin: int = None) -> None:
+    def ensure_all_contents_fit(self) -> None:
         """
-        If the scene contents does not fit the view then call _adjust_view_to_fit()
-        with the given margin or the default margin.
+        Ensures the scene contents fit the view.
         """
         scene_rect = self._place_title_and_desc()
-        margin = self.default_margin if margin is None else margin
-        scene_rect = scene_rect.marginsAdded(QMarginsF(margin, margin, margin, margin))
-        self._adjust_view_to_fit(scene_rect)
-
-    def _adjust_view_to_fit(self, scene_rect: QRectF) -> None:
-        """
-        Fits the whole contents of the scene with the given margin
-        or the default margin all around.
-        """
-        self.view.fitInView(scene_rect, Qt.KeepAspectRatio)
-        self.apply_transform(self.view.transform())
+        self.view.fit_rectangle(scene_rect)
 

@@ -4,6 +4,7 @@ from .animation import animation
 from .simple_animation import simple_animation
 from .options import option, options
 from .scene import scene
+from .view import view
 from .shot import shot
 from .items import *
 from .anims import *
