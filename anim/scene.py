@@ -1,5 +1,5 @@
 from .actor import actor
-from .items import create_pointing_arrow, point, item
+from .items import create_pointing_arrow, point, item, static_point
 
 from PySide6.QtGui import QPainter, QFont, QPen, QColor
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsSimpleTextItem, QGraphicsRectItem
@@ -30,6 +30,7 @@ class scene:
         super().__init__()
         self.default_margin = margin
         self.zoom = 1.
+        self._prev_delta = None
 
         self.view = QGraphicsView()
         self.view.setInteractive(False)
@@ -47,6 +48,7 @@ class scene:
         """
         self.title = ""
         self.description = ""
+        self.preserve_transform()
         self.ensure_all_contents_fit(margin)
         
     def get_widget(self) -> QGraphicsView:
@@ -73,25 +75,35 @@ class scene:
     def remove_actor(self, actor: actor) -> None:
         self.remove_item(actor.item)
 
+    def preserve_transform(self) -> None:
+        """
+        Preserve the current transaltion so it can be reapplied.
+        """
+        self._prev_delta = static_point(
+            self.view.horizontalScrollBar().value(),
+            self.view.verticalScrollBar().value())
+
+    def apply_transform(self, trf) -> None:
+        """
+        Reapply the zoom and translation to the scene.
+        """
+        if trf:
+            trf = trf.scale(self.zoom, self.zoom)
+            self.view.setTransform(trf)
+        if self._prev_delta:
+            self.view.horizontalScrollBar().setValue(self._prev_delta.x())
+            self.view.verticalScrollBar().setValue(self._prev_delta.y())
+
     def remove_all_items(self) -> None:
         """
         Removes all items from the scene.
         """
-        trf = self.view.transform() if self.view else None
-        dx = self.view.horizontalScrollBar().value()
-        dy = self.view.verticalScrollBar().value()
-
         self.scene = QGraphicsScene()
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.setScene(self.scene)
 
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setOptimizationFlag(QGraphicsView.DontSavePainterState)
-
-        if trf:
-            self.view.setTransform(trf)
-        self.view.horizontalScrollBar().setValue(dx)
-        self.view.verticalScrollBar().setValue(dy)
 
         self.title = QGraphicsSimpleTextItem()
         self.title.setFont(QFont("Georgia", 24))
@@ -125,6 +137,7 @@ class scene:
         Sets the title and redo its placement.
         """
         self.title.setText(title)
+        self.preserve_transform()
         self.ensure_all_contents_fit()
 
     def set_description(self, description: str) -> None:
@@ -132,6 +145,7 @@ class scene:
         Sets the description and redo its placement.
         """
         self.description.setText(description)
+        self.preserve_transform()
         self.ensure_all_contents_fit()
 
 
@@ -216,13 +230,6 @@ class scene:
         Fits the whole contents of the scene with the given margin
         or the default margin all around.
         """
-        dx = self.view.horizontalScrollBar().value()
-        dy = self.view.verticalScrollBar().value()
         self.view.fitInView(scene_rect, Qt.KeepAspectRatio)
-        if dx or dy or self.zoom > 1.:
-            trf = self.view.transform()
-            trf = trf.scale(self.zoom, self.zoom)
-            self.view.setTransform(trf)
-            self.view.horizontalScrollBar().setValue(dx)
-            self.view.verticalScrollBar().setValue(dy)
+        self.apply_transform(self.view.transform())
 

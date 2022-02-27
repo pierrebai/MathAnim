@@ -9,7 +9,7 @@ description = "Mathologer 3-4-7 Miracle: rotating interlinked polygons following
 # Options
 
 sides_option = anim.option("Number of branches", "Number of branches on the star that the dots follows.", 7, 2, 20)
-skip_option = anim.option("Star branch skip()", "How many branches are skipped to go from one branch to the next.", 3, 1, 100)
+skip_option = anim.option("Star branch skip", "How many branches are skipped to go from one branch to the next.", 3, 1, 100)
 ratio_option = anim.option("Percent of radius", "The position of the dots as a percentage of the radius of the circle they are on.", 90, 0, 100)
 
 def sides():
