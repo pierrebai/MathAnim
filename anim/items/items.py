@@ -10,7 +10,8 @@ from .pen import pen
 from .color import color
 from .. import trf
 
-from typing import List as _List
+import math
+from typing import List as _List, Tuple as _Tuple
 
 """
 Helpers to create various kind of scene items.
@@ -178,6 +179,66 @@ def create_losange(base_point: point, height: float) -> polygon:
         relative_point(base_point,         0., -height),
         relative_point(base_point,  height / 2., -height / 2.),
     ]).outline(no_color).thickness(0)
+
+
+#################################################################
+#
+# Points distributions
+
+def create_roll_circle_in_circle_points(inner_radius: float, outer_radius: float, rotation_count: float, point_count: int, inner_radius_ratio = 1.) -> _List[point]:
+    center_angle, perim_angle = create_roll_circle_in_circle_angles(inner_radius, outer_radius, rotation_count)
+    center_angles = [center_angle * i / point_count for i in range(point_count)]
+    perim_angles  = [perim_angle  * i / point_count for i in range(point_count)]
+    inner_center = static_point(outer_radius - inner_radius, 0.)
+    dot = static_point(inner_radius * inner_radius_ratio, 0.)
+    return [relative_point(
+        point(trf.rotate_around_origin(inner_center, center_angle)),
+        trf.rotate_around_origin(dot, perim_angle))
+        for center_angle, perim_angle in zip(center_angles, perim_angles)]
+
+def create_roll_circle_in_circle_angles(inner_radius: float, outer_radius: float, rotation_count: float) -> _Tuple[float, float]:
+    """
+    Calculates and returns the inner circle center rotation angle
+    and inner circle perimeter rotation angle as if an inner circle
+    were rotating inside the outer circle.
+    """
+    inner_center_angle = 360. * rotation_count
+    radius_ratio = inner_radius / outer_radius
+    inner_perim_angle = -360. * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
+    return inner_center_angle, inner_perim_angle
+
+def create_relative_points_around_circle(circle: circle, count: int, angle_offset: float = 0.) -> _List[point]:
+    """
+    Creates points relative to a circle center around a circle starting at the offset angle.
+    """
+    center, radius = circle.get_center_and_radius()
+    return create_relative_points_around_center(center, radius, count, angle_offset)
+
+def create_relative_points_around_center(center: point, radius: float, count: int, angle_offset: float = 0.) -> _List[point]:
+    """
+    Creates points relative to a circle center around a circle starting at the offset angle.
+    """
+    deltas = create_points_around_origin(radius, count, angle_offset)
+    return [relative_point(center, delta) for delta in deltas]
+
+def create_points_around_origin(radius: float, count: int, angle_offset: float = 0.) -> _List[point]:
+    """
+    Creates points around the origin at a given radius starting at the offset angle.
+    """
+    angles = create_angles_around_origin(count, angle_offset)
+    return [point(math.cos(angle) * radius, math.sin(angle) * radius) for angle in angles]
+
+def create_angles_around_origin(count: int, angle_offset: float = 0.) -> _List[float]:
+    """
+    Distribute angles around a circle starting at the offset angle.
+    """
+    return [angle_offset + math.pi * 2. * i / count for i in range(count)]
+
+def create_circles_on_centers(centers: _List[point], radius: float) -> _List[circle]:
+    """
+    Creates circles of a same radius on all given centers.
+    """
+    return [circle(center, radius) for center in centers]
 
 
 #################################################################
