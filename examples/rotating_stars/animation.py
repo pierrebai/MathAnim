@@ -43,19 +43,12 @@ reveal_duration = 0.3
 # Points
 
 def _generate_points():
-    global outer_center, outer_radius, inner_centers, inner_radius, inner_dots_pos
-
-    outer_center = anim.point(0., 0.)
-    outer_radius = anim.items.outer_size
-
-    inner_radius = outer_radius * inner_circle_ratio()
-    inner_center_radius = outer_radius - inner_radius
-
-    outer_center = anim.point(0., 0.)
-
-    inner_centers = anim.create_relative_points_around_center(outer_center, inner_center_radius, inner_count())
-    dot_radius = inner_radius * inner_circle_dot_ratio()
-    inner_dots_pos = [anim.create_relative_points_around_center(center, dot_radius, skip()) for center in inner_centers]
+    global outer_center;   outer_center   = anim.point(0., 0.)
+    global outer_radius;   outer_radius   = anim.outer_size
+    global inner_radius;   inner_radius   = outer_radius * inner_circle_ratio()
+    global inner_centers;  inner_centers  = anim.create_relative_points_around_center(outer_center, outer_radius - inner_radius, inner_count())
+    global dot_radius;     dot_radius     = inner_radius * inner_circle_dot_ratio()
+    global inner_dots_pos; inner_dots_pos = [anim.create_relative_points_around_center(center, dot_radius, skip()) for center in inner_centers]
 
 
 #################################################################
@@ -63,21 +56,14 @@ def _generate_points():
 # Actors
 
 def generate_actors(animation: anim.animation, scene: anim.scene):
-    global star
-    global outer_circle
-    global inner_circles
-    global inner_dots
-    global inner_polygons
-    global inter_polygons
-
     _generate_points()
 
-    star = _gen_star(scene)
-    outer_circle = _gen_outer_circle(scene)
-    inner_circles = _gen_inner_circles(scene)
-    inner_dots = _gen_inner_dots(scene)
-    inner_polygons = _gen_inner_polygons(scene)
-    inter_polygons = _gen_inter_polygons(scene)
+    global star;           star           = _gen_star(scene)
+    global outer_circle;   outer_circle   = _gen_outer_circle(scene)
+    global inner_circles;  inner_circles  = _gen_inner_circles(scene)
+    global inner_dots;     inner_dots     = _gen_inner_dots(scene)
+    global inner_polygons; inner_polygons = _gen_inner_polygons(scene)
+    global inter_polygons; inter_polygons = _gen_inter_polygons(scene)
 
     animation.add_actors([outer_circle, inner_circles, inner_dots, inner_polygons, inter_polygons, star], scene)
 
@@ -85,39 +71,31 @@ def _gen_star(scene: anim.scene):
     pts = anim.create_roll_circle_in_circle_points(inner_radius, outer_radius, skip(), 240, inner_circle_dot_ratio())
 
     return anim.actor("star", "The star that the dots on the inner circle follow.",
-        anim.items.create_polygon(pts).outline(anim.items.dark_gray_color))
+        anim.create_polygon(pts).outline(anim.dark_gray))
 
 def _gen_outer_circle(scene: anim.scene):
     return anim.actor("outer circle", "",
-        anim.items.create_circle(outer_center, anim.items.outer_size).outline(anim.items.dark_blue_color).thickness(anim.items.line_width * 2))
+        anim.create_circle(outer_center, anim.outer_size).outline(anim.dark_blue).thickness(anim.line_width * 2))
 
 def _gen_inner_circles(scene: anim.scene):
-    return [anim.actor("inner circle", "", anim.items.create_disk(center, inner_radius)) for center in inner_centers]
+    return [anim.actor("inner circle", "", anim.create_disk(center, inner_radius)) for center in inner_centers]
 
 def _gen_inner_dots(scene: anim.scene):
-    inner_dots = []
-    for which_inner in range(0, inner_count()):
-        inner_dots.append(list())
-        for which_dot in range(0, dots_count()):
-            center = inner_dots_pos[which_inner][which_dot]
-            dot = anim.items.create_disk(center, anim.items.dot_size).fill(anim.items.orange_color)
-            inner_dots[which_inner].append(anim.actor("inner circle dot", "", dot))
-    return inner_dots
+    return [
+        [anim.actor("inner circle dot", "",
+            anim.create_disk(dot, anim.dot_size).fill(anim.orange)) for dot in dots]
+        for dots in inner_dots_pos]
 
 def _gen_inner_polygons(scene: anim.scene):
-    inner_polygons = []
-    for which_inner in range(0, inner_count()):
-        poly = anim.items.create_polygon(inner_dots_pos[which_inner]).outline(anim.items.green_color)
-        inner_polygons.append(anim.actor("inner polygon", "", poly))
-    return inner_polygons
+    return [anim.actor("inner polygon", "",
+        anim.create_polygon(dots).outline(anim.green))
+        for dots in inner_dots_pos]
 
 def _gen_inter_polygons(scene: anim.scene):
-    inter_polygons = []
-    for which_dot in range(0, dots_count()):
-        pts = [inner_dots_pos[which_inner][which_dot] for which_inner in range(0, inner_count())]
-        poly = anim.items.create_polygon(pts).outline(anim.items.blue_color)
-        inter_polygons.append(anim.actor("outer polygon", "", poly))
-    return inter_polygons
+    outer_dots_pos = anim.transpose_lists(inner_dots_pos)
+    return [anim.actor("outer polygon", "",
+        anim.create_polygon(dots).outline(anim.blue))
+        for dots in outer_dots_pos]
 
 
 #################################################################

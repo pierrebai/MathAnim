@@ -53,7 +53,7 @@ def make_grayscale(count: int, alpha:float = 0.5) -> color_gradient:
 
 rainbow = make_rainbow(64)
 grayscale = make_grayscale(64)
-black = color_gradient('Black', [color(0, 0, 0)])
+only_black = color_gradient('Black', [color(0, 0, 0)])
 #seaboard = from_hexes('Seaboard', [0x525564, 0x74828F, 0x96C0CE, 0xBEB9B5, 0xC25B56, 0xFEF6EB])
 seaboard = from_hexes('Seaboard', [0x001219, 0x005f73, 0x0a9396, 0x94d2bd, 0xe9d8a6, 0xee9b00, 0xca6702, 0xbb3e03, 0xae2012, 0x9b2226])
 sunrise  = from_hexes('Sunrise', [0x5aa9e6, 0x7fc8f8, 0xf9f9f9, 0xffe45e, 0xff6392])

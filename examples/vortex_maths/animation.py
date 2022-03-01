@@ -90,10 +90,10 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     lengths_and_lines.sort(key=lambda x: x[0])
     lengths_and_lines.reverse()
 
-    background_color = anim.black_color if black_background.value else anim.white_color
+    background_color = anim.black if black_background.value else anim.white
     background = anim.actor('Background', 'Background on which all the rest is drawn', anim.create_disk(anim.point(0., 0.), radius * 1.05).fill(background_color))
 
-    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius).outline(anim.pale_blue_color).thickness(10.))
+    circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius).outline(anim.pale_blue).thickness(10.))
 
     if len(points) <= 60:
         text_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', text) for text in texts]
@@ -101,7 +101,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
         text_actors = []
         
     if len(points) <= 360:
-        point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10.).fill(anim.orange_color)) for pt in points]
+        point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10.).fill(anim.orange)) for pt in points]
     else:
         point_actors = []
 

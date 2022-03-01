@@ -35,25 +35,23 @@ half_tile_size = tile_size / 2.
 
 no_color = color(0, 0, 0, 0)
 
-orange_color    = color(235, 180,  40, 220)
-blue_color      = color( 68, 125, 255, 200)
-green_color     = color( 83, 223,  56, 200)
-black_color     = color(  0,   0,   0)
-white_color     = color(255, 255, 255)
-cyan_color      = color( 30, 190, 220)
-gray_color      = color(220, 220, 220, 120)
-red_color       = color(255,  84,  46)
+orange    = color(235, 180,  40, 220)
+blue      = color( 68, 125, 255, 200)
+green     = color( 83, 223,  56, 200)
+black     = color(  0,   0,   0)
+white     = color(255, 255, 255)
+cyan      = color( 30, 190, 220)
+gray      = color(220, 220, 220, 120)
+red       = color(255,  84,  46)
 
-dark_orange_color   = orange_color.darker(130)
-dark_blue_color     = blue_color.darker(130)
-dark_green_color    = green_color.darker(130)
-dark_cyan_color     = cyan_color.darker(130)
-dark_gray_color     = gray_color.darker(130)
-dark_red_color      = red_color.darker(130)
+dark_orange   = orange.darker(130)
+dark_blue     = blue.darker(130)
+dark_green    = green.darker(130)
+dark_cyan     = cyan.darker(130)
+dark_gray     = gray.darker(130)
+dark_red      = red.darker(130)
 
-pale_blue_color     = blue_color.lighter(130); pale_blue_color.setAlpha(120)
-
-no_pen   = pen(no_color, 0)
+pale_blue     = blue.lighter(130); pale_blue.setAlpha(120)
 
 
 #################################################################
@@ -74,28 +72,19 @@ _arrow_points = [
     point(-1,  half_tile_size - 1), point(-1, -half_tile_size + 4), 
 ]
 
-def _prepare_item(item: item, outline_color: color, thickness:float, fill_color: color) -> None:
-    item.outline(outline_color).thickness(thickness).fill(fill_color)
-
-def create_cross(origin: point, fill_color: color = red_color) -> polygon:
+def create_cross(origin: point, fill_color: color = red) -> polygon:
     poly_points = [relative_point(origin, pt) for pt in _cross_points]
-    item = polygon(poly_points)
-    _prepare_item(item, fill_color.darker(130), 1., fill_color)
-    return item
+    return polygon(poly_points).outline(fill_color.darker(130)).thickness(1).fill(fill_color)
 
-def create_arrow(origin: point, rotation_angle, fill_color: color = black_color) -> polygon:
+def create_arrow(origin: point, rotation_angle, fill_color: color = black) -> polygon:
     poly_points = [relative_point(origin, trf.rotate_around_origin(pt, rotation_angle)) for pt in _arrow_points]
-    item = polygon(poly_points)
-    _prepare_item(item, no_color, 0., fill_color)
-    return item
+    return polygon(poly_points).outline(no_color).fill(fill_color)
 
-def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blue_color) -> line:
+def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blue) -> line:
     """
     Creates a dynamic pointing arrow of the given color.
     """
-    item = pointing_arrow(tail, head)
-    _prepare_item(item, no_color, 0, fill_color)
-    return item
+    return pointing_arrow(tail, head).outline(no_color).fill(fill_color)
 
 
 #################################################################
@@ -111,62 +100,40 @@ def create_circle(center: point, radius: float) -> circle:
     """
     Creates a dynamic dark blue circle.
     """
-    item = circle(center, radius)
-    _prepare_item(item, dark_blue_color, line_width, no_color)
-    return item
+    return circle(center, radius).outline(dark_blue).thickness(line_width)
 
 def create_disk(center: point, radius: float) -> circle:
     """
     Creates a dynamic gray filled disk.
     """
-    item = circle(center, radius)
-    _prepare_item(item, no_color, 0., gray_color)
-    return item
+    return circle(center, radius).outline(no_color).fill(gray)
 
 def create_line(p1: point, p2: point) -> line:
     """
     Creates a dynamic green line.
     """
-    item = line(p1, p2)
-    item.outline(green_color).thickness(line_width)
-    return item
+    return line(p1, p2).outline(green).thickness(line_width)
 
 def create_rect(x: float, y: float, width: float, height: float) -> rectangle:
     """
     Creates a gray rectangle outlined in black.
     """
-    item = rectangle(point(x, y), point(x+width, y+height))
-    _prepare_item(item, black_color, line_width, dark_gray_color)
-    return item
+    return rectangle(point(x, y), point(x+width, y+height)).outline(black).thickness(line_width).fill(dark_gray)
 
 def create_invisible_rect(x: float, y: float, width: float, height: float) -> rectangle:
-    item = create_rect(x, y, width, height).fill(no_color).outline(no_color).thickness(0)
-    item.set_opacity(0.)
-    return item
+    return rectangle(point(x, y), point(x+width, y+height)).fill(no_color).outline(no_color).thickness(0).set_opacity(0.)
 
 def create_two_points_rect(p1: point, p2: point) -> rectangle:
     """
     Creates a dynamic dark gray rectangle out of two corners outlined in black.
     """
-    item = rectangle(p1, p2)
-    _prepare_item(item, black_color, line_width, dark_gray_color)
-    return item
+    return rectangle(p1, p2).outline(black).thickness(line_width).fill(dark_gray)
 
 def create_center_rect(p1: point, width: float, height: float) -> rectangle:
     """
     Creates a dynamic dark gray rectangle out of its center position and width and height, outlined in black.
     """
-    item = center_rectangle(p1, width, height)
-    _prepare_item(item, black_color, line_width, dark_gray_color)
-    return item
-
-def create_polygon(pts: _List[point]) -> polygon:
-    """
-    Create a dynamic polygo, outlined in dark gray.
-    """
-    item = polygon(pts)
-    _prepare_item(item, dark_gray_color, line_width, no_color)
-    return item
+    return center_rectangle(p1, width, height).outline(black).thickness(line_width).fill(dark_gray)
 
 def create_losange(base_point: point, height: float) -> polygon:
     """
@@ -174,12 +141,29 @@ def create_losange(base_point: point, height: float) -> polygon:
     All points are relative to the given base.
     """
     return create_polygon([
-        relative_point(base_point,         0.,  0.),
+        relative_point(base_point,           0.,  0.),
         relative_point(base_point, -height / 2., -height / 2.),
-        relative_point(base_point,         0., -height),
+        relative_point(base_point,           0., -height),
         relative_point(base_point,  height / 2., -height / 2.),
     ]).outline(no_color).thickness(0)
 
+
+#################################################################
+#
+# Polygons
+
+def create_multi_polygons(lists_of_points: _List[_List[point]]) -> _List[polygon]:
+    """
+    Creates multiple polygons from a list of lists of points.
+    """
+    return [create_polygon(points) for points in lists_of_points]
+
+
+def create_polygon(pts: _List[point]) -> polygon:
+    """
+    Create a dynamic polygo, outlined in dark gray.
+    """
+    return polygon(pts).outline(dark_gray).thickness(line_width)
 
 #################################################################
 #
@@ -240,6 +224,17 @@ def create_circles_on_centers(centers: _List[point], radius: float) -> _List[cir
     """
     return [circle(center, radius) for center in centers]
 
+def transpose_lists(list_of_lists: _List[list]) -> _List[list]:
+    """
+    Creates a list of lists by assembling every ith elements of the input lists together in the ith output list.
+    This assumes all input lists contain the same number of elements.
+    """
+    if not list_of_lists:
+        return []
+    outer_count = len(list_of_lists)
+    inner_count = len(list_of_lists[0])
+    return [[list_of_lists[outer][inner] for outer in range(outer_count)] for inner in range(inner_count)]
+    
 
 #################################################################
 #

@@ -1,5 +1,4 @@
 import anim
-from anim.items.point import relative_point
 
 from .aztec_circle import aztec
 from .tile_generator import sequence_tile_generator
@@ -69,7 +68,7 @@ class animation(anim.animation):
     def _handle_show_boundary_option(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
         if option == self.show_boundary:
             show = self.show_boundary.value
-            self.boundary.outline(anim.dark_gray_color if show else anim.no_color)
+            self.boundary.outline(anim.dark_gray if show else anim.no_color)
             self.boundary.thickness(1. if show else 0.)
 
 
@@ -78,7 +77,7 @@ class animation(anim.animation):
     # Actors
 
     def generate_actors(self, scene: anim.scene) -> None:
-        self.cross = anim.actor("cross", "", anim.items.create_cross(anim.point()))
+        self.cross = anim.actor("cross", "", anim.create_cross(anim.point()))
         self.cross.item.set_opacity(0)
         self.add_actors(self.cross, scene)
 
@@ -90,7 +89,7 @@ class animation(anim.animation):
         scene.add_item(self.boundary)
 
     def create_cross(self, origin):
-        cross = anim.items.create_cross(origin)
+        cross = anim.create_cross(origin)
         if self.cross:
             cross.set_shown(self.cross.shown)
         return cross
@@ -99,23 +98,23 @@ class animation(anim.animation):
 
     def create_arrow_for_tile(self, origin, tile):
         angle = animation.tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
-        arrow = anim.items.create_arrow(origin, angle)
+        arrow = anim.create_arrow(origin, angle)
         if self.arrow:
             arrow.set_shown(self.arrow.shown)
         return arrow
 
-    tile_colors = [ [anim.items.orange_color, anim.items.red_color], [anim.items.blue_color, anim.items.green_color] ]
+    tile_colors = [ [anim.orange, anim.red], [anim.blue, anim.green] ]
 
     @staticmethod
-    def tile_to_color(tile):
+    def tile_to(tile):
         return animation.tile_colors[tile.is_horizontal][tile.is_positive]
 
     def create_scene_tile(self, x: int, y: int, tile):
         p1 = self.pos_to_scene(x, y)
-        width  = 2 * anim.items.tile_size if tile.is_horizontal else anim.items.tile_size
-        height = anim.items.tile_size if tile.is_horizontal else 2 * anim.items.tile_size
-        p2 = relative_point(p1, width, height)
-        item = anim.items.create_two_points_rect(p1, p2).fill(animation.tile_to_color(tile)).thickness(1)
+        width  = 2 * anim.tile_size if tile.is_horizontal else anim.tile_size
+        height = anim.tile_size if tile.is_horizontal else 2 * anim.tile_size
+        p2 = anim.relative_point(p1, width, height)
+        item = anim.create_two_points_rect(p1, p2).fill(animation.tile_to(tile)).thickness(1)
         self.scene.add_item(item)
         return item
 
@@ -178,7 +177,7 @@ class animation(anim.animation):
     # Aztec circle feedback
 
     def pos_to_scene(self, x: int, y: int) -> anim.point:
-        return anim.point(x * anim.items.tile_size, y * anim.items.tile_size)
+        return anim.point(x * anim.tile_size, y * anim.tile_size)
 
     def middle_pos_to_scene(self, x: int, y: int, tile) -> tuple:
         if tile:
@@ -188,15 +187,15 @@ class animation(anim.animation):
             else:
                 x += 0.5
                 y += 1
-        return (x * anim.items.tile_size, y * anim.items.tile_size)
+        return (x * anim.tile_size, y * anim.tile_size)
 
     def reallocate(self, az, old_amount: int, new_amount: int):
         skip, self.items, self.new_items = aztec.reallocate_data(old_amount, new_amount, self.items, self.new_items)
         self.center = new_amount // 2
 
     def increase_size(self, az, origin, size):
-        coord = anim.items.tile_size * (origin - self.center) - 8
-        width = anim.items.tile_size * size * 2 + 16
+        coord = anim.tile_size * (origin - self.center) - 8
+        width = anim.tile_size * size * 2 + 16
         self.boundary.setRect(coord, coord, width, width)
         self.size = size
         self.anim_duration = 1. / math.sqrt(size / 4)

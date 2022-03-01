@@ -35,7 +35,7 @@ tower_height = 8
 losange_height = anim.outer_size / 4.
 anim_duration = 3.
 
-tower_colors = [ anim.red_color, anim.green_color, anim.blue_color ]
+tower_colors = [ anim.red, anim.green, anim.blue ]
 
 square_sizes = anim.geometric_serie(0., losange_height, 1. / 2., tower_height)
 tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
@@ -76,7 +76,7 @@ tower_texts = anim.flatten([quarter_texts, exponent_texts])
 quarter_with_power_texts = anim.flatten([[quarters[1:] for quarters in quarter_texts], exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
-unit_square = anim.create_losange(unit_square_base, losange_height * 2).fill(anim.orange_color)
+unit_square = anim.create_losange(unit_square_base, losange_height * 2).fill(anim.orange)
 unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], losange_height / 2).center_on(unit_square)
 unit_square_and_text = [unit_square, unit_text]
 
