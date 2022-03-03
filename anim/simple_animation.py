@@ -24,6 +24,7 @@ class simple_animation(animation):
             - description: the description of the animation.
             - loop: if the animation should loop when reaching the last shot. Defaults to False.
             - reset_on_change: should the animation reset when options change. Defaults to True.
+            - has_pointing_arrow: does the animation uses the pointing arrow. Default to True.
             - *_shot: the anim-preparation function of a shot, a shot will be created with the first
                       line of the funciton doc as the name and the rest as its description.
             - Variables that are instances of the shot class.
@@ -42,6 +43,7 @@ class simple_animation(animation):
         description = None
         loop = False
         reset_on_change = True
+        has_pointing_arrow = True
         shots = []
         prep_shots = []
         actors = []
@@ -64,6 +66,8 @@ class simple_animation(animation):
                 loop = var
             elif var_name == 'reset_on_change':
                 reset_on_change = var
+            elif var_name == 'has_pointing_arrow':
+                has_pointing_arrow = var
             elif var_name == 'generate_actors':
                 custom_generate_actors = var
             elif var_name == 'generate_shots':
@@ -114,18 +118,20 @@ class simple_animation(animation):
 
         def maker():
             return simple_animation(
-                name, description, loop, reset_on_change, shots, actors, options,
+                name, description, loop, reset_on_change, has_pointing_arrow,
+                shots, actors, options,
                 custom_generate_actors, custom_generate_shots, custom_reset,
                 custom_option_changed, custom_shot_ended)
         return maker
 
-    def __init__(self, name, description, loop, reset_on_change,
+    def __init__(self, name, description, loop, reset_on_change, has_pointing_arrow,
                  shots, actors, options,
                  custom_generate_actors, custom_generate_shots,
                  custom_reset, custom_option_changed, custom_shot_ended) -> None:
         super().__init__(name, description)
         self.loop = loop
         self.reset_on_change = reset_on_change
+        self.has_pointing_arrow = has_pointing_arrow
         self.custom_shots = shots
         self.custom_actors = actors
         self.custom_generate_actors = custom_generate_actors
@@ -151,6 +157,8 @@ class simple_animation(animation):
         super().reset(scene, animator)
         if self.custom_reset:
             self.custom_reset(self, scene, animator)
+        if not self.has_pointing_arrow:
+            self.remove_pointing_arrow(scene)
 
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         super().option_changed(scene, animator, option)

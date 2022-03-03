@@ -11,6 +11,7 @@ name = "Vortex Maths"
 description = "Mathologer video https://www.youtube.com/watch?v=6ZrO90AI0c8&t=7s"
 loop = False
 reset_on_change = True
+has_pointing_arrow = False
 
 
 #################################################################

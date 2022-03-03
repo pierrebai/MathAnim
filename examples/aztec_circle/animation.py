@@ -12,9 +12,6 @@ class animation(anim.animation):
         self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
-        self.show_boundary = anim.option('Show boundary', 'Draw a rectangle around the diamond', False)
-
-        self.add_options([self.tiles_sequence_option, self.seed_option, self.animate_limit_option, self.show_boundary])
 
         self.loop = True
         self.reset_on_change = False
@@ -34,6 +31,7 @@ class animation(anim.animation):
         self.arrow = None
         self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
         super().reset(scene, animator)
+        self.remove_pointing_arrow(scene)
 
 
     ########################################################################
@@ -59,17 +57,10 @@ class animation(anim.animation):
         """
         super().option_changed(scene, animator, option)
         self._handle_generator_options(scene, animator, option)
-        self._handle_show_boundary_option(scene, animator, option)
 
     def _handle_generator_options(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
         if option == self.seed_option or option == self.tiles_sequence_option:
             self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
-
-    def _handle_show_boundary_option(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
-        if option == self.show_boundary:
-            show = self.show_boundary.value
-            self.boundary.outline(anim.dark_gray if show else anim.no_color)
-            self.boundary.thickness(1. if show else 0.)
 
 
     #################################################################
@@ -77,16 +68,15 @@ class animation(anim.animation):
     # Actors
 
     def generate_actors(self, scene: anim.scene) -> None:
-        self.cross = anim.actor("cross", "", anim.create_cross(anim.point()))
-        self.cross.item.set_opacity(0)
+        self.cross = anim.actor("cross", "Cross marking a tile about to be deleted", anim.create_cross(anim.point()).set_opacity(0))
         self.add_actors(self.cross, scene)
 
-        self.arrow = anim.actor("arrow", "", self.create_arrow_for_tile(anim.point(0., 0.), None))
-        self.arrow.item.set_opacity(0.)
+        self.arrow = anim.actor("arrow", "Arrow marking the direction a tile is moving", self.create_arrow_for_tile(anim.point(0., 0.), None).set_opacity(0.))
         self.add_actors(self.arrow, scene)
 
-        self.boundary = anim.create_rect(0., 0., 1., 1.).outline(anim.no_color).fill(anim.no_color)
-        scene.add_item(self.boundary)
+        self.boundary = anim.actor("boundary", "The boundary of the growing diamond", anim.create_rect(0., 0., 1., 1.).outline(anim.gray).thickness(1.).fill(anim.no_color))
+        self.boundary.show(False)
+        self.add_actors(self.boundary, scene)
 
     def create_cross(self, origin):
         cross = anim.create_cross(origin)
@@ -94,27 +84,29 @@ class animation(anim.animation):
             cross.set_shown(self.cross.shown)
         return cross
 
-    tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
-
-    def create_arrow_for_tile(self, origin, tile):
-        angle = animation.tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
-        arrow = anim.create_arrow(origin, angle)
-        if self.arrow:
-            arrow.set_shown(self.arrow.shown)
-        return arrow
+    _tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
+    @staticmethod
+    def tile_to_angle(tile) -> float:
+        return animation._tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
 
     tile_colors = [ [anim.orange, anim.red], [anim.blue, anim.green] ]
 
     @staticmethod
-    def tile_to(tile):
+    def tile_to_color(tile):
         return animation.tile_colors[tile.is_horizontal][tile.is_positive]
+
+    def create_arrow_for_tile(self, origin, tile):
+        arrow = anim.create_arrow(origin, animation.tile_to_angle(tile))
+        if self.arrow:
+            arrow.set_shown(self.arrow.shown)
+        return arrow
 
     def create_scene_tile(self, x: int, y: int, tile):
         p1 = self.pos_to_scene(x, y)
         width  = 2 * anim.tile_size if tile.is_horizontal else anim.tile_size
         height = anim.tile_size if tile.is_horizontal else 2 * anim.tile_size
         p2 = anim.relative_point(p1, width, height)
-        item = anim.create_two_points_rect(p1, p2).fill(animation.tile_to(tile)).thickness(1)
+        item = anim.create_two_points_rect(p1, p2).fill(animation.tile_to_color(tile)).thickness(1)
         self.scene.add_item(item)
         return item
 
@@ -196,7 +188,7 @@ class animation(anim.animation):
     def increase_size(self, az, origin, size):
         coord = anim.tile_size * (origin - self.center) - 8
         width = anim.tile_size * size * 2 + 16
-        self.boundary.setRect(coord, coord, width, width)
+        self.boundary.item.setRect(coord, coord, width, width)
         self.size = size
         self.anim_duration = 1. / math.sqrt(size / 4)
 

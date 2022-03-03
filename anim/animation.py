@@ -8,7 +8,7 @@ from .scene import scene
 from . import anims
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict as _Dict, List as _List
 
 from PySide6.QtCore import QPointF, Signal, QObject
 
@@ -99,8 +99,8 @@ class animation(QObject, named):
         self.actors = set()
         self.shots = []
 
-        self.generate_actors(scene)
         self.actors.add(scene.pointing_arrow)
+        self.generate_actors(scene)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
         scene.ensure_all_contents_fit()
@@ -173,6 +173,18 @@ class animation(QObject, named):
     #
     # Actors
 
+    def remove_pointing_arrow(self, scene: scene) -> None:
+        self.remove_actor(scene.pointing_arrow, scene)
+
+    def add_actor(self, actor: actor, scene: scene) -> None:
+        self.actors.add(actor)
+        scene.add_actor(actor)
+
+    def remove_actor(self, actor, scene: scene):
+        if actor in self.actors:
+            self.actors.remove(actor)
+        scene.remove_actor(actor)
+
     def add_actors(self, actors, scene: scene) -> None:
         """
         Add actors that participates in the animation.
@@ -182,13 +194,12 @@ class animation(QObject, named):
         (Actually supports any iterable.)
         """
         if isinstance(actors, actor):
-            self.actors.add(actors)
-            scene.add_actor(actors)
+            self.add_actor(actors, scene)
         else:
             for a in actors:
                 self.add_actors(a, scene)
 
-    def get_actors_by_names(self) -> Dict[str, List[actor]]:
+    def get_actors_by_names(self) -> _Dict[str, _List[actor]]:
         """
         Returns a dict of actor lists indexed by the actor name.
         """
@@ -197,7 +208,7 @@ class animation(QObject, named):
             actors_by_names[actor.name].append(actor)
         return actors_by_names
 
-    def get_shown_actors_by_names(self) -> Dict[str, bool]:
+    def get_shown_actors_by_names(self) -> _Dict[str, bool]:
         """
         Returns a dict of shown / not shown flags indexed by actor names.
         """
@@ -205,7 +216,7 @@ class animation(QObject, named):
             name: actors[0].shown for name, actors in self.get_actors_by_names().items()
         }
 
-    def apply_shown_to_actors(self, shown_by_names: Dict[str, bool]) -> None:
+    def apply_shown_to_actors(self, shown_by_names: _Dict[str, bool]) -> None:
         """
         Applies a preserved shown actors dictionary on the given animation actors.
         """
