@@ -253,7 +253,7 @@ class animation(QObject, named):
         scene.pointing_arrow.item.tail.set_point(desc_pos)
         scene.pointing_arrow.item.head.set_point(head_point)
 
-    def anim_pointing_arrow(self, head_point: static_point, duration: float, scene: scene, animator: animator):
+    def anim_pointing_arrow(self, head_point, duration: float, scene: scene, animator: animator):
         """
         Animate the pointing arrow to point to the new point of interest.
         Used in shots created by the sub-classes.

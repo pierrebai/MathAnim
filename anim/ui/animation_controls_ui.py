@@ -28,8 +28,7 @@ def _connect_animation_controls_ui(animation: animation, scene: scene, animator:
     connect_auto_signal(layout.play_button, layout.play_button.clicked, on_play)
 
     def on_step():
-        if not animation.playing:
-            animation.play_next_shot(scene, animator)
+        animation.play_next_shot(scene, animator)
     connect_auto_signal(layout.step_button, layout.step_button.clicked, on_step)
 
     def on_stop():
