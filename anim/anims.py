@@ -1,11 +1,10 @@
 from anim.items.items import create_roll_circle_in_circle_angles
 from .actor import actor
 from .animator import animator
-from .items import point, circle, relative_point
+from .items import point, circle, item
 from . import trf
 
-import math
-from typing import List as _List, Tuple as _Tuple
+from typing import List as _List
 
 
 #################################################################
@@ -36,17 +35,31 @@ def _rotate_point_around(moved_point: point, center: point, angle: float) -> Non
 
 def rotate_point_around(moved_point: point, center: point):
     """
-    Creates a function that will rotates a point around another point of the given angle.
+    Creates a function that will rotates a point around another point.
     The returned function only takes the angle in degrees as parameter.
     """
     return lambda angle: _rotate_point_around(moved_point, center, angle)
 
 def move_point(moved_point: point):
     """
-    Returns a function that animate the movement of the point to a destination point.
+    Returns a function that sets the position of the point.
     The returned function only takes the position as parameter.
     """
     return lambda pt: moved_point.set_point(point(pt))
+
+
+#################################################################
+#
+# Color animations
+
+def change_fill_color(item: item):
+    """
+    Returns a function that sets the fill color of an actor or item.
+    The returned function only takes the color.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    return lambda co: item.fill(co)
 
 
 #################################################################
@@ -61,9 +74,9 @@ def roll_points_on_circle_in_circle(animator: animator, duration: float, inner_c
     inner_center, inner_radius = inner_circle.get_center_and_radius()
     outer_center, outer_radius = outer_circle.get_center_and_radius()
     inner_center_angle, inner_prim_angle = create_roll_circle_in_circle_angles(inner_radius, outer_radius, rotation_count)
-    animator.animate_value(0., inner_center_angle, duration, rotate_point_around(inner_center, outer_center))
+    animator.animate_value([0., inner_center_angle], duration, rotate_point_around(inner_center, outer_center))
     for pt in points_on_inner:
-        animator.animate_value(0., inner_prim_angle, duration, rotate_point_around(pt, point()))
+        animator.animate_value([0., inner_prim_angle], duration, rotate_point_around(pt, point()))
 
 
 #################################################################
@@ -72,21 +85,37 @@ def roll_points_on_circle_in_circle(animator: animator, duration: float, inner_c
 
 def reveal_item(item):
     """
-    Returns a function that animate the opacity of the actor or item.
+    Returns a function that sets the opacity of the actor or item.
     The returned function only takes the opacity as parameter, from 0 to 1.
     """
     if isinstance(item, actor):
         item = item.item
     return lambda opacity: item.set_opacity(opacity) if item else None
 
+
+#################################################################
+#
+# Text animations
+
 def _scale_text_item(item, size) -> None:
     item.set_font(item.get_font_name(), max(0.5, size))
 
 def scale_text_item(item):
     """
-    Returns a function that animate the font size of the actor or item.
+    Returns a function that sets the font size of the actor or item.
     The returned function only takes the font size as parameter.
     """
     if isinstance(item, actor):
         item = item.item
     return lambda size: _scale_text_item(item, size) if item else None
+
+def center_text_item_on(item, other):
+    """
+    Returns a function that sets the font size of the actor or item.
+    The returned function only takes the font size as parameter.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    if isinstance(other, actor):
+        other = other.item
+    return lambda _: item.center_on(other) if item and other else None

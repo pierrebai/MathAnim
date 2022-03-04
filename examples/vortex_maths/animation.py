@@ -41,16 +41,16 @@ def gen_points(count: int) -> List[anim.point]:
         points.append(anim.point(math.cos(theta) * radius, math.sin(theta) * radius))
     return points
 
-def gen_texts(points: List[anim.point]) -> List[anim.scaling_text]:
-    texts = []
+def gen_point_labels(points: List[anim.point]) -> List[anim.scaling_text]:
+    point_labels = []
     count = len(points)
     zero = anim.point(0., 0.)
     for i in range(count):
         theta = -math.pi / 2 + i * 2 * math.pi / count
-        text = anim.scaling_text(str(i), points[i], 20)
-        text.place_around(points[i], theta, 40)
-        texts.append(text)
-    return texts
+        point_label = anim.scaling_text(str(i), points[i], 20)
+        point_label.place_around(points[i], theta, 40)
+        point_labels.append(point_label)
+    return point_labels
 
 def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.point]]:
     count = len(points)
@@ -60,10 +60,12 @@ def gen_lines(multiplier: int, points: List[anim.point]) -> List[Tuple[anim.poin
         lines[p1] = (points[p1], points[p2])
     return lines
 
+def line_length(p1: anim.point, p2: anim.point) -> float:
+    delta = p1 - p2
+    return math.sqrt(delta.x() ** 2 + delta.y() ** 2)
+
 def gen_lengths(lines: List[Tuple[anim.point]]) -> List[float]:
-    dxs = [p1.x() - p2.x() for p1, p2 in lines]
-    dys = [p1.y() - p2.y() for p1, p2 in lines]
-    return [max(10., math.sqrt(dx * dx + dy * dy)) for dx, dy in zip(dxs, dys)]
+    return [max(10., line_length(*line)) for line in lines]
 
 
 #################################################################
@@ -76,7 +78,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     width = line_width.value / 10.
 
     points = gen_points(point_count)
-    texts = gen_texts(points)
+    point_labels = gen_point_labels(points)
     lines = gen_lines(multiplier, points)
     lengths = gen_lengths(lines)
 
@@ -97,9 +99,9 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius).outline(anim.pale_blue).thickness(10.))
 
     if len(points) <= 60:
-        text_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', text) for text in texts]
+        point_label_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', point_label) for point_label in point_labels]
     else:
-        text_actors = []
+        point_label_actors = []
         
     if len(points) <= 360:
         point_actors = [anim.actor('Point', 'Points around the circle', anim.create_disk(pt, 10.).fill(anim.orange)) for pt in points]
@@ -108,7 +110,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
     line_actors = [anim.actor('Line', 'Line linking two points that are ratio of the multipler', anim.create_line(*line).outline(colors.get_color(length, min_length, max_length)).thickness(width)) for length, line in lengths_and_lines]
 
-    animation.add_actors([background, circle, point_actors, text_actors, line_actors], scene)
+    animation.add_actors([background, circle, point_actors, point_label_actors, line_actors], scene)
 
 
 #################################################################
@@ -117,7 +119,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
 def generate_shots(animation: anim.animation):
     def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-        animator.animate_value(0., 1., 1)
+        animator.animate_value([0., 0.], 0.1)
     animation.add_shots(anim.shot('Vortex Maths', '', prep_anim))
 
 

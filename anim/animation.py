@@ -261,11 +261,13 @@ class animation(QObject, named):
         tail_pos = QPointF(scene.pointing_arrow.item.tail)
         desc_rect = scene.description_box.sceneBoundingRect()
         desc_pos = desc_rect.topLeft()
-        animator.animate_value(tail_pos, desc_pos, duration, anims.move_point(scene.pointing_arrow.item.tail))
+        animator.animate_value([tail_pos, desc_pos], duration, anims.move_point(scene.pointing_arrow.item.tail))
 
-        head_pos = QPointF(scene.pointing_arrow.item.head)
-        what_pos = QPointF(head_point)
-        animator.animate_value(head_pos, what_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
+        if isinstance(head_point, list):
+            head_pos = [QPointF(scene.pointing_arrow.item.head)] + [QPointF(pt) for pt in head_point]
+        else:
+            head_pos = [QPointF(scene.pointing_arrow.item.head), QPointF(head_point)]
+        animator.animate_value(head_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
 
 
     ########################################################################

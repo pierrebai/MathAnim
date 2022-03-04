@@ -5,6 +5,7 @@ from .items import static_point
 
 from PySide6.QtCore import QVariantAnimation, QAbstractAnimation, QParallelAnimationGroup, Signal, QObject, Qt, QPointF
 
+from typing import List as _List
 
 class animation_group(QParallelAnimationGroup):
     """
@@ -71,7 +72,7 @@ class animator(QObject):
     #
     # Animations
 
-    def animate_value(self, start_value, end_value, duration: float, on_changed = None, on_finished = None) -> None:
+    def animate_value(self, values: _List, duration: float, on_changed = None, on_finished = None) -> None:
         """
         Animate the given scene item value.
 
@@ -83,9 +84,17 @@ class animator(QObject):
 
         When all animations that were added are done, the current animation shot_ended function is called.
         """
+        if not values:
+            return
+
         anim = QVariantAnimation()
-        anim.setStartValue(start_value)
-        anim.setEndValue(end_value)
+
+        count = len(values)
+        if count < 2:
+            anim.setStartValue(values[0])
+            anim.setEndValue(values[0])
+        else:
+            anim.setKeyValues([(i / float(count - 1), values[i]) for i in range(count)])
         if on_changed:
             connect_auto_signal(anim, anim.valueChanged, on_changed)
         self.animate(anim, duration, on_finished)

@@ -209,11 +209,11 @@ class animation(anim.animation):
         if not item:
             return
 
-        self.animator.animate_value(0., 1., self.anim_duration,
+        self.animator.animate_value([0., 1.], self.anim_duration,
             anim.anims.reveal_item(cross),
             lambda: self.scene.remove_item(cross))
 
-        self.animator.animate_value(1., 0.5, self.anim_duration,
+        self.animator.animate_value([1., 0.5], self.anim_duration,
             anim.anims.reveal_item(item),
             lambda: self.scene.remove_item(item))
 
@@ -238,16 +238,16 @@ class animation(anim.animation):
             arrow.set_opacity(1.)
             self.scene.add_item(arrow)
             self.animator.animate_value(
-                anim.static_point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
-                anim.static_point(*self.middle_pos_to_scene(x2 - center, y2 - center, tile)),
+                [anim.static_point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
+                anim.static_point(*self.middle_pos_to_scene(x2 - center, y2 - center, tile))],
                 self.anim_duration,
                 anim.anims.move_point(origin),
                 lambda: self.scene.remove_item(arrow)
             )
 
         self.animator.animate_value(
-            anim.static_point(self.pos_to_scene(x1 - center, y1 - center)),
-            anim.static_point(self.pos_to_scene(x2 - center, y2 - center)),
+            [anim.static_point(self.pos_to_scene(x1 - center, y1 - center)),
+            anim.static_point(self.pos_to_scene(x2 - center, y2 - center))],
             self.anim_duration,
             anim.anims.move_point(item.p1)
         )
@@ -265,10 +265,10 @@ class animation(anim.animation):
 
         if self.skip_animations:
             item.set_opacity(1.)
-            self.animator.animate_value(1., 1., 0.001, anim.anims.reveal_item(item))
+            self.animator.animate_value([1., 1.], 0.001, anim.anims.reveal_item(item))
         else:
             item.set_opacity(0.)
-            self.animator.animate_value(0., 1., self.anim_duration, anim.anims.reveal_item(item))
+            self.animator.animate_value([0., 1.], self.anim_duration, anim.anims.reveal_item(item))
 
     def fills_done(self, az):
         self.items, self.new_items = self.new_items, self.items

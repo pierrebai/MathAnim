@@ -27,13 +27,13 @@ def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> Li
 def create_tower_squares(base_points: List[anim.point], square_sizes: List[float], color) -> List[anim.polygon]:
     squares = []
     for base, size in zip(base_points, square_sizes):
-        squares.append(anim.create_losange(base, size).fill(color))
+        squares.append(anim.create_losange(base, size).fill(color).outline(anim.black).thickness(0.))
     return squares
 
 tower_count = 3
 tower_height = 8
 losange_height = anim.outer_size / 4.
-anim_duration = 3.
+anim_duration = 1.
 
 tower_colors = [ anim.red, anim.green, anim.blue ]
 
@@ -41,7 +41,6 @@ square_sizes = anim.geometric_serie(0., losange_height, 1. / 2., tower_height)
 tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
 tower_square_base_points = [create_square_bases(base, square_sizes) for base in tower_base_points]
 tower_squares = [create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
-tower_tip_points = [squares[-1].points[2] for squares in tower_squares]
 zero = anim.static_point(0., 0.)
 
 central_tower_origin = zero
@@ -49,8 +48,10 @@ left_tower_origin  = anim.static_point(-losange_height, 0.)
 right_tower_origin = anim.static_point( losange_height, 0.)
 
 central_tower_base = tower_base_points[1]
-central_tower_left_point = tower_squares[1][0].points[1]
-central_tower_right_point = tower_squares[1][0].points[3]
+central_tower_squares = tower_squares[1]
+central_tower_left_point = central_tower_squares[0].points[1]
+central_tower_right_point = central_tower_squares[0].points[3]
+central_tower_tip_point = central_tower_squares[-1].points[2]
 
 left_tower_base = tower_base_points[0]
 left_tower_base_points  = tower_square_base_points[0]
@@ -58,43 +59,41 @@ left_tower_base_points  = tower_square_base_points[0]
 right_tower_base = tower_base_points[2]
 right_tower_base_points = tower_square_base_points[2]
 
-quarter_texts = [ [
-        anim.create_scaling_sans_text("1/4", square.points[0], size / 4).center_on(square)
-        for square, size in zip(tower, square_sizes)
-    ]
-    for tower in tower_squares
+quarter_texts = [
+    anim.create_scaling_sans_text("1/4", square.points[0], size / 4).center_on(square)
+    for square, size in zip(central_tower_squares, square_sizes)
 ]
 
-exponent_texts = [ [
-        anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2)
-        for exponent, quarter in zip(range(1, tower_height), quarters[1:])
-    ]
-    for quarters in quarter_texts
+exponent_texts = [
+    anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2)
+    for exponent, quarter in zip(range(1, tower_height), quarter_texts[1:])
 ]
 
 tower_texts = anim.flatten([quarter_texts, exponent_texts])
-quarter_with_power_texts = anim.flatten([[quarters[1:] for quarters in quarter_texts], exponent_texts])
+quarter_with_power_texts = anim.flatten([quarter_texts[1:], exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
-unit_square = anim.create_losange(unit_square_base, losange_height * 2).fill(anim.orange)
+unit_square = anim.create_losange(unit_square_base, losange_height * 2).fill(anim.orange).outline(anim.black).thickness(0.)
 unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], losange_height / 2).center_on(unit_square)
 unit_square_and_text = [unit_square, unit_text]
 
-third_texts = [anim.create_scaling_sans_text("1/3", tip, losange_height / 4).place_above(tip) for tip in tower_tip_points]
+third_text = anim.create_scaling_sans_text("1/3", anim.point(), losange_height / 4).place_above(central_tower_tip_point)
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[0].top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6)
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_text.top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6)
 
 
 def reset_relative_points():
     points = anim.find_all_of_type(globals(), anim.point)
     for pt in points:
         pt.reset()
+    unit_text.set_sans_font(losange_height / 2)
+    unit_text.center_on(unit_square)
+    third_text.place_above(central_tower_tip_point)
 
 def reset_opacities():
     for item in unit_square_and_text:
         item.set_opacity(0.)
-    for item in third_texts:
-        item.set_opacity(0.)
+    third_text.set_opacity(0.)
     for item in anim.flatten(tower_squares):
         item.set_opacity(1.)
     for item in tower_texts:
@@ -115,7 +114,7 @@ unit_square_actor = anim.actor("Square", "Full square showing the total area.", 
 quarter_actors = [ anim.actor("Fraction", "", text) for text in anim.flatten(quarter_texts) ]
 exponent_actors = [ anim.actor("Fraction", "", text) for text in anim.flatten(exponent_texts) ]
 unit_actor = anim.actor("Fraction", "", unit_text)
-third_actors = [anim.actor("Fraction", "", third) for third in third_texts]
+third_actors = [anim.actor("Fraction", "", third_text)]
 equation_actors = [anim.actor("Equation", "", eq) for eq in equation_texts]
 invisible_field = anim.actor("", "", anim.create_invisible_rect(-losange_height * 1.7, -losange_height * 3, losange_height * 3.4, losange_height * 3))
 
@@ -133,89 +132,137 @@ def place_towers_side_by_side_shot(shot: anim.shot, animation: anim.animation, s
     """
     reset_relative_points()
     reset_opacities()
-    animator.animate_value(zero,  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
-    animator.animate_value(zero, right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
+    animator.animate_value([zero,  left_tower_origin,  left_tower_origin], anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value([zero, right_tower_origin, right_tower_origin], anim_duration, anim.anims.move_point(right_tower_base))
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))
     animation.place_anim_pointing_arrow(zero, scene)
 
-def combine_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    """
-    Combine Towers
-
-    The left and right towers
-    can slide up the sides of
-    the central tower. This
-    shows that they perfectly
-    fit together.
-    """
-    animator.animate_value( left_tower_origin, anim.static_point(central_tower_left_point ), anim_duration, anim.anims.move_point( left_tower_base))
-    animator.animate_value(right_tower_origin, anim.static_point(central_tower_right_point), anim_duration, anim.anims.move_point(right_tower_base))
 
 def form_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
     Form a Square
 
-    All sub-squares of the left
-    and right towers can slide
-    down to fit snuggly with the
-    central tower. We can see that
-    they combine with the central
-    tower to form a complete square.
+    Combine all three towers
+    to form a square.
     """
+    animator.animate_value([ left_tower_origin, anim.static_point(central_tower_left_point )], anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value([right_tower_origin, anim.static_point(central_tower_right_point)], anim_duration, anim.anims.move_point(right_tower_base))
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
     for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
         half_size = size / 2.
-        animator.animate_value(zero, anim.static_point( half_size, half_size), anim_duration, anim.anims.move_point(left ))
-        animator.animate_value(zero, anim.static_point(-half_size, half_size), anim_duration, anim.anims.move_point(right))
+        animator.animate_value([zero, anim.static_point( half_size, half_size)], anim_duration, anim.anims.move_point(left ))
+        animator.animate_value([zero, anim.static_point(-half_size, half_size)], anim_duration, anim.anims.move_point(right))
+
 
 def show_unit_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
-    Equivalent Square
+    Unit Square
 
-    We can replace the combined
-    towers with a single square
-    of unit area. All three
-    towers together cover the
-    same area as this unit square.
+    This square has unit area.
+    It has the same area as the
+    three towers.
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[2]))
+    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[3]))
     for item in unit_square_and_text:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+        animator.animate_value([0., 1., 1., 1.], anim_duration, anim.reveal_item(item))
     for item in anim.flatten(tower_squares):
-        animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
+        animator.animate_value([1., 0.], anim_duration / 4, anim.reveal_item(item))
+    for item in anim.flatten(central_tower_squares):
+        animator.animate_value([anim.green, anim.green, anim.orange], anim_duration, anim.change_fill_color(item))
 
-def show_quarters_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+
+def show_quarter_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
-    Quarter Squares
+    Quarter Square
 
     The base-square of each
     tower is a quarter of the
     full unit square area.
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(unit_square.points[3]))
+    scene.pointing_arrow.item.set_head(anim.relative_point(central_tower_squares[0].points[3]))
     for item in unit_square_and_text:
-        animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
-    for item in quarter_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item[0]))
+        animator.animate_value([1., 0.], anim_duration, anim.reveal_item(item))
+    animator.animate_value([0., 1.], anim_duration, anim.reveal_item(quarter_texts[0]))
     for item in anim.flatten(tower_squares):
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+        animator.animate_value([0., 1.], anim_duration, anim.reveal_item(item))
+
 
 def show_quarter_powers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
     Powers of 1/4
 
     Each successive smaller
-    square in each tower has
+    square in the tower has
     an area that is a quarter
-    the area of the lower square
-    in the same tower.
-
-    This forms a serie of 1/4
-    powers as each square gets
-    smaller and smaller.
+    of the previous square.
     """
+    scene.pointing_arrow.item.set_head(anim.relative_point(central_tower_squares[1].points[3]))
+    #animation.anim_pointing_arrow([anim.static_point(square.points[3]) for square in central_tower_squares], anim_duration, scene, animator)
     for item in quarter_with_power_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+        animator.animate_value([0., 1.], anim_duration, anim.reveal_item(item))
+
+
+def show_unit_square_again_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Unit Square
+
+    Remind again that the unit
+    square has the same area
+    as the three towers.
+    """
+    scene.pointing_arrow.item.set_head(anim.relative_point(unit_text.exponent_pos()))
+    animator.animate_value([0., 1., 1., 1.], anim_duration, anim.reveal_item(unit_square))
+    animator.animate_value([0., 1., 1., 1.], anim_duration, anim.reveal_item(unit_text))
+
+    animator.animate_value([losange_height / 2, losange_height / 4, losange_height / 4, losange_height / 4], anim_duration, anim.scale_text_item(unit_text))
+    animator.animate_value([0., 1.], anim_duration, anim.center_text_item_on(unit_text, unit_square))
+
+    for item in anim.flatten(tower_texts):
+        animator.animate_value([1., 0., 0., 0.], anim_duration, anim.reveal_item(item))
+    for item in anim.flatten(tower_squares):
+        animator.animate_value([1., 1., 0., 0.], anim_duration, anim.reveal_item(item))
+    for item in anim.flatten(central_tower_squares):
+        animator.animate_value([anim.orange, anim.green], anim_duration, anim.change_fill_color(item))
+
+
+def hide_unit_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Unit Square
+
+    Remind again that the unit
+    square has the same area
+    as the three towers.
+    """
+    scene.pointing_arrow.item.set_head(anim.relative_point(unit_text.exponent_pos()))
+
+    text_pos = anim.static_point(unit_text.position)
+    target_pos = anim.static_point(unit_text.place_above_pos(central_tower_tip_point))
+    animator.animate_value([text_pos, target_pos], anim_duration, anim.move_point(unit_text.position))
+
+    animator.animate_value([1., 0.], anim_duration, anim.reveal_item(unit_square))
+
+    for item in anim.flatten(tower_texts):
+        animator.animate_value([0., 1.], anim_duration, anim.reveal_item(item))
+    for item in anim.flatten(tower_squares):
+        animator.animate_value([0., 1.], anim_duration, anim.reveal_item(item))
+    
+
+def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    """
+    Break-up the Square
+
+    Slide the side-towers
+    down the sides of the
+    central tower.
+    """
+    scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
+    for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
+        half_size = size / 2.
+        animator.animate_value([anim.static_point( half_size, half_size), zero], anim_duration, anim.anims.move_point(left ))
+        animator.animate_value([anim.static_point(-half_size, half_size), zero], anim_duration, anim.anims.move_point(right))
+    animator.animate_value([anim.static_point(central_tower_left_point ),  left_tower_origin], anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value([anim.static_point(central_tower_right_point), right_tower_origin], anim_duration, anim.anims.move_point(right_tower_base))
+
 
 def show_thirds_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -226,58 +273,30 @@ def show_thirds_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
     area. So each tower must
     have an area equal to 1/3.
     """
-    scene.pointing_arrow.item.set_head(anim.relative_point(third_texts[2].exponent_pos()))
-    for item in third_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+    scene.pointing_arrow.item.set_head(anim.relative_point(third_text.exponent_pos()))
+    animator.animate_value([0., 1.], anim_duration, anim.reveal_item(third_text))
+    animator.animate_value([1., 0.], anim_duration, anim.reveal_item(unit_text))
+    animator.animate_value([left_tower_origin, zero], anim_duration, anim.anims.move_point( left_tower_base))
+    animator.animate_value([right_tower_origin, zero], anim_duration, anim.anims.move_point(right_tower_base))
+    for item in anim.flatten(tower_squares[0]):
+        animator.animate_value([1., 0.], anim_duration, anim.reveal_item(item))
+    for item in anim.flatten(tower_squares[2]):
+        animator.animate_value([1., 0.], anim_duration, anim.reveal_item(item))
 
-def break_up_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    """
-    Deconstruct the Square
-
-    Slide all sub-squares
-    of the side-towers out
-    of the unit square.
-    """
-    scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][1].points[3]))
-    for size, left, right in zip(square_sizes[1:], left_tower_base_points[1:], right_tower_base_points[1:]):
-        half_size = size / 2.
-        animator.animate_value(anim.static_point( half_size, half_size), zero, anim_duration, anim.anims.move_point(left ))
-        animator.animate_value(anim.static_point(-half_size, half_size), zero, anim_duration, anim.anims.move_point(right))
-
-def separate_towers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    """
-    Separate Towers
-    
-    Slide the side-towers
-    down the sides of the
-    central tower.
-    """
-    scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))
-    animator.animate_value(anim.static_point(central_tower_left_point ),  left_tower_origin, anim_duration, anim.anims.move_point( left_tower_base))
-    animator.animate_value(anim.static_point(central_tower_right_point), right_tower_origin, anim_duration, anim.anims.move_point(right_tower_base))
 
 def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
     Final Equation
 
-    The sum of the area of
-    the squares of one tower
-    is equal to one third of
-    the unit area.
-
-    But the sum of the area
-    of the squares is also
-    the sum of powers of 1/4.
-
-    This means the sum of the
-    powers of 1/4 is equal to
-    1/3!
+    The sum of the areas of
+    the squares is the sum
+    of powers of 1/4, which
+    means it is equal to 1/3.
     """
     scene.pointing_arrow.item.set_head(anim.relative_point(equation_texts[len(equation_texts) // 2].exponent_pos()))
-    for item in third_texts:
-        animator.animate_value(1., 0., anim_duration, anim.reveal_item(item))
+    animator.animate_value([1., 0.], anim_duration, anim.reveal_item(third_text))
     for item in equation_texts:
-        animator.animate_value(0., 1., anim_duration, anim.reveal_item(item))
+        animator.animate_value([0., 1.], anim_duration, anim.reveal_item(item))
 
 
 #################################################################

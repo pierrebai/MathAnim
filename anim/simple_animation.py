@@ -26,7 +26,7 @@ class simple_animation(animation):
             - reset_on_change: should the animation reset when options change. Defaults to True.
             - has_pointing_arrow: does the animation uses the pointing arrow. Default to True.
             - *_shot: the anim-preparation function of a shot, a shot will be created with the first
-                      line of the funciton doc as the name and the rest as its description.
+                      line of the function doc as the name and the rest as its description.
             - Variables that are instances of the shot class.
             - Variables that are instances of the actor class.
             - Variables that are instances of the option class.
@@ -34,7 +34,7 @@ class simple_animation(animation):
             - generate_shots: a function that generates shots.
             - reset: a function to reset the animation.
             - option_changed: a function that reacts to changing options.
-            - shot_ended: a function called when an aniamtion shot ends.
+            - shot_ended: a function called when an animation shot ends.
 
         Only name, description and either shots or generate_shots are
         required. The others are optional.
@@ -96,7 +96,7 @@ class simple_animation(animation):
             errors.append("No animation description defined. Declare a 'description' global variable.")
 
         if not shots and not prep_shots and not custom_generate_shots:
-            errors.append("No animation shot defined. Declare instances of the anim.shot class as global variable or a function named 'generate_shots'.")
+            errors.append("No animation shot defined. Declare instances of the anim.shot class as global variables or a function named 'generate_shots'.")
 
         if errors:
             print('\n'.join(errors))

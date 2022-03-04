@@ -15,11 +15,11 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     def __init__(self, label: str, pos: point, font_size: float = 10., fixed_size = False) -> None:
         super().__init__(label, None)
         if isinstance(pos, relative_point):
-            self._pos = relative_point(pos._origin, pos._start_pos)
+            self.position = relative_point(pos._origin, pos._start_pos)
         else:
-            self._pos = relative_point(pos)
+            self.position = relative_point(pos)
         self.set_serif_font(font_size)
-        self._pos.add_user(self)
+        self.position.add_user(self)
         if fixed_size:
             self.set_fixed_size()
         self._update_geometry()
@@ -43,7 +43,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Retrieves the font name of the text.
         """
-        return self.font().name()
+        return self.font().family()
 
     def set_fixed_size(self):
         """
@@ -72,13 +72,34 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         self_center = self_rect.center()
         other_center = other_rect.center()
         delta = other_center - self_center
-        self._pos.set_absolute_point(self._pos + delta)
+        self.position.set_absolute_point(self.position + delta)
         return self
 
     def place_around(self, pt: static_point, angle_from_point: float, distance_from_point: float) -> _QGraphicsSimpleTextItem:
         """
         Places the text around the given point in the given direction from the point, in radians.
-        Zero is on the right, and turns counter-clockwise.
+        Zero is on the right, and turns clockwise.
+        """
+        self.position.set_absolute_point(self.place_around_pos(pt, angle_from_point, distance_from_point))
+        return self
+
+    def place_above(self, pt: static_point, distance_from_point: float = 0) -> _QGraphicsSimpleTextItem:
+        """
+        Places the text above the given point.
+        """
+        self.position.set_absolute_point(self.place_above_pos(pt, distance_from_point))
+        return self
+
+    def place_above_pos(self, pt: static_point, distance_from_point: float = 0) -> relative_point:
+        """
+        Retrieves the position above the given point.
+        """
+        return self.place_around_pos(pt, 3 * math.pi / 2, distance_from_point + self.scene_rect().height() / 2)
+        
+    def place_around_pos(self, pt: static_point, angle_from_point: float, distance_from_point: float) -> relative_point:
+        """
+        Retrieves the position around the given point in the given direction from the point, in radians.
+        Zero is on the right, and turns clockwise.
         """
         while angle_from_point < 0:
             angle_from_point += 2 * math.pi
@@ -88,44 +109,37 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         rect = self.scene_rect()
 
         delta = pt + dist- rect.center()
-        self._pos.set_absolute_point(self._pos + delta)
-        return self
-
-    def place_above(self, pt: static_point, distance_from_point: float = 0) -> _QGraphicsSimpleTextItem:
-        """
-        Places the text above the given point.
-        """
-        return self.place_around(pt, 90, distance_from_point)
+        return relative_point(self.position, delta)
 
     def exponent_pos(self) -> relative_point:
         """
         Retrieves the position of exponent (top-right) of the text.
         """
         corner = self.scene_rect().topRight()
-        delta = corner - self._pos
-        return relative_point(self._pos, delta)
+        delta = corner - self.position
+        return relative_point(self.position, delta)
 
     def subscript_pos(self) -> relative_point:
         """
         Retrieves the position of subscript (bottom-right) of the text.
         """
         corner = self.sceneBoundingRect().bottomRight()
-        delta = corner - self._pos
-        return relative_point(self._pos, delta)
+        delta = corner - self.position
+        return relative_point(self.position, delta)
 
     def top_left(self) -> relative_point:
         """
         Retrieves the top-left corner of the text.
         """
         corner = self.sceneBoundingRect().topLeft()
-        delta = corner - self._pos
-        return relative_point(self._pos, delta)
+        delta = corner - self.position
+        return relative_point(self.position, delta)
 
     def get_all_points(self) -> _List[point]:
         """
         Retrieve all animatable points in the item.
         """
-        return [self._pos]
+        return [self.position]
 
     def scene_rect(self) -> static_rectangle:
         """
@@ -137,9 +151,9 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Updates the text position after the point moved.
         """
-        if self._pos != self.scenePos():
+        if self.position != self.scenePos():
             self.prepareGeometryChange()
-            self.setPos(self._pos)
+            self.setPos(self.position)
 
 
 class fixed_size_text(scaling_text):

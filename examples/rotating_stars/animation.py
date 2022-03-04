@@ -103,13 +103,13 @@ def _gen_inter_polygons(scene: anim.scene):
 # Reused animations
 
 def _anim_inner_circle(which_inner: int, animator: anim.animator):
-    animator.animate_value(0., 1., reveal_duration, anim.reveal_item(inner_circles[which_inner]))
+    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_circles[which_inner]))
 
 def _anim_other_inner_circle_dots(which_inner: int, which_dot: int, animator: anim.animator):
-    animator.animate_value(0., 1., reveal_duration, anim.reveal_item(inner_dots[which_inner][which_dot]))
+    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_dots[which_inner][which_dot]))
 
 def _anim_inner_circle_polygon(which_inner: int, animator: anim.animator):
-    animator.animate_value(0., 1., reveal_duration, anim.reveal_item(inner_polygons[which_inner]))
+    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_polygons[which_inner]))
 
 def _anim_inner_circle_polygon_arrow(which_inner: int, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     poly = inner_polygons[which_inner]
@@ -131,8 +131,8 @@ def outer_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     for actor in animation.actors:
         actor.item.set_opacity(0)
     circle = outer_circle
-    animator.animate_value(0., 1., reveal_duration, anim.reveal_item(circle))
-    animator.animate_value(0., 1., reveal_duration, anim.reveal_item(scene.pointing_arrow))
+    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(circle))
+    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(scene.pointing_arrow))
     animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def inner_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -157,7 +157,7 @@ def inner_circle_dot_shot(shot: anim.shot, animation: anim.animation, scene: ani
     """
     dot = inner_dots[0][0]
     reveal = anim.reveal_item(dot)
-    animator.animate_value(0., 1., reveal_duration, reveal)
+    animator.animate_value([0., 1.], reveal_duration, reveal)
     animation.anim_pointing_arrow(dot.item.scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def star_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -171,7 +171,7 @@ def star_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, ani
     the outer one.
     """
     reveal = anim.reveal_item(star)
-    animator.animate_value(0., 1., reveal_duration, reveal)
+    animator.animate_value([0., 1.], reveal_duration, reveal)
     animation.anim_pointing_arrow(star.item.scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def other_inner_circle_dots_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -225,7 +225,7 @@ def inter_circle_polygons_shot(shot: anim.shot, animation: anim.animation, scene
     """
     polys = [inter_polygons[which_dot] for which_dot in range(0, dots_count())]
     for poly in polys:
-        animator.animate_value(0., 1., reveal_duration, anim.reveal_item(poly))
+        animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(poly))
 
 def rotate_all_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """

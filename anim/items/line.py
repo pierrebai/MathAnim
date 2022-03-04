@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QGraphicsLineItem as _QGraphicsLineItem
 from PySide6.QtCore import QLineF as _QLineF, QPointF as _QPointF
 
 from typing import List as _List
+import math
 
 class line(_QGraphicsLineItem, item):
     """
@@ -18,6 +19,10 @@ class line(_QGraphicsLineItem, item):
         p1.add_user(self)
         p2.add_user(self)
         self._update_geometry()
+
+    def length(self) -> float:
+        delta = self.p1 - self.p2
+        return math.sqrt(delta.x() ** 2 + delta.y() ** 2)
 
     def get_all_points(self) -> _List[point]:
         """
