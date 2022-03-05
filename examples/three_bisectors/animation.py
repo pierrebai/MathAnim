@@ -30,7 +30,7 @@ lengths = [
     )
     for i in range(3)
 ]
-colors = [anim.red, anim.green, anim.blue]
+colors = [anim.red, anim.green, anim.blue, anim.orange]
 
 corner_angles = [
     anim.polygon([
@@ -113,11 +113,6 @@ def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim
 
 def _move_between_points(which: int, back: bool, animator: anim.animator):
     cor = corners[which]
-    circle.set_radius(radius_points[(which + 1) % 3])
-    hues = [anim.orange, colors[which]]
-    if back:
-        hues.reverse()
-    animator.animate_value(hues, duration, anim.change_fill_color(circle))
     move = [anim.static_point(center.original_point), anim.static_point(cor)]
     if back:
         move.reverse()
@@ -135,6 +130,8 @@ def _move_between_points(which: int, back: bool, animator: anim.animator):
         ], duration, anim.move_point(bisectors[which].p2))
 
 def _move_radii(which: int, animator: anim.animator):
+    circle.set_radius(radius_points[(which + 1) % 3])
+    animator.animate_value([colors[which-1], colors[which]], duration, anim.change_fill_color(circle))
     for i in range(3):
         # Note: avoid extending or retracting a line that is already in that position.
         if which == 0 and i == 0:
@@ -232,6 +229,7 @@ def move_to_center_2_shot(shot: anim.shot, animation: anim.animation, scene: ani
 def show_circle_again_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     ''':)'''
     circle.set_radius(radius_points[0])
+    animator.animate_value([colors[2], colors[-1]], duration, anim.change_fill_color(circle))
     cen = anim.static_point(center)
     for i in range(3):
         radii[i].set_opacity(0.)
