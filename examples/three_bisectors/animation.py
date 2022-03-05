@@ -103,6 +103,11 @@ def _move_between_points(which: int, back: bool, animator: anim.animator):
         if back:
             move.reverse()
         animator.animate_value(move, duration, anim.move_point(radius_points[other]))
+    if back:
+        animator.animate_value([
+            anim.static_point(corners[which]),
+            anim.static_point(bisectors[which].p2.original_point),
+        ], duration, anim.move_point(bisectors[which].p2))
 
 def _prepare_radii(which: int, animator: anim.animator):
     for i in range(3):
@@ -150,60 +155,69 @@ def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     animator.animate_value([0., 1.], duration, anim.reveal_item(triangle))
 
 def show_angles_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Arbitrary Triangle'''
+    '''The three angle bisectors...'''
     for ca in corner_angles:
         animator.animate_value([0., 1.], duration, anim.reveal_item(ca))
 
 def grow_bisectors_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''... always meet at a point'''
     for i in range(3):
         bisectors[i].p2.set_point(corners[i])
         bisectors[i].set_opacity(1.)
         animator.animate_value([
             anim.static_point(corners[i]),
-            anim.static_point(bisectors[i].p2.original_point)], duration, anim.move_point(bisectors[i].p2))
+            anim.static_point(bisectors[i].p2.original_point),
+        ], duration, anim.move_point(bisectors[i].p2))
     animator.animate_value([0., 0., 0., 1.], duration, anim.reveal_item(circle_center))
 
 def show_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
-    animator.animate_value([0., 1.], duration, anim.reveal_item(circle))
+    '''Why?'''
+    animator.animate_value([0., 1., 1., 1.], duration * 3, anim.reveal_item(circle))
     for cr in circle_radius:
-        animator.animate_value([0., 0., 1.], duration, anim.reveal_item(cr))
+        animator.animate_value([0., 0., 1.], duration * 3, anim.reveal_item(cr))
+
+def hide_bisectors_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''Why?'''
+    for i in range(3):
+        animator.animate_value([
+            anim.static_point(bisectors[i].p2.original_point),
+            anim.static_point(corners[i]),
+        ], duration, anim.move_point(bisectors[i].p2))
 
 def prepare_radii_0_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     _prepare_radii(0, animator)
 
 def move_to_corner_0_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(0, False, animator)
 
 def move_to_center_0_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(0, True, animator)
 
 def prepare_radii_1_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     _prepare_radii(1, animator)
 
 def move_to_corner_1_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(1, False, animator)
 
 def move_to_center_1_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(1, True, animator)
 
 def prepare_radii_2_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     _prepare_radii(2, animator)
 
 def move_to_corner_2_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(2, False, animator)
 
 def move_to_center_2_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''Why do they meet at a single point?'''
+    '''Why?'''
     return _move_between_points(2, True, animator)
 
 def show_circle_again_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
