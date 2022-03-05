@@ -27,13 +27,13 @@ class animation(QObject, named):
                    The app window automatically calls it when a new animation is
                    selected.
 
-        - generate_actors(scene): generates the actors that will be used in the
-                                  animation. The names of the actors will be used
-                                  to create UI to let the user decide what gets drawn.
+        - generate_actors(): generates the actors that will be used in the
+                            animation. The names of the actors will be used
+                            to create UI to let the user decide what gets drawn.
 
-                                  All actors must be added to the animation by calling
-                                  the add_actors function from within generate_actors,
-                                  passng the actors and the scene.
+                            All actors must be added to the animation by calling
+                            the add_actors function from within generate_actors,
+                            passng the actors and the scene.
 
         - generate_shots(): generates the shots that make=up the entire animation.
 
@@ -49,6 +49,12 @@ class animation(QObject, named):
                             played by calling the animate_value function of the animator,
                             possibly multiple times, for all the actors that will
                             participate in the shot.
+
+        - prepare_playing(): final preparation before playing the first shot.
+
+                            Useful when actors may have been left in an unknown
+                            state when the animation was stopped, possibly before
+                            all shots were played.
 
         - option_changed(): called when an option has changed. Normally you can simply
                             implement reset() or even just let the generate_actors and
@@ -139,6 +145,16 @@ class animation(QObject, named):
         played by calling the animate_value function of the animator,
         possibly multiple times, for all the actors that will
         participate in the shot.
+        """
+        pass
+
+    def prepare_playing(self, scene: scene, animator: animator) -> None:
+        """
+        Final preparation before playing the first shot.
+
+        Useful when actors may have been left in an unknown
+        state when the animation was stopped, possibly before
+        all shots were played.
         """
         pass
 
@@ -357,6 +373,9 @@ class animation(QObject, named):
             self.playing = True
 
         self.current_shot_index = max(0, self.current_shot_index) % len(self.shots)
+        if not self.current_shot_index:
+            self.prepare_playing(scene, animator)
+
         current_shot = self.shots[self.current_shot_index]
         scene.set_title(current_shot.name)
         scene.set_description(current_shot.description)

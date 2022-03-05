@@ -100,6 +100,15 @@ def _gen_inter_polygons(scene: anim.scene):
 
 #################################################################
 #
+# Prepare animation
+
+def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    for actor in animation.actors:
+        actor.item.set_opacity(0)
+
+
+#################################################################
+#
 # Reused animations
 
 def _anim_inner_circle(which_inner: int, animator: anim.animator):
@@ -128,8 +137,6 @@ def outer_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     insides which the smaller ones
     will rotate.
     """
-    for actor in animation.actors:
-        actor.item.set_opacity(0)
     circle = outer_circle
     animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(circle))
     animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(scene.pointing_arrow))

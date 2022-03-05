@@ -51,6 +51,7 @@ class simple_animation(animation):
         custom_generate_actors = None
         custom_generate_shots = None
         custom_reset = None
+        custom_prepare_playing = None
         custom_option_changed = None
         custom_shot_ended = None
 
@@ -74,6 +75,8 @@ class simple_animation(animation):
                 custom_generate_shots = var
             elif var_name == 'reset':
                 custom_reset = var
+            elif var_name == 'prepare_playing':
+                custom_prepare_playing = var
             elif var_name == 'option_changed':
                 custom_option_changed = var
             elif var_name == 'shot_ended':
@@ -121,13 +124,13 @@ class simple_animation(animation):
                 name, description, loop, reset_on_change, has_pointing_arrow,
                 shots, actors, options,
                 custom_generate_actors, custom_generate_shots, custom_reset,
-                custom_option_changed, custom_shot_ended)
+                custom_prepare_playing, custom_option_changed, custom_shot_ended)
         return maker
 
     def __init__(self, name, description, loop, reset_on_change, has_pointing_arrow,
                  shots, actors, options,
-                 custom_generate_actors, custom_generate_shots,
-                 custom_reset, custom_option_changed, custom_shot_ended) -> None:
+                 custom_generate_actors, custom_generate_shots, custom_reset,
+                 custom_prepare_playing, custom_option_changed, custom_shot_ended) -> None:
         super().__init__(name, description)
         self.loop = loop
         self.reset_on_change = reset_on_change
@@ -137,6 +140,7 @@ class simple_animation(animation):
         self.custom_generate_actors = custom_generate_actors
         self.custom_generate_shots = custom_generate_shots
         self.custom_reset = custom_reset
+        self.custom_prepare_playing = custom_prepare_playing
         self.custom_option_changed = custom_option_changed
         self.custom_shot_ended = custom_shot_ended
         self.add_options(options)
@@ -159,6 +163,11 @@ class simple_animation(animation):
             self.custom_reset(self, scene, animator)
         if not self.has_pointing_arrow:
             self.remove_pointing_arrow(scene)
+
+    def prepare_playing(self, scene: scene, animator: animator) -> None:
+        super().prepare_playing(scene, animator)
+        if self.custom_prepare_playing:
+            self.custom_prepare_playing(self, scene, animator)
 
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         super().option_changed(scene, animator, option)

@@ -16,7 +16,7 @@ reset_on_change = False
 #
 # Points and geometries
 
-def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> List[anim.relative_point]:
+def _create_square_bases(base_point: anim.point, square_sizes: List[float]) -> List[anim.relative_point]:
     bases = []
     for size in square_sizes:
         base_point = anim.relative_point(base_point, 0., 0.)
@@ -24,7 +24,7 @@ def create_square_bases(base_point: anim.point, square_sizes: List[float]) -> Li
         base_point = anim.relative_point(base_point, 0., -size)
     return bases
 
-def create_tower_squares(base_points: List[anim.point], square_sizes: List[float], color) -> List[anim.polygon]:
+def _create_tower_squares(base_points: List[anim.point], square_sizes: List[float], color) -> List[anim.polygon]:
     squares = []
     for base, size in zip(base_points, square_sizes):
         squares.append(anim.create_losange(base, size).fill(color).outline(anim.black).thickness(0.))
@@ -40,8 +40,8 @@ square_sizes = anim.geometric_serie(0., losange_height, 1. / 2., tower_height)
 zero = anim.static_point(0., 0.)
 
 tower_base_points = [anim.point(0., 0.) for _ in range(tower_count)]
-tower_square_base_points = [create_square_bases(base, square_sizes) for base in tower_base_points]
-tower_squares = [create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
+tower_square_base_points = [_create_square_bases(base, square_sizes) for base in tower_base_points]
+tower_squares = [_create_tower_squares(base, square_sizes, color) for base, color in zip(tower_square_base_points, tower_colors)]
 tower_tip_points = [squares[-1].points[2] for squares in tower_squares]
 
 central_tower_origin = zero
@@ -52,7 +52,6 @@ central_tower_base = tower_base_points[1]
 central_tower_squares = tower_squares[1]
 central_tower_left_point = central_tower_squares[0].points[1]
 central_tower_right_point = central_tower_squares[0].points[3]
-
 
 left_tower_base = tower_base_points[0]
 left_tower_base_points  = tower_square_base_points[0]
@@ -83,7 +82,11 @@ third_texts = [anim.create_scaling_sans_text("1/3", anim.relative_point(tip), lo
 equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[1].top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6)
 
 
-def reset_relative_points():
+#################################################################
+#
+# Animation preparation
+
+def _reset_relative_points():
     points = anim.find_all_of_type(globals(), anim.point)
     for pt in points:
         pt.reset()
@@ -92,7 +95,7 @@ def reset_relative_points():
     for text, tip in zip(third_texts, tower_tip_points):
         text.place_above(tip)
 
-def reset_opacities():
+def _reset_opacities():
     for item in unit_square_and_text:
         item.set_opacity(0.)
     for item in third_texts:
@@ -106,8 +109,11 @@ def reset_opacities():
     for item in anim.flatten(central_tower_squares):
         item.fill(anim.green)
 
-reset_relative_points()
-reset_opacities()
+def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    _reset_relative_points()
+    _reset_opacities()
+    # Note must reset the pointing arrow head to zero so it gets placed initially.
+    animation.place_anim_pointing_arrow(zero, scene)
 
 
 #################################################################
@@ -135,11 +141,6 @@ def place_towers_side_by_side_shot(shot: anim.shot, animation: anim.animation, s
     Place three square towers
     side-by-side.
     """
-    reset_relative_points()
-    reset_opacities()
-    # Note must reset the pointing arrow head to zero so it gets placed initially.
-    animation.place_anim_pointing_arrow(zero, scene)
-
     animator.animate_value([zero,  left_tower_origin,  left_tower_origin], anim_duration, anim.anims.move_point( left_tower_base))
     animator.animate_value([zero, right_tower_origin, right_tower_origin], anim_duration, anim.anims.move_point(right_tower_base))
     scene.pointing_arrow.item.set_head(anim.relative_point(tower_squares[2][0].points[3]))

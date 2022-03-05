@@ -70,7 +70,27 @@ circle_radius = [
     anim.circle(pt, 6.).fill(co).outline(anim.no_color) for pt, co in zip(radius_points, colors)
 ]
 
-def _prepare_anim():
+
+#################################################################
+#
+# Actors
+
+actors = [
+    anim.actor('Triangle', '', triangle),
+    anim.actor('Circle', '', circle),
+    anim.actor('Center', '', circle_center),
+    [ anim.actor('Angle', '', angle) for angle in corner_angles],
+    [ anim.actor('Touch point', '', r) for r in circle_radius],
+    [ anim.actor('Radius', '', r) for r in radii],
+    [ anim.actor('Bisector', '', bisector) for bisector in bisectors ],
+]
+
+
+#################################################################
+#
+# Prepare animation
+
+def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator):
     circle.set_opacity(0.)
     circle.fill(anim.orange)
     circle_center.set_opacity(0.)
@@ -85,6 +105,11 @@ def _prepare_anim():
         r.set_opacity(0.)
     for rp in radius_points:
         rp.reset()
+
+
+#################################################################
+#
+# Animations used by shots
 
 def _move_between_points(which: int, back: bool, animator: anim.animator):
     cor = corners[which]
@@ -109,7 +134,7 @@ def _move_between_points(which: int, back: bool, animator: anim.animator):
             anim.static_point(bisectors[which].p2.original_point),
         ], duration, anim.move_point(bisectors[which].p2))
 
-def _prepare_radii(which: int, animator: anim.animator):
+def _move_radii(which: int, animator: anim.animator):
     for i in range(3):
         # Note: avoid extending or retracting a line that is already in that position.
         if which == 0 and i == 0:
@@ -130,28 +155,12 @@ def _prepare_radii(which: int, animator: anim.animator):
 
 #################################################################
 #
-# Actors
-
-actors = [
-    anim.actor('Triangle', '', triangle),
-    anim.actor('Circle', '', circle),
-    anim.actor('Center', '', circle_center),
-    [ anim.actor('Angle', '', angle) for angle in corner_angles],
-    [ anim.actor('Touch point', '', r) for r in circle_radius],
-    [ anim.actor('Radius', '', r) for r in radii],
-    [ anim.actor('Bisector', '', bisector) for bisector in bisectors ],
-]
-
-
-#################################################################
-#
 # Shots
 
 duration = 1.
 
 def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Arbitrary Triangle'''
-    _prepare_anim()
     animator.animate_value([0., 1.], duration, anim.reveal_item(triangle))
 
 def show_angles_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -172,9 +181,9 @@ def grow_bisectors_shot(shot: anim.shot, animation: anim.animation, scene: anim.
 
 def show_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
-    animator.animate_value([0., 1., 1., 1.], duration * 3, anim.reveal_item(circle))
+    animator.animate_value([0., 1., 1., 1.], duration, anim.reveal_item(circle))
     for cr in circle_radius:
-        animator.animate_value([0., 0., 1.], duration * 3, anim.reveal_item(cr))
+        animator.animate_value([0., 0., 1.], duration, anim.reveal_item(cr))
 
 def hide_bisectors_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
@@ -186,7 +195,7 @@ def hide_bisectors_shot(shot: anim.shot, animation: anim.animation, scene: anim.
 
 def prepare_radii_0_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
-    _prepare_radii(0, animator)
+    _move_radii(0, animator)
 
 def move_to_corner_0_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
@@ -198,7 +207,7 @@ def move_to_center_0_shot(shot: anim.shot, animation: anim.animation, scene: ani
 
 def prepare_radii_1_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
-    _prepare_radii(1, animator)
+    _move_radii(1, animator)
 
 def move_to_corner_1_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
@@ -210,7 +219,7 @@ def move_to_center_1_shot(shot: anim.shot, animation: anim.animation, scene: ani
 
 def prepare_radii_2_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
-    _prepare_radii(2, animator)
+    _move_radii(2, animator)
 
 def move_to_corner_2_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''Why?'''
