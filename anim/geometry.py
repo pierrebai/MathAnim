@@ -88,11 +88,14 @@ def point_to_line_distance(pt: static_point, line: line) -> float:
 
 def point_to_two_points_distance(pt: static_point, p1: static_point, p2: static_point) -> float:
     delta = p2 - p1
-    t = two_points_dot(pt - p1, delta) / two_points_dot(delta, delta)
-    if -epsilon < t <= 1. + epsilon:
+    delta_dot = two_points_dot(delta, delta)
+    if not delta_dot:
+        return two_points_distance(pt, p1)
+    t = two_points_dot(pt - p1, delta) / delta_dot
+    if -epsilon < t < 1. + epsilon:
         ox = p1.x() + t * (p2.x() - p1.x())
         oy = p1.y() + t * (p2.y() - p1.y())
-        return (pt.x() - ox) * (pt.x() - ox) + (pt.y() - oy) * (pt.y() - oy)
+        return math.sqrt((pt.x() - ox) ** 2 + (pt.y() - oy) ** 2)
     elif t < 0.:
         return two_points_distance(pt, p1)
     else:
@@ -106,9 +109,15 @@ def point_to_two_points_distance(pt: static_point, p1: static_point, p2: static_
 def two_points_convex_sum(p1: static_point, p2: static_point, t: float) -> point:
     return point(p1 * (1. - t) + p2 * t)
 
+def point_to_line_projection(pt: static_point, line: line) -> point:
+    return point_to_two_points_projection(pt, line.p1, line.p2)
+
 def point_to_two_points_projection(pt: static_point, p1: static_point, p2: static_point) -> point:
     delta = p2 - p1
-    t = two_points_dot(pt - p1, delta) / two_points_dot(delta, delta)
+    delta_dot = two_points_dot(delta, delta)
+    if not delta_dot:
+        return p1
+    t = two_points_dot(pt - p1, delta) / delta_dot
     return two_points_convex_sum(p1 , p2, t)
 
 
