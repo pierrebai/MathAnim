@@ -336,8 +336,8 @@ class animation(QObject, named):
             # which will make the animator pick up the new animations on the fly.
             was_playing = self.playing
             self.reset(scene, animator)
-            self.resume_play(scene, animator)
-            if not was_playing:
+            if was_playing:
+                self.resume_play(scene, animator)
                 self.stop(scene, animator)
 
     def play_next_shot(self, scene: scene, animator: animator) -> None:

@@ -43,6 +43,7 @@ white     = color(255, 255, 255)
 cyan      = color( 30, 190, 220)
 gray      = color(220, 220, 220, 120)
 red       = color(255,  84,  46)
+purple    = color(190, 30, 220)
 
 dark_orange   = orange.darker(130)
 dark_blue     = blue.darker(130)
@@ -50,6 +51,7 @@ dark_green    = green.darker(130)
 dark_cyan     = cyan.darker(130)
 dark_gray     = gray.darker(130)
 dark_red      = red.darker(130)
+dark_purple   = purple.darker(130)
 
 pale_blue     = blue.lighter(130); pale_blue.setAlpha(120)
 

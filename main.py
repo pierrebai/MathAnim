@@ -8,8 +8,10 @@ from examples.rotating_stars.rotating_stars import rotating_stars
 from examples.quarter_geometric_sum.quarter_geometric_sum import quarter_geometric_sum
 from examples.vortex_maths.vortex_maths import vortex_maths
 from examples.three_bisectors.three_bisectors import three_bisectors
+from examples.pentagramaths.pentagramaths import pentagramaths
 
 anims = [
+    pentagramaths,
     three_bisectors,
     vortex_maths,
     quarter_geometric_sum,

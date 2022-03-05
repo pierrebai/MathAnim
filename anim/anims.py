@@ -1,7 +1,7 @@
 from anim.items.items import create_roll_circle_in_circle_angles
 from .actor import actor
 from .animator import animator
-from .items import point, circle, item
+from .items import point, circle, item, static_point
 from . import trf
 
 from typing import List as _List
@@ -30,15 +30,16 @@ def geometric_serie(start: float, value: float, ratio: float, count: int) -> _Li
 #
 # Point animations
 
-def _rotate_point_around(moved_point: point, center: point, angle: float) -> None:
-    moved_point.set_point(trf.rotate_around(moved_point.original_point, center, angle))
+def _rotate_point_around(moved_point: point, original_pos: static_point, center: point, angle: float) -> None:
+    moved_point.set_point(trf.rotate_around(original_pos, center, angle))
 
 def rotate_point_around(moved_point: point, center: point):
     """
     Creates a function that will rotates a point around another point.
     The returned function only takes the angle in degrees as parameter.
     """
-    return lambda angle: _rotate_point_around(moved_point, center, angle)
+    org_point = static_point(moved_point)
+    return lambda angle: _rotate_point_around(moved_point, org_point, center, angle)
 
 def move_point(moved_point: point):
     """

@@ -2,7 +2,18 @@ from .items.line import line
 from .items.point import point, static_point
 
 import math
-from typing import Tuple as _Tuple
+from typing import List as _List, Tuple as _Tuple
+
+
+#################################################################
+#
+# Centers
+
+def center_of(points: _List[static_point]) -> static_point:
+    total = static_point()
+    for pt in points:
+        total = total + pt
+    return total / len(points)
 
 
 #################################################################
