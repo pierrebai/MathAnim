@@ -252,4 +252,4 @@ def rotate_all_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
 #
 # Animation
 
-animation = anim.simple_animation.from_module(globals())
+rotating_stars = anim.simple_animation.from_module(globals())

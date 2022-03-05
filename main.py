@@ -3,11 +3,11 @@ import anim.ui.app_window
 
 app = anim.ui.create_app()
 
-from examples.aztec_circle.animation import animation as aztec_circle
-from examples.rotating_stars.animation import animation as rotating_stars
-from examples.quarter_geometric_sum.animation import animation as quarter_geometric_sum
-from examples.vortex_maths.animation import animation as vortex_maths
-from examples.three_bisectors.animation import animation as three_bisectors
+from examples.aztec_circle.aztec_circle import aztec_circle
+from examples.rotating_stars.rotating_stars import rotating_stars
+from examples.quarter_geometric_sum.quarter_geometric_sum import quarter_geometric_sum
+from examples.vortex_maths.vortex_maths import vortex_maths
+from examples.three_bisectors.three_bisectors import three_bisectors
 
 anims = [
     three_bisectors,

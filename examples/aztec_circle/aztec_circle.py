@@ -1,268 +1,275 @@
-from .half_tile import available_tiles
+import anim
 
-class aztec:
-    """
-    Aztec artic circle tiling, as per the Mathologer you-tube video.
-    """
+from .aztec import aztec
+from .tile_generator import sequence_tile_generator
+
+import math
+
+class aztec_circle(anim.animation):
+    def __init__(self) -> None:
+        super().__init__("Aztec Circle", "Aztec artic circle tiling, as per the Mathologer you-tube video.")
+        
+        self.tiles_sequence_option = anim.option("Tiles sequence", "The sequence of tiles generated, a sequence of h, v and r.", "r", "", "")
+        self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
+        self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
+
+        self.loop = True
+        self.reset_on_change = False
+
+        self.scene: anim.scene = None
+        self.animator: anim.animator = None
+
+    def reset(self, scene: anim.scene, animator: anim.animator):
+        self.scene: anim.scene = scene
+        scene.view.set_margin(anim.tile_size)
+        self.animator: anim.animator = animator
+        self.anim_duration = 1.
+        self.size = 1
+        self.items = []
+        self.new_items = []
+        self.cross = None
+        self.arrow = None
+        self.az = aztec(0, sequence_tile_generator(self.seed, self.tiles_sequence), self)
+        super().reset(scene, animator)
+        self.remove_pointing_arrow(scene)
+
+
+    ########################################################################
+    #
+    # Options.
+
+    @property
+    def tiles_sequence(self) -> str:
+        return self.tiles_sequence_option.value
+
+    @property
+    def seed(self) -> int:
+        return self.seed_option.value
+
+    @property
+    def skip_animations(self) -> bool:
+        return self.size > self.animate_limit_option.value
+
+    def option_changed(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        """
+        Called when an option value is changed.
+        Override base-class behavior to not interrupt the animations.
+        """
+        super().option_changed(scene, animator, option)
+        self._handle_generator_options(scene, animator, option)
+
+    def _handle_generator_options(self, scene: anim.scene, animator: anim.animator, option: anim.option) -> None:
+        if option == self.seed_option or option == self.tiles_sequence_option:
+            self.az.tile_generator = sequence_tile_generator(self.seed, self.tiles_sequence)
+
 
     #################################################################
     #
-    # Initialization
-    #
+    # Actors
 
-    def __init__(self, target_size: int, tile_generator, react):
-        """
-        Create a filled aztec diamond of the given size.
-        """
-        self._size = 0
-        self.frozen_counts = [[0, 0], [0, 0]]
+    def generate_actors(self, scene: anim.scene) -> None:
+        self.cross = anim.actor("cross", "Cross marking a tile about to be deleted", anim.create_cross(anim.point()).set_opacity(0))
+        self.add_actors(self.cross, scene)
 
-        self.tile_generator = tile_generator
-        self.reactor = react
+        self.arrow = anim.actor("arrow", "Arrow marking the direction a tile is moving", self.create_arrow_for_tile(anim.point(0., 0.), None).set_opacity(0.))
+        self.add_actors(self.arrow, scene)
 
-        self._squares = []
-        self._tmp_squares = []
-        self._origin = 0
-        self._allocate_tiles(100)
+        self.boundary = anim.actor("boundary", "The boundary of the growing diamond", anim.create_rect(0., 0., 1., 1.).outline(anim.gray).thickness(1.).fill(anim.no_color))
+        self.boundary.show(False)
+        self.add_actors(self.boundary, scene)
 
-        self.grow_to_size(target_size)
+    def create_cross(self, origin):
+        cross = anim.create_cross(origin)
+        if self.cross:
+            cross.set_shown(self.cross.shown)
+        return cross
 
-    def _allocate_tiles(self, amount: int):
-        """
-        Allocate the 2D tile arrays. Over-allocate them to avoid copying large
-        arrays too often.
-        """
-        if amount % 2:
-            amount += 1
+    _tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
+    @staticmethod
+    def tile_to_angle(tile) -> float:
+        return aztec_circle._tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.
 
-        old_amount = len(self._squares)
-        if amount < old_amount:
-            return
-
-        skip, self._squares, self._tmp_squares = aztec.reallocate_data(old_amount, amount, self._squares, self._tmp_squares)
-        self._origin += skip
-        self.reactor.reallocate(self, old_amount, amount)
+    tile_colors = [ [anim.orange, anim.red], [anim.blue, anim.green] ]
 
     @staticmethod
-    def reallocate_data(old_amount: int, new_amount: int, old_data: list, old_tmp: list):
-        """
-        Reallocate 2D arrays. Over-allocate them to avoid copying large arrays too often.
-        Return the amount of skip to find the previous data in the center of the new arrays.
-        """
-        skip = (new_amount - old_amount) // 2
+    def tile_to_color(tile):
+        return aztec_circle.tile_colors[tile.is_horizontal][tile.is_positive]
 
-        new_squares = []
-        new_tmp_squares = []
+    def create_arrow_for_tile(self, origin, tile):
+        arrow = anim.create_arrow(origin, aztec_circle.tile_to_angle(tile))
+        if self.arrow:
+            arrow.set_shown(self.arrow.shown)
+        return arrow
 
-        for i in range(0, skip):
-            new_squares.append([ None ] * new_amount)
-            new_tmp_squares.append([ None ] * new_amount)
+    def create_scene_tile(self, x: int, y: int, tile):
+        p1 = self.pos_to_scene(x, y)
+        width  = 2 * anim.tile_size if tile.is_horizontal else anim.tile_size
+        height = anim.tile_size if tile.is_horizontal else 2 * anim.tile_size
+        p2 = anim.relative_point(p1, width, height)
+        item = anim.create_two_points_rect(p1, p2).fill(aztec_circle.tile_to_color(tile)).thickness(1)
+        self.scene.add_item(item)
+        return item
 
-        for old_line in old_data:
-            line = [ None ] * skip
-            line.extend(old_line)
-            line.extend([ None ] * skip)
-            new_squares.append(line)
-            new_tmp_squares.append([ None ] * new_amount)
-
-        for i in range(0, skip):
-            new_squares.append([ None ] * new_amount)
-            new_tmp_squares.append([ None ] * new_amount)
-
-        return skip, new_squares, new_tmp_squares
 
     #################################################################
     #
-    # Informations
+    # Shots
+
+    def generate_shots(self) -> None:
+        self._anim_increase_size()
+        self._anim_remove_collisions()
+        self._anim_move_tiles()
+        self._anim_fill_holes()
+
+    def _anim_increase_size(self):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            self.az.increase_size()
+        self.add_shots(anim.shot(
+            "Grow diamond",
+            "Prepare the diamond\n"
+            "to grow by increasing\n"
+            "the imaginary boundary\n"
+            "inside which it is drawn.",
+            prep_anim))
+
+    def _anim_remove_collisions(self):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            self.az.remove_collisions()
+        self.add_shots(anim.shot(
+            "Remove collisions",
+            "Mark and remove the tiles\n"
+            "that will collide when moved.",
+            prep_anim))
+
+    def _anim_move_tiles(self):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            self.az.move_tiles()
+        self.add_shots(anim.shot(
+            "Move tiles",
+            "Move all remaining tiles\n"
+            "in the direction matching\n"
+            "their tile color.",
+            prep_anim))
+
+    def _anim_fill_holes(self):
+        def prep_anim(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+            self.az.fill_holes()
+        self.add_shots(anim.shot(
+            "Fill holes",
+            "Fill the holes created by\n"
+            "the moved tiles with new\n"
+            "tiles generated randomly\n"
+            "following the recipe you\n"
+            "give in the tiles sequence.",
+            prep_anim))
+
+
+    #################################################################
     #
+    # Aztec circle feedback
 
-    def size(self) -> int:
-        """
-        Return the size of the aztec diamond.
-        """
-        return self._size
+    def pos_to_scene(self, x: int, y: int) -> anim.point:
+        return anim.point(x * anim.tile_size, y * anim.tile_size)
 
-    def center(self) -> int:
-        """
-        Return the coordinate of the center of the diamond.
-        """
-        return len(self._squares) // 2
+    def middle_pos_to_scene(self, x: int, y: int, tile) -> tuple:
+        if tile:
+            if tile.is_horizontal:
+                x += 1
+                y += 0.5
+            else:
+                x += 0.5
+                y += 1
+        return (x * anim.tile_size, y * anim.tile_size)
 
-    def count_squares(self) -> int:
-        """
-        Return the number of squares in the aztec diamond.
-        """
-        size = self._size
-        double_size = size * 2
-        return double_size * double_size - (size * (size-1) * 2)
+    def reallocate(self, az, old_amount: int, new_amount: int):
+        skip, self.items, self.new_items = aztec.reallocate_data(old_amount, new_amount, self.items, self.new_items)
+        self.center = new_amount // 2
 
-    def count_tiles(self) -> int:
-        """
-        Return the number of tiles in the aztec diamond.
-        """
-        return self.count_squares() // 2
+    def increase_size(self, az, origin, size):
+        coord = anim.tile_size * (origin - self.center) - 8
+        width = anim.tile_size * size * 2 + 16
+        self.boundary.item.setRect(coord, coord, width, width)
+        self.size = size
+        self.anim_duration = 1. / math.sqrt(size / 4)
 
-    def count_frozen_tiles_by_type(self) -> int:
-        """
-        Return the number of frozen tiles in the aztec diamond by tile type/color.
-        Returned in the order: yellow, red, blue, green
-        """
-        counts = self.frozen_counts
-        yellow_count = counts[0][0]
-        red_count    = counts[0][1]
-        blue_count   = counts[1][0]
-        green_count  = counts[1][1]
-        return yellow_count, red_count, blue_count, green_count
+    def collision(self, az, x, y):
+        if self.skip_animations:
+            item = self.items[x][y]
+            if item:
+                self.scene.remove_item(item)
+            return
 
-    def count_frozen_tiles(self) -> int:
-        """
-        Return the number of frozen tiles in the aztec diamond.
-        """
-        return sum(self.count_frozen_tiles_by_type())
+        center = self.center
+        tile = az.tiles()[x][y] if az else None
+        origin = anim.point(*self.middle_pos_to_scene(x - center, y - center, tile))
+        cross = self.create_cross(origin)
+        self.scene.add_item(cross)
 
-    def full_range(self):
-        """
-        Return an iterator for the coordinates of tiles.
-        """
-        return range(self._origin, self._origin + self._size * 2)
+        item = self.items[x][y]
+        if not item:
+            return
 
-    def partial_range(self, x_or_y: int):
-        """
-        Return an iterator for the sub-range of valid squares coordinates of tiles
-        for a given row or column.
-        """
-        size = self._size
-        double_size = size * 2
-        x_or_y -= self._origin
-        if x_or_y < size:
-            skip = size - (x_or_y + 1)
+        self.animator.animate_value([0., 1.], self.anim_duration,
+            anim.anims.reveal_item(cross),
+            lambda: self.scene.remove_item(cross))
+
+        self.animator.animate_value([1., 0.5], self.anim_duration,
+            anim.anims.reveal_item(item),
+            lambda: self.scene.remove_item(item))
+
+    def collisions_done(self, az):
+        self.animator.check_all_anims_done()
+
+    def move(self, az, x1, y1, x2, y2):
+        center = self.center
+        item = self.items[x1][y1]
+        if not item:
+            return
+        self.new_items[x2][y2] = item
+
+        if self.skip_animations:
+            item.p1.set_point(self.pos_to_scene(x2 - center, y2 - center))
+            return
+
+        if self.arrow.shown:
+            tile = az.tiles()[x1][y1] if az else None
+            origin = anim.point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile))
+            arrow = self.create_arrow_for_tile(origin, tile)
+            arrow.set_opacity(1.)
+            self.scene.add_item(arrow)
+            self.animator.animate_value(
+                [anim.static_point(*self.middle_pos_to_scene(x1 - center, y1 - center, tile)),
+                anim.static_point(*self.middle_pos_to_scene(x2 - center, y2 - center, tile))],
+                self.anim_duration,
+                anim.anims.move_point(origin),
+                lambda: self.scene.remove_item(arrow)
+            )
+
+        self.animator.animate_value(
+            [anim.static_point(self.pos_to_scene(x1 - center, y1 - center)),
+            anim.static_point(self.pos_to_scene(x2 - center, y2 - center))],
+            self.anim_duration,
+            anim.anims.move_point(item.p1)
+        )
+
+        tile = az.tiles()[x2][y2] if az else None
+
+    def moves_done(self, az):
+        self.animator.check_all_anims_done()
+        self.scene.ensure_all_contents_fit()
+
+    def fill(self, az, x, y, tile):
+        center = self.center
+        item = self.create_scene_tile(x - center, y - center, tile)
+        self.new_items[x][y] = item
+
+        if self.skip_animations:
+            item.set_opacity(1.)
+            self.animator.animate_value([1., 1.], 0.001, anim.anims.reveal_item(item))
         else:
-            skip = x_or_y - size
-        return range(self._origin + skip, self._origin + double_size - skip)
+            item.set_opacity(0.)
+            self.animator.animate_value([0., 1.], self.anim_duration, anim.anims.reveal_item(item))
 
-    def tiles(self) -> list:
-        """
-        Return all half-tiles of the aztec diamond.
-        """
-        return self._squares
-
-    #################################################################
-    #
-    # Algorithm
-    #
-
-    def grow_to_size(self, target_size: int):
-        """
-        Grow the aztec diamond to the given size.
-        Does nothing if the target size is smaller.
-        """
-        while self._size < target_size:
-            self.grow()
-
-    def grow(self):
-        """
-        Grow the aztec diamond size by one.
-        """
-        self.increase_size()
-        self.remove_collisions()
-        self.move_tiles()
-        self.fill_holes()
-
-    def increase_size(self):
-        """
-        Increase the logical size of diamond and move the origin.
-        """
-        self._size += 1
-        self._origin -= 1
-        if self._origin < 2:
-            self._allocate_tiles(len(self._squares) * 2)
-
-        self.reactor.increase_size(self, self._origin, self._size)
-
-    def remove_collisions(self):
-        """
-        Find and remove the tiles about to collide.
-        """
-        tiles = self._squares
-        for y in self.full_range():
-            for x in self.partial_range(y):
-                tile = tiles[x][y]
-                if not tile:
-                    continue
-                other_x, other_y = tile.move_position(x, y)
-                other_tile = tiles[other_x][other_y]
-                if not other_tile:
-                    continue
-                if tile.is_opposite(other_tile):
-                    if tile.is_first_part:
-                        self.reactor.collision(self, x, y)
-                        self.reactor.collision(self, other_x, other_y)
-                    tiles[x][y] = 0
-                    tiles[other_x][other_y] = 0
-        self.reactor.collisions_done(self)
-
-    def move_tiles(self):
-        """
-        Move the tiles in their desired direction.
-        """
-        dest_tiles = self._tmp_squares
-        for y in self.full_range():
-            for x in self.partial_range(y):
-                dest_tiles[x][y] = 0
-
-        tiles = self._squares
-        for y in self.full_range():
-            for x in self.partial_range(y):
-                tile = tiles[x][y]
-                if not tile:
-                    continue
-                new_x, new_y = tile.move_position(x, y)
-                if tile.is_first_part:
-                    self.reactor.move(self, x, y, new_x, new_y)
-                dest_tiles[new_x][new_y] = tile
-        self._squares = dest_tiles
-        self._tmp_squares = tiles
-        self.reactor.moves_done(self)
-
-    def fill_holes(self):
-        """
-        Fill holes of the diamond with new tiles as specified by the tile generator.
-        (A typical tile generator will produce a random sequence of horizontal and vertical.)
-        """
-        tiles = self._squares
-        for y in self.full_range():
-            for x in self.partial_range(y):
-                if tiles[x][y] == 0 and tiles[x+1][y] == 0 and tiles[x][y+1] == 0 and tiles[x+1][y+1] == 0:
-                    self._add_two_tiles(tiles, x, y)
-        self.reactor.fills_done(self)
-
-    def _add_two_tiles(self, tiles, x, y):
-        """
-        Add two new tiles at the specified position.
-        """
-        is_horizontal = self.tile_generator.is_next_horizontal()
-        tile_to_place = available_tiles[is_horizontal]
-        for tile in tile_to_place:
-            dx, dy = tile.hole_placement()
-            new_x = x + dx
-            new_y = y + dy
-            tile = tile.copy()
-            tiles[new_x][new_y] = tile
-            self._check_frozen(tiles, tile, new_x, new_y)
-            if tile.is_first_part:
-                self.reactor.fill(self, new_x, new_y, tile)
-
-    def _check_frozen(self, tiles, tile, x, y):
-        future_x, future_y = tile.move_position(x, y)
-        maybe_frozen_tile = tiles[future_x][future_y]
-        if maybe_frozen_tile is None or (maybe_frozen_tile != 0 and maybe_frozen_tile.is_frozen and maybe_frozen_tile.is_same_type(tile)):
-            tile.is_frozen = True
-            if tile.is_first_part:
-                self.frozen_counts[tile.is_horizontal][tile.is_positive] += 1
-
-    def _noop(self):
-        """
-        Used to nullify other operations wehn debuggging.
-        """
-        pass
-
+    def fills_done(self, az):
+        self.items, self.new_items = self.new_items, self.items
+        self.scene.ensure_all_contents_fit()

@@ -313,4 +313,4 @@ def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.
 #
 # Animation
 
-animation = anim.simple_animation.from_module(globals())
+quarter_geometric_sum = anim.simple_animation.from_module(globals())

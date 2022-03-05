@@ -127,4 +127,4 @@ def generate_shots(animation: anim.animation):
 #
 # Animation
 
-animation = anim.simple_animation.from_module(globals())
+vortex_maths = anim.simple_animation.from_module(globals())

@@ -241,4 +241,4 @@ def show_circle_again_shot(shot: anim.shot, animation: anim.animation, scene: an
 #
 # Animation
 
-animation = anim.simple_animation.from_module(globals())
+three_bisectors = anim.simple_animation.from_module(globals())
