@@ -41,6 +41,16 @@ def rotate_point_around(moved_point: point, center: point):
     org_point = static_point(moved_point)
     return lambda angle: _rotate_point_around(moved_point, org_point, center, angle)
 
+def _rotate_relative_point_around(moved_point: point, center: point, angle: float) -> None:
+    moved_point.set_point(trf.rotate_around(moved_point.original_point, center, angle))
+
+def rotate_relative_point_around(moved_point: point, center: point):
+    """
+    Creates a function that will rotates a point around another point.
+    The returned function only takes the angle in degrees as parameter.
+    """
+    return lambda angle: _rotate_relative_point_around(moved_point, center, angle)
+
 def move_point(moved_point: point):
     """
     Returns a function that sets the position of the point.
@@ -75,9 +85,9 @@ def roll_points_on_circle_in_circle(animator: animator, duration: float, inner_c
     inner_center, inner_radius = inner_circle.get_center_and_radius()
     outer_center, outer_radius = outer_circle.get_center_and_radius()
     inner_center_angle, inner_prim_angle = create_roll_circle_in_circle_angles(inner_radius, outer_radius, rotation_count)
-    animator.animate_value([0., inner_center_angle], duration, rotate_point_around(inner_center, outer_center))
+    animator.animate_value([0., inner_center_angle], duration, rotate_relative_point_around(inner_center, outer_center))
     for pt in points_on_inner:
-        animator.animate_value([0., inner_prim_angle], duration, rotate_point_around(pt, point()))
+        animator.animate_value([0., inner_prim_angle], duration, rotate_relative_point_around(pt, point()))
 
 
 #################################################################
