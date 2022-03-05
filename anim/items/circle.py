@@ -56,10 +56,18 @@ class circle(_circle_base):
         center.add_user(self)
         self._update_geometry()
 
-    def set_radius(self, new_radius):
+    def set_center(self, new_center: point) -> _circle_base:
+        if self.center:
+            self.center.remove_user(self)
+        self.center = new_center
+        new_center.add_user(self)
+        return self
+
+    def set_radius(self, new_radius) -> _circle_base:
         if new_radius != self.radius:
             self.radius = new_radius
             self._update_geometry()
+        return self
 
     def get_center_and_radius(self):
         """
@@ -118,6 +126,20 @@ class radius_circle(_circle_base):
         center.add_user(self)
         radius_point.add_user(self)
         self._update_geometry()
+
+    def set_radius(self, radius_point: point) -> _circle_base:
+        if self.radius_point:
+            self.radius_point.remove_user(self)
+        self.radius_point = radius_point
+        radius_point.add_user(self)
+        return self
+
+    def set_center(self, new_center: point) -> _circle_base:
+        if self.center:
+            self.center.remove_user(self)
+        self.center = new_center
+        new_center.add_user(self)
+        return self
 
     def get_center_and_radius(self):
         """
