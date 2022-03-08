@@ -18,7 +18,7 @@ point. That other point is called their origin. Such relative point
 move when their origin moves. This allows to create a hierarchy of
 points and complex animations.
 
-The module provide ready-made simple animation formula, for example
+The module provide ready-made simple animation formulas, for example
 to move a point or rotate it around another point.
 
 In addition to the geometry, the module manages what gets drawn. Each
@@ -58,3 +58,15 @@ Based on this [Mathologer video](https://www.youtube.com/watch?v=SOBz-aFOH2I)
 Based on this [Mathologer video](https://www.youtube.com/watch?v=6ZrO90AI0c8&t=7s)
 
 ![Vortex Maths](https://github.com/pierrebai/MathAnim/blob/main/examples/vortex_maths/Vortext-Maths.png "Vortex Maths")
+
+### Three Bisectors
+
+Base on this [Mathologer video](https://www.youtube.com/watch?v=XOS73mTomPY)
+
+![Three Bisectors](https://github.com/pierrebai/MathAnim/blob/main/examples/three_bisectors/Three-Bisectors.png "Three Bisectors")
+
+### Pentagramaths
+
+Base on this [Mathologer video](https://www.youtube.com/watch?v=w4AUOgfW9NI)
+
+![Pentagramaths](https://github.com/pierrebai/MathAnim/blob/main/examples/pentagramaths/Pentagramaths.png "Pentagramaths")
