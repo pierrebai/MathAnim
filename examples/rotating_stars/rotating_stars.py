@@ -13,6 +13,7 @@ description = "Mathologer 3-4-7 Miracle: rotating interlinked polygons following
 sides_option = anim.option("Number of branches", "Number of branches on the star that the dots follows.", 7, 2, 20)
 skip_option = anim.option("Star branch skip", "How many branches are skipped to go from one branch to the next.", 3, 1, 100)
 ratio_option = anim.option("Percent of radius", "The position of the dots as a percentage of the radius of the circle they are on.", 90, 0, 100)
+reset_on_change = True
 
 def sides():
     return sides_option.value
@@ -242,6 +243,8 @@ def rotate_all_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     the outer one dragging along
     the polygons in a curious dance.
     """
+    shot.repeat = True
+
     for which_inner in range(inner_count()):
         anim.roll_points_on_circle_in_circle(animator, 2. * animation_speedup(), inner_circles[which_inner].item, outer_circle.item, skip(), inner_dots_pos[which_inner])
 

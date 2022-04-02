@@ -13,6 +13,12 @@ class aztec_circle(anim.animation):
         self.seed_option = anim.option("Random seed", "The seed used in the random number generator.", 1771, 1000, 100000000)
         self.animate_limit_option = anim.option("Animate until generation", "Animate only until this generation.", 60, 1, 100)
 
+        self.add_options([
+            self.tiles_sequence_option,
+            self.seed_option,
+            self.animate_limit_option,
+        ])
+        
         self.loop = True
         self.reset_on_change = False
 
