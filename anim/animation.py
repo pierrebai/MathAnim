@@ -1,4 +1,4 @@
-from anim.items.point import static_point, point
+from anim.items.point import static_point, point, relative_point
 from .actor import actor
 from .animator import animator
 from .named import named
@@ -274,6 +274,7 @@ class animation(QObject, named):
         Animate the pointing arrow to point to the new point of interest.
         Used in shots created by the sub-classes.
         """
+        scene.pointing_arrow.item.set_head(point(scene.pointing_arrow.item.head))
         tail_pos = QPointF(scene.pointing_arrow.item.tail)
         desc_rect = scene.description_box.sceneBoundingRect()
         desc_pos = desc_rect.topLeft()
@@ -284,6 +285,13 @@ class animation(QObject, named):
         else:
             head_pos = [QPointF(scene.pointing_arrow.item.head), QPointF(head_point)]
         animator.animate_value(head_pos, duration, anims.move_point(scene.pointing_arrow.item.head))
+
+    def attach_pointing_arrow(self, head_point: point, scene: scene):
+        """
+        Attach the pointing arrow to follow the given point.
+        Used in shots created by the sub-classes.
+        """
+        scene.pointing_arrow.item.set_head(relative_point(head_point))
 
 
     ########################################################################

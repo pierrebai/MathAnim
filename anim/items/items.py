@@ -44,6 +44,7 @@ cyan      = color( 30, 190, 220)
 gray      = color(220, 220, 220, 120)
 red       = color(255,  84,  46)
 purple    = color(190, 30, 220)
+sable     = color(210, 190, 160)
 
 dark_orange   = orange.darker(130)
 dark_blue     = blue.darker(130)
