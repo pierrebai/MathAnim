@@ -90,7 +90,7 @@ class aztec_circle(anim.animation):
             cross.set_shown(self.cross.shown)
         return cross
 
-    _tile_arrow_angles = [ [-90., 90.], [0., 180.] ]
+    _tile_arrow_angles = [ [-math.pi / 2, math.pi / 2], [0., math.pi] ]
     @staticmethod
     def tile_to_angle(tile) -> float:
         return aztec_circle._tile_arrow_angles[tile.is_horizontal][tile.is_positive] if tile else 0.

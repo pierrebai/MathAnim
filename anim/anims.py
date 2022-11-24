@@ -3,6 +3,7 @@ from .actor import actor
 from .animator import animator
 from .items import point, circle, item, static_point
 from . import trf
+from .trf import pi, hpi, tau
 
 from typing import List as _List
 
@@ -36,7 +37,7 @@ def _rotate_point_around(moved_point: point, original_pos: static_point, center:
 def rotate_point_around(moved_point: point, center: point):
     """
     Creates a function that will rotates a point around another point.
-    The returned function only takes the angle in degrees as parameter.
+    The returned function only takes the angle in radians as parameter.
     """
     org_point = static_point(moved_point)
     return lambda angle: _rotate_point_around(moved_point, org_point, center, angle)
@@ -47,7 +48,7 @@ def _rotate_relative_point_around(moved_point: point, center: point, angle: floa
 def rotate_relative_point_around(moved_point: point, center: point):
     """
     Creates a function that will rotates a point around another point.
-    The returned function only takes the angle in degrees as parameter.
+    The returned function only takes the angle in radians as parameter.
     """
     return lambda angle: _rotate_relative_point_around(moved_point, center, angle)
 

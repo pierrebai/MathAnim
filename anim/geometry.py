@@ -1,9 +1,11 @@
 from .items.line import line
 from .items.point import point, static_point
 
-import math
+from math import cos, sin, atan2, sqrt, pi
 from typing import List as _List, Tuple as _Tuple
 
+hpi = pi / 2.
+tau = pi * 2.
 
 #################################################################
 #
@@ -33,7 +35,7 @@ def four_points_bisector(l1_p1: static_point, l1_p2: static_point, l2_p1: static
     d1 = two_points_distance(l1_p1, l1_p2)
     d2 = two_points_distance(l2_p1, l2_p2)
     d = min(d1, d2)
-    p2 = point(p1 + static_point(math.cos(bisector_angle) * d, math.sin(bisector_angle) * d))
+    p2 = point(p1 + static_point(cos(bisector_angle) * d, sin(bisector_angle) * d))
     return (p1, p2)
 
 
@@ -61,10 +63,10 @@ def four_points_angle(l1_p1: static_point, l1_p2: static_point, l2_p1: static_po
 
 def two_points_angle(p1: static_point, p2: static_point) -> float:
     """
-    Returns the angle between the X axis and the line formed by the two points.
+    Returns the angle in degrees between the X axis and the line formed by the two points.
     """
     delta = p2 - p1
-    return math.atan2(delta.y(), delta.x())
+    return atan2(delta.y(), delta.x())
 
 
 #################################################################
@@ -92,7 +94,7 @@ def delta_distance(delta: static_point) -> float:
     """
     Returns the length of the delta.
     """
-    return math.sqrt(delta.x() ** 2 + delta.y() ** 2)
+    return sqrt(delta.x() ** 2 + delta.y() ** 2)
 
 def point_to_line_distance(pt: static_point, line: line) -> float:
     return point_to_two_points_distance(pt, line.p1, line.p2)
@@ -106,7 +108,7 @@ def point_to_two_points_distance(pt: static_point, p1: static_point, p2: static_
     if -epsilon < t < 1. + epsilon:
         ox = p1.x() + t * (p2.x() - p1.x())
         oy = p1.y() + t * (p2.y() - p1.y())
-        return math.sqrt((pt.x() - ox) ** 2 + (pt.y() - oy) ** 2)
+        return sqrt((pt.x() - ox) ** 2 + (pt.y() - oy) ** 2)
     elif t < 0.:
         return two_points_distance(pt, p1)
     else:

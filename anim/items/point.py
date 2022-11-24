@@ -1,4 +1,5 @@
 from PySide6.QtCore import QPointF as _QPointF
+from typing import List as _List, Callable as _Callable
 
 static_point= _QPointF
     
@@ -69,6 +70,11 @@ class point(static_point):
         self.set_point(self.original_point)
         return self
 
+    def distance_squared(self, pt: static_point) -> float:
+        delta = self - pt
+        return delta.x() ** 2 + delta.y() ** 2
+
+
 
 class relative_point(point):
     """
@@ -89,7 +95,7 @@ class relative_point(point):
 
     def set_origin(self, new_origin: point) -> point:
         """
-        Sets the relative point to be relative to a new origin.
+        Sets this relative point to be relative to a new origin.
         """
         if self._origin:
             self._origin.remove_user(self)
@@ -121,4 +127,36 @@ class relative_point(point):
         self.delta = new_point - self._origin
         self._update_geometry()
         return self
+
+
+class selected_point(point):
+    """
+    A dynamic point with an position selected among a set of points with a selection function.
+    """
+
+    def __init__(self, points: _List[point], selector: _Callable) -> None:
+        super().__init__(points[0])
+        self._selector = selector
+        self._points = []
+        self.set_points(points)
+
+    def set_points(self, points: _List[point]) -> point:
+        """
+        Sets this point to be closest to a new set of points.
+        """
+        for pt in self._points:
+            pt.remove_user(self)
+        self._points = points
+        for pt in self._points:
+            pt.add_user(self)
+        self._update_geometry()
+        return self
+
+    def _update_geometry(self) -> None:
+        """
+        Updates the point position when the set of points have moved.
+        """
+        new_pos = self._selector(self._points)
+        if new_pos != self:
+            super().set_point(new_pos)
 

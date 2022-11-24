@@ -1,9 +1,9 @@
-from .circle import circle, radius_circle, diameter_circle
+from .circle import circle, radius_circle, diameter_circle, partial_circle
 from .line import line
 from .polygon import polygon
 from .rectangle import rectangle, center_rectangle, static_rectangle
 from .pointing_arrow import pointing_arrow
-from .point import point, relative_point, static_point
+from .point import point, relative_point, static_point, selected_point
 from .text import scaling_text, fixed_size_text
 from .item import item
 from .pen import pen
@@ -55,6 +55,8 @@ dark_red      = red.darker(130)
 dark_purple   = purple.darker(130)
 
 pale_blue     = blue.lighter(130); pale_blue.setAlpha(120)
+pale_red      = red.lighter(130); pale_red.setAlpha(120)
+pale_green    = green.lighter(130); pale_green.setAlpha(120)
 
 
 #################################################################
@@ -80,6 +82,9 @@ def create_cross(origin: point, fill_color: color = red) -> polygon:
     return polygon(poly_points).outline(fill_color.darker(130)).thickness(1).fill(fill_color)
 
 def create_arrow(origin: point, rotation_angle, fill_color: color = black) -> polygon:
+    """
+    Create an arrow with the given rotation angle, in radians.
+    """
     poly_points = [relative_point(origin, trf.rotate_around_origin(pt, rotation_angle)) for pt in _arrow_points]
     return polygon(poly_points).outline(no_color).fill(fill_color)
 
@@ -194,30 +199,42 @@ def create_roll_circle_in_circle_angles(inner_radius: float, outer_radius: float
     inner_perim_angle = -360. * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
     return inner_center_angle, inner_perim_angle
 
-def create_relative_points_around_circle(circle: circle, count: int, angle_offset: float = 0.) -> _List[point]:
+def create_relative_points_around_circle(circle: circle, count: int, angle_offset: float = 0.) -> _List[relative_point]:
     """
     Creates points relative to a circle center around a circle starting at the offset angle.
     """
     center, radius = circle.get_center_and_radius()
     return create_relative_points_around_center(center, radius, count, angle_offset)
 
-def create_relative_points_around_center(center: point, radius: float, count: int, angle_offset: float = 0.) -> _List[point]:
+def create_relative_points_around_center(center: point, radius: float, count: int, angle_offset: float = 0.) -> _List[relative_point]:
     """
-    Creates points relative to a circle center around a circle starting at the offset angle.
+    Creates points relative to a circle center around a circle starting at the offset angle, in radians.
     """
     deltas = create_points_around_origin(radius, count, angle_offset)
     return [relative_point(center, delta) for delta in deltas]
 
+def create_relative_point_around_center(center: point, radius: float, angle: float) -> relative_point:
+    """
+    Creates a point relative to a circle center around a circle at the given angle, in radians.
+    """
+    return create_relative_points_around_center(center, radius, 1, angle)[0]
+
+def create_point_around_origin(radius: float, angle: float) -> _List[point]:
+    """
+    Creates a point around the origin at a given radius at the given angle, in radians.
+    """
+    return create_relative_point_around_center(point(0., 0.), radius, angle)
+
 def create_points_around_origin(radius: float, count: int, angle_offset: float = 0.) -> _List[point]:
     """
-    Creates points around the origin at a given radius starting at the offset angle.
+    Creates points around the origin at a given radius starting at the offset angle, in radians.
     """
     angles = create_angles_around_origin(count, angle_offset)
     return [point(math.cos(angle) * radius, math.sin(angle) * radius) for angle in angles]
 
 def create_angles_around_origin(count: int, angle_offset: float = 0.) -> _List[float]:
     """
-    Distribute angles around a circle starting at the offset angle.
+    Distribute angles around a circle starting at the offset angle, in radian.
     """
     return [angle_offset + math.pi * 2. * i / count for i in range(count)]
 

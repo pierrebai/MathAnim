@@ -21,8 +21,7 @@ class line(_QGraphicsLineItem, item):
         self._update_geometry()
 
     def length(self) -> float:
-        delta = self.p1 - self.p2
-        return math.sqrt(delta.x() ** 2 + delta.y() ** 2)
+        return math.sqrt(self.p1.distance_squared(self.p2))
 
     def get_all_points(self) -> _List[point]:
         """

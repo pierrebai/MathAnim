@@ -128,7 +128,7 @@ duration = 1.
 
 def generate_shots(animation: anim.animation):
     def rotate_star_to_horizontal_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-        angle = anim.line_angle(lines[- (skip() // 2)]) * 180. / anim.math.pi
+        angle = anim.line_angle(lines[- (skip() // 2)])
         center = anim.center_of(tips)
         dot_points = [dot.center for dot in dots]
         for pt in anim.flatten([tips, crossings, triangles, dot_points]):
@@ -145,13 +145,13 @@ def _gen_flip_duo(which: int, animation: anim.animation):
     def flip_left_branch_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         tip = anim.static_point(triangles[which][0])
         for pt in anim.flatten([triangles[which], dots[which].center]):
-            animator.animate_value([0., 180.], duration, anim.rotate_point_around(pt, tip))
+            animator.animate_value([0., anim.pi], duration, anim.rotate_point_around(pt, tip))
     animation.add_shots(anim.shot('', '', flip_left_branch_shot))
 
     def flip_right_branch_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         tip = anim.static_point(triangles[-which][0])
         for pt in anim.flatten([triangles[-which], dots[-which].center]):
-            animator.animate_value([0., 180.], duration, anim.rotate_point_around(pt, tip))
+            animator.animate_value([0., anim.pi], duration, anim.rotate_point_around(pt, tip))
     animation.add_shots(anim.shot('', '', flip_right_branch_shot))
 
     def move_both_branches_to_top_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
