@@ -4,7 +4,6 @@ from math import modf as _modf
 from typing import List as _List
 
 class runner(anim.circle):
-    colorizing: bool = False
     runners: _List = []
     runnings: _List = []
     runners_count: int = 0
@@ -21,11 +20,17 @@ class runner(anim.circle):
         runner.lonely = runner.runners[lonely_index]
         runner.lonely_zone_size = 1. / runner.runners_count
 
-    def __init__(self, speed, runner_size):
-        self.speed = float(speed)
+    def __init__(self, speed: float, runner_size: float):
+        self.speed = speed
         self.lap_fraction = 0.
+        self.colored = False
         super().__init__(anim.point(0., runner.track_radius), runner_size)
-        self.fill(anim.white)
+        self.reset()
+
+    def reset(self):
+        self.lap_fraction = 0.
+        self.colored = False
+        self.fill(anim.white).set_opacity(0.)
 
     def set_lap_fraction(self, fraction: float):
         self.lap_fraction = _modf(fraction)[0]
@@ -53,9 +58,13 @@ class runner(anim.circle):
     def in_lonely_zone(self) -> bool:
         return self.lap_fraction < runner.lonely_zone_size or self.lap_fraction > 1. - runner.lonely_zone_size
 
-    def _update_geometry(self):
-        super()._update_geometry()
-        if not runner.colorizing:
+    def set_colored(self, colored: bool):
+        self.colored = colored
+        self.update_color()
+        return self
+
+    def update_color(self):
+        if not self.colored:
             color = anim.white
         elif self.is_lonely():
             color = anim.blue
@@ -67,4 +76,11 @@ class runner(anim.circle):
             color = anim.yellow
         else:
             color = anim.green
-        self.fill(color)
+        return self.fill(color)
+
+    def _update_geometry(self):
+        super()._update_geometry()
+        if runner.runnings and self == runner.runnings[-1]:
+            for r in runner.runnings:
+                r.update_color()
+

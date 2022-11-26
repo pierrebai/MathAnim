@@ -21,8 +21,8 @@ has_pointing_arrow = True
 runners_speeds_options = anim.option('Runner speeds', 'The runner speeds, a list of integers.', '0 1 3 4 7', '', '')
 lonely_runner_options = anim.option('Lonely Runner', 'The runner index, starting from zero, that will be lonely.', 0, 0, 100)
 
-def runners_speeds() -> _List[int]:
-    return [int(s) for s in runners_speeds_options.value.split()]
+def runners_speeds() -> _List[float]:
+    return [float(s) for s in runners_speeds_options.value.split()]
 
 def lonely_runner_index() -> int:
     return int(lonely_runner_options.value)
@@ -50,7 +50,7 @@ lonely_zone: anim.circle = None
 half_lonely_zone: anim.circle = None
 lonely_zone_label: anim.scaling_text = None
 
-track = anim.circle(track_center, track_radius).thickness(track_width).outline(anim.sable)
+track = anim.circle(track_center track_radius).thickness(track_width).outline(anim.sable)
 track_label = anim.scaling_text('1', track_center, track_label_size)
 
 timeline_offset: float = 300.
@@ -131,21 +131,21 @@ def generate_runner_inclusion_zone(animation: anim.animation, scene: anim.scene,
 def _reset_opacities() -> None:
     for item in anim.find_all_of_type(globals(), anim.item):
         item.set_opacity(0.)
-    for r in runner.runners:
-        r.set_opacity(0.)
 
 def _reposition_points() -> None:
     for pt in anim.find_all_of_type(globals(), anim.point):
         pt.reset()
     for circle in anim.find_all_of_type(globals(), anim.circle):
         circle.center.reset()
+
+def _reset_runners() -> None:
     for r in runner.runners:
-        r.set_lap_fraction(0.)
+        r.reset()
 
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
-    runner.colorizing = False
     _reset_opacities()
     _reposition_points()
+    _reset_runners()
 
 def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
     prepare_playing(animation, scene, animator)
@@ -233,7 +233,7 @@ def lonely_runner_definition_shot(shot: anim.shot, animation: anim.animation, sc
     For example, let's look
     at this runner.
     '''
-    runner.colorizing = True
+    runner.lonely.colored = True
     animator.animate_value([anim.white, anim.blue], duration / 10., anim.change_fill_color(runner.lonely))
     radius = runner.lonely.radius
     animator.animate_value([radius, radius * 2, radius, radius * 2, radius, radius * 2, radius], duration, anim.change_radius(runner.lonely))
@@ -282,9 +282,19 @@ def lonely_runner_far_enough_shot(shot: anim.shot, animation: anim.animation, sc
     While runners lap around
     the track, they go in and
     out of the exclusion zone.
+
+    Runners in the zone will
+    be red.
+
+    Runners nearest the zone
+    on either side will be
+    yellow.
+
+    Runners outside of the
+    zone are green.
     '''
-    runner.colorizing = True
     for r in runner.runnings:
+        r.colored = True
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
     animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
@@ -311,18 +321,7 @@ def lonely_runner_theorem_simplications_shot(shot: anim.shot, animation: anim.an
     for r in runner.runnings:
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
 
-def lonely_runner_theorem_speeds_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''
-    Integer speeds
-
-    For example, the speeds
-    can all be integers, they
-    can all be positive and
-    one speed can be set to
-    zero.
-    '''
-    for r in runner.runnings:
-        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+# TODO: explain why speed can be zero and why speed can all be positive.
 
 
 #################################################################
