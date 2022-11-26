@@ -6,6 +6,7 @@ from typing import List as _List, Tuple as _Tuple
 
 hpi = pi / 2.
 tau = pi * 2.
+origin = point(0., 0.)
 
 #################################################################
 #

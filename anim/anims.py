@@ -76,6 +76,20 @@ def change_fill_color(item: item):
 
 #################################################################
 #
+# Circle animations
+
+def change_radius(item: item):
+    """
+    Returns a function that sets the radius of an actor or item.
+    The returned function only takes the radius.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    return lambda radius: item.set_radius(radius)
+
+
+#################################################################
+#
 # Complex animations
 
 def roll_points_on_circle_in_circle(animator: animator, duration: float, inner_circle: circle, outer_circle: circle, rotation_count: float, points_on_inner: _List[point]):
@@ -123,8 +137,7 @@ def scale_text_item(item):
 
 def center_text_item_on(item, other):
     """
-    Returns a function that sets the font size of the actor or item.
-    The returned function only takes the font size as parameter.
+    Returns a function that centers an item on another.
     """
     if isinstance(item, actor):
         item = item.item
