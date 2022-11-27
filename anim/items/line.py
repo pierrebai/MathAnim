@@ -1,4 +1,5 @@
 from .point import point
+from .color import color
 from .item import item
 from .rectangle import static_rectangle
 
@@ -28,6 +29,9 @@ class line(_QGraphicsLineItem, item):
         Retrieve all animatable points in the item.
         """
         return [self.p1, self.p2]
+
+    def fill(self, new_color: color):
+        return self.outline(new_color)
 
     def scene_rect(self) -> static_rectangle:
         return self.sceneBoundingRect()        

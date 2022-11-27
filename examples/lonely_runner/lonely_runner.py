@@ -90,6 +90,7 @@ half_zone_thickness = 10.
 track_label_size: float = 200.
 lonely_zone_label_size: float = 100.
 timeline_label_size: float = 80.
+runner_label_size = 30.
 
 lonely_zone: anim.circle = None
 half_lonely_zone: anim.circle = None
@@ -110,7 +111,7 @@ timeline_labels = [
 timeline_solution_label = anim.scaling_text('', timeline.p1, timeline_label_size)
 
 def _gen_runners():
-    runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
+    runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius, runner_label_size)
 
 def _gen_lonely_zone():
     global lonely_zone
@@ -134,9 +135,11 @@ def _gen_lonely_zone():
     lonely_zone_label = anim.scaling_text(f'1 / {count}', anim.point(anim.center_of(lonely_zone.get_all_points())), lonely_zone_label_size)
 
 def _order_items():
-    for r in runner.runners:
-        r.setZValue(1.)
-    runner.lonely.setZValue(2.)
+    for i, r in enumerate(runner.runners):
+        r.setZValue(i * 3. + 1.)
+        r.label.setZValue(i * 3. + 2.)
+    runner.lonely.setZValue(2000.)
+    runner.lonely.label.setZValue(2001.)
     lonely_zone.setZValue(-2.)
     lonely_zone_label.setZValue(-1.)
     half_lonely_zone.setZValue(-2.)
@@ -150,6 +153,7 @@ def _order_items():
 
 last_runner_intervals_graphs: _List[anim.item] = []
 last_overal_intervals_graphs: _List[anim.item] = []
+next_to_last_overal_intervals_graphs: _List[anim.item] = []
 
 def _remove_intervals_graphs(graphs: _List, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     for graph in graphs:
@@ -157,38 +161,49 @@ def _remove_intervals_graphs(graphs: _List, animation: anim.animation, scene: an
     scene.scene.invalidate(scene.scene.sceneRect())
     graphs.clear()
 
-def _gen_intervals_graph(allowed_time_intervals: _List[_List[float]], last_intervals_graphs: _List, height: float, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    _remove_intervals_graphs(last_intervals_graphs, animation, scene, animator)
-    intervals = []
+def _gen_interval_graph(interval: _List[float], height: float, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    interval_width = interval[1] - interval[0]
+    p1 = anim.two_points_convex_sum(timeline.p1, timeline.p2, interval[0])
+    p2 = anim.relative_point(p1, anim.static_point(0., -height))
+    if interval_width * timeline_width > 1.0:
+        allowed_graph = anim.create_two_points_rect(p1, p2)
+    else:
+        allowed_graph = anim.line(p1, p2)
+    allowed_graph.outline(anim.no_color).thickness(0.).fill(anim.green).set_opacity(0.)
+    scene.add_item(allowed_graph)
+
+    animator.animate_value([0., 1.], duration / 4., anim.reveal_item(allowed_graph))
+
+    graph_grow = [
+        anim.static_point(0.             * timeline_width, -height),
+        anim.static_point(interval_width * timeline_width, -height)]
+    animator.animate_value(graph_grow, duration, anim.move_point(p2))
+
+    return allowed_graph
+
+def _gen_intervals_graphs(allowed_time_intervals: _List[_List[float]], height: float, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    intervals_graphs = []
     for interval in allowed_time_intervals:
-        interval_width = interval[1] - interval[0]
-
-        p1 = anim.two_points_convex_sum(timeline.p1, timeline.p2, interval[0])
-        p2 = anim.relative_point(p1, anim.static_point(0., -height))
-        if interval_width * timeline_width > 1.0:
-            allowed_graph = anim.create_two_points_rect(p1, p2).fill(anim.green).outline(anim.no_color).set_opacity(0.)
-        else:
-            allowed_graph = anim.line(p1, p2).outline(anim.green).thickness(0.).set_opacity(0.)
-
-        scene.add_item(allowed_graph)
-        last_intervals_graphs.append(allowed_graph)
-
-        animator.animate_value([0., 1.], duration / 4., anim.reveal_item(allowed_graph))
-
-        graph_grow = [
-            anim.static_point(0.             * timeline_width, -height),
-            anim.static_point(interval_width * timeline_width, -height)]
-        animator.animate_value(graph_grow, duration, anim.move_point(p2))
-
-        intervals.append(anim.center_of([p1, anim.relative_point(p2, graph_grow[1])]))
-    return intervals
+        graph = _gen_interval_graph(interval, height, animation, scene, animator)
+        intervals_graphs.append(graph)
+    return intervals_graphs
 
 def _gen_runner_intervals_graph(runner_allowed_time_intervals: _List[_List[float]], animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    intervals = _gen_intervals_graph(runner_allowed_time_intervals, last_runner_intervals_graphs, runner_graph_height, animation, scene, animator)
-    animation.anim_pointing_arrow(intervals, duration, scene, animator)
+    global last_runner_intervals_graphs
+    _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
+    new_intervals_graphs = _gen_intervals_graphs(runner_allowed_time_intervals, runner_graph_height, animation, scene, animator)
+    animation.anim_pointing_arrow([anim.center_of(g.get_all_points()) for g  in new_intervals_graphs], duration, scene, animator)
+    last_runner_intervals_graphs = new_intervals_graphs
 
 def _merge_runner_intervals_with_overal_intervals(animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    _gen_intervals_graph(allowed_time_intervals, last_overal_intervals_graphs, -overal_graph_height, animation, scene, animator)
+    global last_overal_intervals_graphs
+    global next_to_last_overal_intervals_graphs
+    _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
+    next_to_last_overal_intervals_graphs = last_overal_intervals_graphs[:]
+    for graph in next_to_last_overal_intervals_graphs:
+        graph.fill(anim.pale_green)
+    new_intervals_graphs = _gen_intervals_graphs(allowed_time_intervals, -overal_graph_height, animation, scene, animator)
+    last_overal_intervals_graphs = new_intervals_graphs
 
 
 #################################################################
@@ -203,6 +218,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
     actors = [
         [anim.actor('Runner', '', r) for r in runner.runners],
+        [anim.actor('Label', '', r.label) for r in runner.runners],
         anim.actor('Track', '', track),
         anim.actor('Label', '', track_label),
         anim.actor('Label', '', lonely_zone_label),
@@ -241,6 +257,8 @@ def _reset_timeline() -> None:
     last_runner_intervals_graphs = []
     global last_overal_intervals_graphs
     last_overal_intervals_graphs = []
+    global next_to_last_overal_intervals_graphs
+    next_to_last_overal_intervals_graphs = []
 
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
     _reset_timeline()
@@ -514,6 +532,7 @@ def final_shot_protype(shot: anim.shot, animation: anim.animation, scene: anim.s
     They each arrive at their
     position at the shown time.
     '''
+    _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
     _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
     first_valid_time = allowed_time_intervals[0][0]
     runner.always_colored = False
