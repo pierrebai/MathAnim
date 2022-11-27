@@ -50,7 +50,7 @@ lonely_zone: anim.circle = None
 half_lonely_zone: anim.circle = None
 lonely_zone_label: anim.scaling_text = None
 
-track = anim.circle(track_center track_radius).thickness(track_width).outline(anim.sable)
+track = anim.circle(track_center, track_radius).thickness(track_width).outline(anim.sable)
 track_label = anim.scaling_text('1', track_center, track_label_size)
 
 timeline_offset: float = 300.
@@ -73,20 +73,20 @@ def _gen_lonely_zone():
 
     count = runner.runners_count
     if count > 2:
-        zone_start = anim.create_relative_point_around_center(track_center, track_radius, anim.pi / 2 + anim.tau * runner.lonely_zone_size)
-        zone_end = anim.create_relative_point_around_center(track_center, track_radius, anim.pi / 2 + anim.tau - anim.tau * runner.lonely_zone_size)
+        zone_start = anim.relative_radial_point(runner.lonely.center, 0., anim.tau * runner.lonely_zone_size)
+        zone_end = anim.relative_radial_point(runner.lonely.center, 0.,  -anim.tau * runner.lonely_zone_size)
         lonely_zone  = anim.partial_circle(track_center, lonely_zone_radius, zone_start, zone_end)
         half_lonely_zone  = anim.line(track_center, runner.lonely.center)
     else:
         lonely_zone  = anim.circle(track_center, lonely_zone_radius)
-        track_top = anim.create_relative_point_around_center(track_center, track_radius, anim.hpi)
-        half_lonely_zone  = anim.circle(track_top, lonely_zone_radius)
+        zone_end = anim.relative_radial_point(runner.lonely.center, 0., anim.pi)
+        half_lonely_zone  = anim.line(zone_end, runner.lonely.center)
     lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.pale_red)
     half_lonely_zone.thickness(5.).outline(anim.red)
 
     global lonely_zone_label
 
-    lonely_zone_label = anim.scaling_text('1 / n', anim.point(anim.center_of(lonely_zone.get_all_points())), lonely_zone_label_size)
+    lonely_zone_label = anim.scaling_text(f'1 / {count}', anim.point(anim.center_of(lonely_zone.get_all_points())), lonely_zone_label_size)
 
 def _order_items():
     for r in runner.runners:
@@ -206,7 +206,7 @@ def show_runners_running_shot(shot: anim.shot, animation: anim.animation, scene:
     own speed. All speeds
     are different.
     '''
-    for r in runner.runnings:
+    for r in runner.runners:
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
     animation.attach_pointing_arrow(runner.runnings[0].center, scene)
 
@@ -233,7 +233,7 @@ def lonely_runner_definition_shot(shot: anim.shot, animation: anim.animation, sc
     For example, let's look
     at this runner.
     '''
-    runner.lonely.colored = True
+    runner.lonely.set_colored(True)
     animator.animate_value([anim.white, anim.blue], duration / 10., anim.change_fill_color(runner.lonely))
     radius = runner.lonely.radius
     animator.animate_value([radius, radius * 2, radius, radius * 2, radius, radius * 2, radius], duration, anim.change_radius(runner.lonely))
@@ -293,33 +293,12 @@ def lonely_runner_far_enough_shot(shot: anim.shot, animation: anim.animation, sc
     Runners outside of the
     zone are green.
     '''
-    for r in runner.runnings:
-        r.colored = True
+    #animator.animate_value([1., 0.], duration / 5., anim.reveal_item(half_lonely_zone))
+    #animator.animate_value([1., 0.], duration / 5., anim.reveal_item(lonely_zone_label))
+    for r in runner.runners:
+        r.set_colored(True)
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
     animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
-
-def lonely_runner_unproven_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''
-    Unproven
-
-    The lonely runner theorem
-    is not proven...
-    '''
-    for r in runner.runnings:
-        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
-
-def lonely_runner_theorem_simplications_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''
-    Simplifications
-
-    ... while unproven, some
-    simplifications have been
-    shown to be equivalent to
-    the general theorem.
-    '''
-    animator.animate_value([anim.white, anim.blue], duration / 10., anim.change_fill_color(runner.lonely))
-    for r in runner.runnings:
-        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
 
 # TODO: explain why speed can be zero and why speed can all be positive.
 

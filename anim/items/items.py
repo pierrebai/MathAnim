@@ -3,7 +3,7 @@ from .line import line
 from .polygon import polygon
 from .rectangle import rectangle, center_rectangle, static_rectangle
 from .pointing_arrow import pointing_arrow
-from .point import point, relative_point, static_point, selected_point
+from .point import point, relative_point, static_point, selected_point, radial_point, relative_radial_point
 from .text import scaling_text, fixed_size_text
 from .item import item
 from .pen import pen

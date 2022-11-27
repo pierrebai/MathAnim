@@ -1,5 +1,6 @@
 from PySide6.QtCore import QPointF as _QPointF
 from typing import List as _List, Callable as _Callable
+from math import cos as _cos, sin as _sin, sqrt as _sqrt, atan2 as _atan2
 
 static_point= _QPointF
     
@@ -125,6 +126,138 @@ class relative_point(point):
         Updates the point absolute position and notifies its users.
         """
         self.delta = new_point - self._origin
+        self._update_geometry()
+        return self
+
+class radial_point(point):
+    """
+    A dynamic point with an position at given distance and angle around from another point, called its origin.
+    """
+
+    def __init__(self, origin: point, radius: float, angle: float, *args) -> None:
+        super().__init__(*args)
+        self._origin = None
+        self.radius = radius
+        self.angle = angle
+        self.set_origin(origin)
+
+    def set_angle(self, new_angle: float) -> point:
+        if self.angle != new_angle:
+            self.angle = new_angle
+            self._update_geometry()
+        return self
+
+    def set_radius(self, new_radius: float) -> point:
+        if self.radius != new_radius:
+            self.radius = new_radius
+            self._update_geometry()
+        return self
+
+    def set_origin(self, new_origin: point) -> point:
+        """
+        Sets this relative point to be relative to a new origin.
+        """
+        if self._origin:
+            self._origin.remove_user(self)
+        self._origin = new_origin
+        new_origin.add_user(self)
+        self._update_geometry()
+        return self
+
+    def _update_geometry(self) -> None:
+        """
+        Updates the point position relative to its origin when the point it is relative to has moved.
+        """
+        new_pos = self._calculate_position(self.radius, self.angle)
+        if new_pos != self:
+            super().set_point(new_pos)
+
+    def _calculate_position(self, radius: float, angle: float) -> None:
+        """
+        Updates the point position relative to its origin when the point it is relative to has moved.
+        """
+        return self._origin + static_point(_cos(angle), _sin(angle)) * radius
+
+    def set_point(self, new_point: static_point) -> point:
+        """
+        Updates the point position relative to its origin and notifies its users.
+        """
+        self.radius = _sqrt(new_point.distance_squared(static_point(0., 0.)))
+        self.angle = _atan2(new_point.y(), new_point.x())
+        self._update_geometry()
+        return self
+
+    def set_absolute_point(self, new_point: static_point) -> point:
+        """
+        Updates the point absolute position and notifies its users.
+        """
+        self.radius = _sqrt(self._origin.distance_squared(new_point))
+        self.angle = _atan2(self._origin.y() - new_point.y(), self._origin.x() - new_point.x())
+        self._update_geometry()
+        return self
+
+
+class relative_radial_point(point):
+    """
+    A dynamic point with an position an angle away from another radial point, called its origin.
+    """
+
+    def __init__(self, origin: radial_point, radius_delta: float, angle_delta: float, *args) -> None:
+        super().__init__(*args)
+        self.radius_delta = radius_delta
+        self.angle_delta = angle_delta
+        self._origin: radial_point = None
+        self.set_origin(origin)
+
+    def set_origin(self, new_origin: radial_point) -> point:
+        """
+        Sets this relative point to be relative to a new origin.
+        """
+        if self._origin:
+            self._origin.remove_user(self)
+        self._origin = new_origin
+        new_origin.add_user(self)
+        self._update_geometry()
+        return self
+
+    def set_radius_delta(self, new_delta: float) -> point:
+        if self.radius_delta != new_delta:
+            self.radius_delta = new_delta
+            self._update_geometry()
+        return self
+
+    def set_angle_delta(self, new_delta: float) -> point:
+        if self.angle_delta != new_delta:
+            self.angle_delta = new_delta
+            self._update_geometry()
+        return self
+
+    def _update_geometry(self) -> None:
+        """
+        Updates the point position relative to its origin when the point it is relative to has moved.
+        """
+        new_pos = self._origin._calculate_position(self._origin.radius + self.radius_delta, self._origin.angle + self.angle_delta)
+        if new_pos != self:
+            super().set_point(new_pos)
+
+    def set_point(self, new_point: static_point) -> point:
+        """
+        Updates the point position relative to its origin and notifies its users.
+        """
+        self.radius_delta = _sqrt(new_point.distance_squared(static_point(0., 0.)))
+        self.angle_delta = _atan2(new_point.y(), new_point.x())
+        self._update_geometry()
+        return self
+
+    def set_absolute_point(self, new_point: static_point) -> point:
+        """
+        Updates the point absolute position and notifies its users.
+        """
+        delta_from_origin = self._origin._origin - new_point
+        radius_target = _sqrt(delta_from_origin.distance_squared(static_point(0., 0.)))
+        angle_target = _atan2(delta_from_origin.y(), delta_from_origin.x())
+        self.radius_delta = radius_target - self._origin.radius
+        self.angle_delta = angle_target - self._origin.angle
         self._update_geometry()
         return self
 
