@@ -1,7 +1,7 @@
 from typing import List as _List
-from math import floor as _floor
+from math import floor as _floor, ceil as _ceil
 
-def generate_one_runner_allowed_time_intervals_within_one_second(
+def generate_one_runner_allowed_time_intervals(
     runner : int, runners_count: int) -> _List[_List[float]]:
     '''
     Generate the time intervals when the runner is outside of the exclusion zone.
@@ -29,7 +29,7 @@ def generate_one_runner_allowed_time_intervals_within_one_second(
     time_for_cycle = 1. / runner
     time_for_away  = 1. / (runner * runners_count)
     time_for_back  = time_for_cycle - time_for_away
-    for i in range(0, runner):
+    for i in range(0, int(_ceil(runner))):
         cycle_time = i * time_for_cycle
         intervals.append((cycle_time + time_for_away, cycle_time + time_for_back))
     return intervals
@@ -68,7 +68,7 @@ def intersect_time_intervals(intervals_1: _List[_List[float]], intervals_2: _Lis
     return intervals
 
 
-def generate_all_allowed_time_intervals_within_one_second(
+def generate_all_allowed_time_intervals(
     runners: _List[int], runners_count: int) -> float:
     '''
     Generate all time intervals where all runners are simultaneously outside
@@ -76,7 +76,7 @@ def generate_all_allowed_time_intervals_within_one_second(
     '''
     intervals = [(0.0, 1.0)]
     for r in runners:
-        runner_intervals = generate_one_runner_allowed_time_intervals_within_one_second(r, runners_count)
+        runner_intervals = generate_one_runner_allowed_time_intervals(r, runners_count)
         intervals = intersect_time_intervals(intervals, runner_intervals)
     return intervals
 
@@ -104,7 +104,6 @@ def generate_running_runners(runners: _List[int], lonely_runner_index: int):
     '''
     lonely_runner_speed = runners[lonely_runner_index]
     running_runners = [abs(speed - lonely_runner_speed) for speed in runners if speed != lonely_runner_speed]
-    running_runners.sort()
     return running_runners
 
 
@@ -126,7 +125,7 @@ class runners_solution:
         self.lonely_runner_index = lonely_runner_index
         running_runners = generate_running_runners(runners, lonely_runner_index)
         runners_count = len(runners)
-        self.intervals = generate_all_allowed_time_intervals_within_one_second(running_runners, runners_count)
+        self.intervals = generate_all_allowed_time_intervals(running_runners, runners_count)
         self.generate_stats()
 
     def generate_stats(self):
@@ -163,11 +162,11 @@ class runners_solution:
 if __name__ == "__main__":
     #print(runners_solution([ 0, 1 ], 0))
     #print(runners_solution([ 0, 1, 2 ], 0))
-    #print(runners_solution([ 0, 1, 3, 7 ], 0))
+    print(runners_solution([ 0., 1.1, 3.2, 7.3 ], 0))
     #print(runners_solution([ 0, 1, 3, 4, 7 ], 0))
     #print(runners_solution([ 0, 1, 3, 4, 5, 9 ], 0))
     #print(runners_solution([ 0, 1, 4, 5, 6, 7, 11, 13 ], 0))
-    print(runners_solution([ 0, 1, 2, 3, 4, 5, 7, 12 ], 0))
-    print(runners_solution([ 4, 5, -7, 12, 0, 1, -2, 3,  ], 4))
-    print(runners_solution([ 4, 5, -7, 12, 0, 1, -2, 3,  ], 3))
+    #print(runners_solution([ 0, 1, 2, 3, 4, 5, 7, 12 ], 0))
+    #print(runners_solution([ 4, 5, -7, 12, 0, 1, -2, 3,  ], 4))
+    #print(runners_solution([ 4, 5, -7, 12, 0, 1, -2, 3,  ], 3))
     #print(runners_solution(list(range(0, 50000, 3000), 0)))

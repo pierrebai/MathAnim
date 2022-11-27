@@ -8,7 +8,7 @@ from .types import is_of_type
 
 from typing import Dict as _Dict, Any as _Any, List as _List, Tuple as _Tuple, Callable as _Callable
 
-class _anim_description:
+class anim_description:
     """
     A description of a simple animation made from the global variables of a module.
     """
@@ -68,20 +68,23 @@ class _anim_description:
 
         return prep_shots
 
+    @staticmethod
+    def _create_shot(prep):
+        shot_name = "Shot"
+        shot_description = ""
+        if prep.__doc__:
+            lines: list[str] = prep.__doc__.strip().splitlines()
+            shot_name = lines[0]
+            if len(lines) > 1:
+                first_line = 1
+                while not lines[first_line].strip():
+                    first_line += 1
+                shot_description = '\n'.join(lines[first_line:])
+        return shot(shot_name, shot_description, prep)
+
     def _create_shots(self, prep_shots: _List[_Callable]):
         for prep in prep_shots:
-            shot_name = "Shot"
-            shot_description = ""
-            if prep.__doc__:
-                lines: list[str] = prep.__doc__.strip().splitlines()
-                shot_name = lines[0]
-                if len(lines) > 1:
-                    first_line = 1
-                    while not lines[first_line].strip():
-                        first_line += 1
-                    shot_description = '\n'.join(lines[first_line:])
-            s = shot(shot_name, shot_description, prep)
-            self.shots.append(s)
+            self.shots.append(anim_description._create_shot(prep))
 
     def _validate(self):
         # Validate. No options and no actors are OK.
@@ -102,7 +105,7 @@ class _anim_description:
             return None
 
 
-class simple_animation(animation, _anim_description):
+class simple_animation(animation, anim_description):
     """
     A simple animation made from the global variables of a module.
     """
@@ -134,7 +137,7 @@ class simple_animation(animation, _anim_description):
         required. The others are optional.
         """
 
-        desc = _anim_description()
+        desc = anim_description()
         prep_shots = desc._scan_module(module_dict)
         desc._create_shots(prep_shots)
         desc._validate()
@@ -143,7 +146,7 @@ class simple_animation(animation, _anim_description):
             return simple_animation(desc)
         return maker
 
-    def __init__(self, desc: _anim_description) -> None:
+    def __init__(self, desc: anim_description) -> None:
         super().__init__(desc.name, desc.description)
         self.loop = desc.loop
         self.reset_on_change = desc.reset_on_change

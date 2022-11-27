@@ -1,7 +1,7 @@
 from .animator import animator
 from .actor import actor
 from .animation import animation
-from .simple_animation import simple_animation
+from .simple_animation import simple_animation, anim_description
 from .options import option, options
 from .scene import scene
 from .view import view

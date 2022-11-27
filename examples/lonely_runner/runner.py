@@ -10,6 +10,7 @@ class runner(anim.circle):
     lonely = None
     lonely_zone_size: float = 0.5
     track_radius: float = 1.
+    always_colored = False
 
     @staticmethod
     def create_runners(speeds: _List[int], lonely_index, runner_size, track_radius) -> None:
@@ -90,7 +91,8 @@ class runner(anim.circle):
 
     def _update_geometry(self):
         super()._update_geometry()
-        if runner.runners and self == runner.runners[-1]:
-            for r in runner.runners:
-                r.update_color()
+        if runner.runners:
+            if runner.always_colored or self == runner.runners[-1]:
+                for r in runner.runners:
+                    r.update_color()
 
