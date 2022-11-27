@@ -162,8 +162,9 @@ class runners_solution:
 if __name__ == "__main__":
     #print(runners_solution([ 0, 1 ], 0))
     #print(runners_solution([ 0, 1, 2 ], 0))
-    print(runners_solution([ 0., 1.1, 3.2, 7.3 ], 0))
+    #print(runners_solution([ 0., 1.1, 3.2, 7.3 ], 0))
     #print(runners_solution([ 0, 1, 3, 4, 7 ], 0))
+    print(runners_solution([ 0, 1, 3, 4, 7, 12 ], 0))
     #print(runners_solution([ 0, 1, 3, 4, 5, 9 ], 0))
     #print(runners_solution([ 0, 1, 4, 5, 6, 7, 11, 13 ], 0))
     #print(runners_solution([ 0, 1, 2, 3, 4, 5, 7, 12 ], 0))

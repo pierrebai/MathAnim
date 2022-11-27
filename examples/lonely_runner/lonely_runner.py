@@ -327,7 +327,7 @@ def show_runners_running_shot(shot: anim.shot, animation: anim.animation, scene:
     are different.
     '''
     for r in runner.runners:
-        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+        animator.animate_value([0., r.speed], duration * 3., r.anim_lap_fraction())
     animation.attach_pointing_arrow(runner.runnings[0].center, scene)
 
 def lonely_runner_theorem_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -392,21 +392,6 @@ def exclusion_distance_shot(shot: anim.shot, animation: anim.animation, scene: a
     animator.animate_value([0., 1.], duration, anim.reveal_item(lonely_zone_label))
     animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
-def far_enough_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    '''
-    Far Enough
-
-    While runners lap around
-    the track, they go in and
-    out of the exclusion zone.
-    '''
-    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(half_lonely_zone))
-    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(lonely_zone_label))
-    for r in runner.runners:
-        r.set_colored(True)
-        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
-    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
-
 def in_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     Runners Colors
@@ -425,8 +410,8 @@ def barely_out_of_onely_zone_shot(shot: anim.shot, animation: anim.animation, sc
     '''
     Runners Colors
 
-    Runners nearest the zone
-    on either side will be
+    Runners just out of the
+    zone on either side are
     yellow.
     '''
     if runner.runners_count > 2:
@@ -441,8 +426,8 @@ def completely_out_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     '''
     Runners Colors
 
-    Runners outside of the
-    zone are green.
+    Runners farther outside
+    of the zone are green.
     '''
     if runner.runners_count > 3:
         r = runner.runnings[-3]
@@ -450,6 +435,21 @@ def completely_out_shot(shot: anim.shot, animation: anim.animation, scene: anim.
         r.fill(anim.green)
         animator.animate_value([runner.lonely_zone_size, 0.5], duration, r.anim_lap_fraction())
         animation.attach_pointing_arrow(r.center, scene)
+
+def far_enough_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Runners Colors
+
+    While runners lap around
+    the track, they go in and
+    out of the exclusion zone.
+    '''
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(half_lonely_zone))
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(lonely_zone_label))
+    for r in runner.runners:
+        r.set_colored(True)
+        animator.animate_value([0., r.speed], duration * 3., r.anim_lap_fraction())
+    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def introduce_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -534,11 +534,11 @@ def final_shot_protype(shot: anim.shot, animation: anim.animation, scene: anim.s
     '''
     _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
     _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
-    first_valid_time = allowed_time_intervals[0][0]
+    first_valid_time = (allowed_time_intervals[0][0] + allowed_time_intervals[0][1]) / 2.
     runner.always_colored = False
     for r in runner.runners:
         r.set_colored(True)
-        animator.animate_value([0., first_valid_time * r.speed], duration, r.anim_lap_fraction())
+        animator.animate_value([0., first_valid_time * r.speed], duration * 2., r.anim_lap_fraction())
     animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
 
     timeline_solution_label.setText(f'{first_valid_time:3.3}')
