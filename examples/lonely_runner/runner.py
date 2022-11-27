@@ -75,7 +75,7 @@ class runner(anim.circle):
 
     def update_color(self):
         if not self.colored:
-            color = anim.white
+            return
         elif self.is_lonely():
             color = anim.blue
         elif self.is_in_lonely_zone():

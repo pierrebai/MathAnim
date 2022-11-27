@@ -35,12 +35,17 @@ def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator)
 #
 # Points and geometries
 
-track_radius: float = 500.
-track_center = anim.point(0., 0.)
 runner_radius: float = 40.
-timeline_thickness = 40.
+
+track_center = anim.point(0., 0.)
+track_radius: float = 500.
 track_width: float = runner_radius * 2.5
+
+timeline_thickness = 40.
+timeline_offset: float = 300.
+
 lonely_zone_radius: float = track_radius
+half_zone_thickness = 10.
 
 track_label_size: float = 200.
 lonely_zone_label_size: float = 100.
@@ -52,8 +57,6 @@ lonely_zone_label: anim.scaling_text = None
 
 track = anim.circle(track_center, track_radius).thickness(track_width).outline(anim.sable)
 track_label = anim.scaling_text('1', track_center, track_label_size)
-
-timeline_offset: float = 300.
 
 timeline = anim.line(
     anim.point( -track_radius, timeline_offset),
@@ -82,7 +85,7 @@ def _gen_lonely_zone():
         zone_end = anim.relative_radial_point(runner.lonely.center, 0., anim.pi)
         half_lonely_zone  = anim.line(zone_end, runner.lonely.center)
     lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.pale_red)
-    half_lonely_zone.thickness(5.).outline(anim.red)
+    half_lonely_zone.thickness(half_zone_thickness).outline(anim.red)
 
     global lonely_zone_label
 
@@ -268,9 +271,6 @@ def lonely_runner_exclusion_distance_shot(shot: anim.shot, animation: anim.anima
     The exclusion distance is
     set to 1 over the number
     of runners.
-
-    (Recall, the track length
-    is set to 1, too.)
     '''
     animator.animate_value([0., 1.], duration, anim.reveal_item(lonely_zone_label))
     animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
@@ -282,23 +282,57 @@ def lonely_runner_far_enough_shot(shot: anim.shot, animation: anim.animation, sc
     While runners lap around
     the track, they go in and
     out of the exclusion zone.
-
-    Runners in the zone will
-    be red.
-
-    Runners nearest the zone
-    on either side will be
-    yellow.
-
-    Runners outside of the
-    zone are green.
     '''
-    #animator.animate_value([1., 0.], duration / 5., anim.reveal_item(half_lonely_zone))
-    #animator.animate_value([1., 0.], duration / 5., anim.reveal_item(lonely_zone_label))
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(half_lonely_zone))
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(lonely_zone_label))
     for r in runner.runners:
         r.set_colored(True)
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
     animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
+
+def lonely_runner_in_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Runners Colors
+
+    Runners in the exclusion
+    zone are red.
+    '''
+    if runner.runners_count > 1:
+        r = runner.runnings[-1]
+        r.set_colored(False)
+        r.fill(anim.red)
+        animator.animate_value([0., runner.lonely_zone_size / 2.], duration, r.anim_lap_fraction())
+        animation.attach_pointing_arrow(r.center, scene)
+
+def lonely_runner_out_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Runners Colors
+
+    Runners nearest the zone
+    on either side will be
+    yellow.
+    '''
+    if runner.runners_count > 2:
+        r = runner.runnings[-2]
+        r.set_colored(False)
+        r.fill(anim.red)
+        animator.animate_value([runner.lonely_zone_size * 1. / 2., runner.lonely_zone_size], duration, r.anim_lap_fraction())
+        animator.animate_value([anim.red, anim.yellow], duration, anim.change_fill_color(r))
+        animation.attach_pointing_arrow(r.center, scene)
+
+def lonely_runner_completely_out_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Runners Colors
+
+    Runners outside of the
+    zone are green.
+    '''
+    if runner.runners_count > 3:
+        r = runner.runnings[-3]
+        r.set_colored(False)
+        r.fill(anim.green)
+        animator.animate_value([runner.lonely_zone_size, 0.5], duration, r.anim_lap_fraction())
+        animation.attach_pointing_arrow(r.center, scene)
 
 # TODO: explain why speed can be zero and why speed can all be positive.
 
