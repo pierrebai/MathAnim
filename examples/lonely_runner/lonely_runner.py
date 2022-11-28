@@ -22,10 +22,13 @@ runners_speeds_options = anim.option('Runner speeds', 'The runner speeds, a list
 lonely_runner_options = anim.option('Lonely Runner', 'The runner index, starting from zero, that will be lonely.', 0, 0, 100)
 
 def runners_speeds() -> _List[float]:
-    return [float(s) for s in runners_speeds_options.value.split()]
+    try:
+        return [float(s) for s in runners_speeds_options.value.split()]
+    except ValueError:
+        return [0]
 
 def lonely_runner_index() -> int:
-    return int(lonely_runner_options.value)
+    return min(int(lonely_runner_options.value), len(runners_speeds()))
 
 def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator):
     animation.current_shot_index = -1
@@ -192,6 +195,7 @@ def _gen_runner_intervals_graph(runner_allowed_time_intervals: _List[_List[float
     global last_runner_intervals_graphs
     _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
     new_intervals_graphs = _gen_intervals_graphs(runner_allowed_time_intervals, runner_graph_height, animation, scene, animator)
+    arrow_anim_values = new_intervals_graphs if len(new_intervals_graphs) < 10 else new_intervals_graphs[:5] + new_intervals_graphs[-5:]
     animation.anim_pointing_arrow([anim.center_of(g.get_all_points()) for g  in new_intervals_graphs], duration, scene, animator)
     last_runner_intervals_graphs = new_intervals_graphs
 
@@ -328,7 +332,8 @@ def show_runners_running_shot(shot: anim.shot, animation: anim.animation, scene:
     '''
     for r in runner.runners:
         animator.animate_value([0., r.speed], duration * 3., r.anim_lap_fraction())
-    animation.attach_pointing_arrow(runner.runnings[0].center, scene)
+    if runner.runnings:
+        animation.attach_pointing_arrow(runner.runnings[0].center, scene)
 
 def lonely_runner_theorem_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -477,10 +482,11 @@ def first_runner_on_timeline_shot(shot: anim.shot, animation: anim.animation, sc
     out of the exclusion zone.
     '''
     runner.always_colored = True
-    which = _get_next_runner_intervals_index()
-    _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
-    r = runner.runnings[which]
-    animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+    if _has_more_runner_intervals():
+        which = _get_next_runner_intervals_index()
+        _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
+        r = runner.runnings[which]
+        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
 
 def overal_allowed_times_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -492,8 +498,9 @@ def overal_allowed_times_shot(shot: anim.shot, animation: anim.animation, scene:
     produce the final allowed
     time intervals.
     '''
-    _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
-    animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
+    if _has_more_runner_intervals():
+        _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
+        animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
 
 def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -509,12 +516,12 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
     until we are left with the
     final solution.
     '''
-    which = _get_next_runner_intervals_index()
-
-    _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
-    _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
-    r = runner.runnings[which]
-    animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+    if _has_more_runner_intervals():
+        which = _get_next_runner_intervals_index()
+        _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
+        _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
+        r = runner.runnings[which]
+        animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
     if _has_more_runner_intervals():
         animation.add_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
     else:
@@ -539,11 +546,12 @@ def final_shot_protype(shot: anim.shot, animation: anim.animation, scene: anim.s
     for r in runner.runners:
         r.set_colored(True)
         animator.animate_value([0., first_valid_time * r.speed], duration * 2., r.anim_lap_fraction())
-    animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
 
-    timeline_solution_label.setText(f'{first_valid_time:3.3}')
-    timeline_solution_label.position.set_absolute_point(max(last_overal_intervals_graphs[0].get_all_points(), key=lambda pt: pt.x() + pt.y()))
-    animator.animate_value([0., 1.], duration, anim.reveal_item(timeline_solution_label))
+    if last_overal_intervals_graphs:
+        animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
+        timeline_solution_label.setText(f'{first_valid_time:3.3}')
+        timeline_solution_label.position.set_absolute_point(max(last_overal_intervals_graphs[0].get_all_points(), key=lambda pt: pt.x() + pt.y()))
+        animator.animate_value([0., 1.], duration, anim.reveal_item(timeline_solution_label))
 
 
 #################################################################
