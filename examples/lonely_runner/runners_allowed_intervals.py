@@ -102,6 +102,8 @@ def generate_running_runners(runners: _List[int], lonely_runner_index: int):
     would also be outside the zone when running in the other direction.
     This allows us to always only use positive speeds.
     '''
+    if not runners:
+        return []
     lonely_runner_speed = runners[lonely_runner_index]
     running_runners = [abs(speed - lonely_runner_speed) for speed in runners if speed != lonely_runner_speed]
     return running_runners

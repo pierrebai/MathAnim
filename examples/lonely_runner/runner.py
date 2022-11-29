@@ -4,16 +4,24 @@ from math import modf as _modf
 from typing import List as _List
 
 class runner(anim.circle):
-    runners: _List[anim.circle] = []
-    runnings: _List[anim.circle] = []
-    runners_count: int = 0
-    lonely: anim.circle = None
-    lonely_zone_size: float = 0.5
-    track_radius: float = 1.
-    always_colored = False
+    '''
+    Hold all information about a runner, used to illustrate the
+    lonely runner hypothesis.
+    '''
+    runners: _List[anim.circle] = []    # All runners
+    runnings: _List[anim.circle] = []   # Runners except the lonely runner
+    runners_count: int = 0              # How many runners there are, just len(runners)
+    lonely: anim.circle = None          # The lonely runner
+    lonely_zone_size: float = 0.5       # The lonely zone size: 1  / runners_count
+    track_radius: float = 1.            # Size of the illustrated track 
+    always_colored = False              # Force all runners to update their colors
 
     @staticmethod
     def create_runners(speeds: _List[int], lonely_index: int, runner_size: float, track_radius: float, label_size: float) -> None:
+        '''
+        Creates all the runners corresponding to the given speeds and which
+        runner we want to isolate to be lonely.
+        '''
         runner.track_radius = track_radius
         runner.runners = [runner(speed, runner_size, label_size) for speed in speeds]
         runner.lonely = runner.runners[lonely_index]
@@ -22,6 +30,9 @@ class runner(anim.circle):
         runner.lonely_zone_size = 1. / runner.runners_count
 
     def __init__(self, speed: float, runner_size: float, label_size: float):
+        '''
+        Initializes the runner speed, position, colored flag, label, etc.
+        '''
         self.speed = speed
         self.lap_fraction = 0.
         self.colored = False
@@ -31,6 +42,9 @@ class runner(anim.circle):
         self.reset()
 
     def reset(self):
+        '''
+        Resets the runner position, its colored flag, and its fill color.
+        '''
         self.lap_fraction = 0.
         self.colored = False
         self.fill(anim.white).set_opacity(0.)
@@ -38,6 +52,9 @@ class runner(anim.circle):
 
     @staticmethod
     def _normalize_lap_fraction(fraction: float) -> float:
+        '''
+        Return the fraction of a lap constrained between 0 and 1.
+        '''
         fraction =_modf(fraction)[0]
         if fraction < 0.:
             return 1. + fraction
@@ -45,43 +62,78 @@ class runner(anim.circle):
             return fraction
 
     def set_opacity(self, opacity) -> anim.circle:
+        '''
+        Sets the runner illiustrated opacity, and the opcaity of its label.
+        '''
         self.label.set_opacity(opacity)
         return super().set_opacity(opacity)
 
     def set_lap_fraction(self, fraction: float):
+        '''
+        Sets the position of the runner around the track as a fraction
+        of a lap, between 0 and 1. Updates the illustration.
+        '''
         self.lap_fraction = runner._normalize_lap_fraction(fraction)
         self.center.set_angle(anim.hpi + anim.tau * self.lap_fraction)
         return self
 
     def distance_from_lonely(self):
+        '''
+        Returns the distance from this runner to the lonely runner as a
+        fracgtion of a lap, between 0 and 1.
+        '''
         return runner._normalize_lap_fraction(self.lap_fraction - runner.lonely.lap_fraction)
 
     def anim_lap_fraction(self):
+        '''
+        Returns a functions that can animate the lap fraction of this runner.
+        '''
         return lambda f : self.set_lap_fraction(f)
 
     def is_nearest_left(self) -> bool:
+        '''
+        Returns true if this runner is the nearest runner to the left of the
+        lonely runner.
+        '''
         if self == runner.lonely:
             return False
         return self == min(runner.runnings, key=lambda r: r.distance_from_lonely())
 
     def is_nearest_right(self) -> bool:
+        '''
+        Returns true if this runner is the nearest runner to the right of the
+        lonely runner.
+        '''
         if self == runner.lonely:
             return False
         return self == max(runner.runnings, key=lambda r: r.distance_from_lonely())
 
     def is_lonely(self) -> bool:
+        '''
+        Returns true if this runner is the lonely runner.
+        '''
         return self == runner.lonely
 
     def is_in_lonely_zone(self) -> bool:
+        '''
+        Returns true if this runner is in the lonely runner exclusion zone.
+        '''
         distance = self.distance_from_lonely()
         return distance < runner.lonely_zone_size or distance > 1. - runner.lonely_zone_size
 
     def set_colored(self, colored: bool):
+        '''
+        Sets if this runner should be drawn with colors.
+        '''
         self.colored = colored
         self.update_color()
         return self
 
     def update_color(self) -> anim.circle:
+        '''
+        Updates the color of this runner based on the colored flags and the
+        position of the runner vs the lonely runner.
+        '''
         if not self.colored:
             return
         elif self.is_lonely():
@@ -97,11 +149,17 @@ class runner(anim.circle):
         return self.fill(color)
 
     def update_label(self) -> anim.circle:
+        '''
+        Updates the position of the label to be on top of the runner.
+        '''
         if self.label:
             self.label.center_on(self)
         return self
 
     def _update_geometry(self):
+        '''
+        Updates the runner illustration when its geometry has changed.
+        '''
         super()._update_geometry()
         self.update_label()
         if runner.runners:
