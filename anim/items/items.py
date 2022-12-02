@@ -8,6 +8,7 @@ from .text import scaling_text, fixed_size_text
 from .item import item
 from .pen import pen
 from .colors import *
+from ..geometry import pi, hpi, tau
 from .. import trf
 
 import math
@@ -164,9 +165,9 @@ def create_roll_circle_in_circle_angles(inner_radius: float, outer_radius: float
     and inner circle perimeter rotation angle as if an inner circle
     were rotating inside the outer circle.
     """
-    inner_center_angle = 360. * rotation_count
+    inner_center_angle = tau * rotation_count
     radius_ratio = inner_radius / outer_radius
-    inner_perim_angle = -360. * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
+    inner_perim_angle = -tau * rotation_count * (1. - radius_ratio) * (1. / radius_ratio)
     return inner_center_angle, inner_perim_angle
 
 def create_relative_points_around_circle(circle: circle, count: int, angle_offset: float = 0.) -> _List[relative_point]:

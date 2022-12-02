@@ -33,7 +33,7 @@ choose the number of sides of the polygon.
 
 ## Examples
 
-The modules comes with many examples. Currently, there are two, but
+The modules comes with many examples. Currently, there are Seven, but
 more will be added later. The examples are:
 
 ### Aztec Circle
@@ -70,3 +70,9 @@ Base on this [Mathologer video](https://www.youtube.com/watch?v=XOS73mTomPY)
 Base on this [Mathologer video](https://www.youtube.com/watch?v=w4AUOgfW9NI)
 
 ![Pentagramaths](https://github.com/pierrebai/MathAnim/blob/main/examples/pentagramaths/Pentagramaths.png "Pentagramaths")
+
+### Lonely Runner
+
+Base on this [Wikipedia page](https://en.wikipedia.org/wiki/Lonely_runner_conjecture)
+
+![Lonely Runner](https://github.com/pierrebai/MathAnim/blob/main/examples/lonely_runner/Lonely_Runner.png "Lonely Runner")
