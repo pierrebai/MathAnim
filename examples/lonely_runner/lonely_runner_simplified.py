@@ -37,27 +37,34 @@ def lonely_runner_index() -> int:
 
 class lonely_runner(runner):
     def __init__(self, *args):
-        self.lonely_intervals = None
-        super().__init__(*args)
+        self.interval_arc = None
         self._fill_intervals()
+        super().__init__(*args)
+        self._create_interval_arc()
 
     def _fill_intervals(self):
-        lonely_index = runner.runners.index(self)
+        lonely_index = len(runner.runners)
         self.lonely_intervals = runners_solution(
-            runner.runners, lonely_index).intervals
+            runner.speeds, lonely_index).intervals
+
+    def _create_interval_arc(self):
+        lonely_angle = anim.tau * runner.lonely_zone_size
+        pt1 = anim.relative_radial_point(self.center, 0., -lonely_angle)
+        pt2 = anim.relative_radial_point(self.center, 0.,  lonely_angle)
+        self.interval_arc = anim.partial_circle(self.center, self.radius, pt1, pt2).fill(anim.no_color).outline(anim.black)
 
     def is_lonely(self) -> bool:
-        for interval in self.lonely_intervals:
-            if interval[0] <= self.lap_fraction <= interval[1]:
-                return True
-        return False
+        closest = min([self.distance_from(r) for r in lonely_runner.runners if r != self])
+        return closest >= runner.lonely_zone_size - 0.01
 
-    def _update_relative_position(self) -> anim.circle:
-        super()._update_relative_position(self)
+    def _update_lonely_status(self) -> anim.circle:
         if self.is_lonely():
+            color = anim.blue
             self.interval_arc.set_opacity(1.)
         else:
+            color = anim.white
             self.interval_arc.set_opacity(0.)
+        return self.fill(color)
 
 
 #################################################################
@@ -72,7 +79,12 @@ track = anim.circle(anim.origin, track_radius).thickness(track_width).outline(an
 track.setZValue(-1.)
 
 def _gen_runners():
-    lonely_runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius, runner_label_size)
+    lonely_runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
+    for r in lonely_runner.runners:
+        r.set_colored(True)
+        r.label.setZValue(2.)
+        r.interval_arc.setZValue(4.)
+
 
 #################################################################
 #
@@ -83,6 +95,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
     actors = [
         [anim.actor('Runner', '', r) for r in runner.runners],
+        [anim.actor('Label', '', r.label) for r in runner.runners],
         anim.actor('Track', '', track),
     ]
     animation.add_actors(actors, scene)
@@ -96,14 +109,10 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 
 def running_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Runners
-
-    Each one runs at their
-    own speed. All speeds
-    are different.
+    Lonely Runners
     '''
     for r in runner.runners:
-        animator.animate_value([0., r.speed], 10., r.anim_lap_fraction())
+        animator.animate_value([0., r.speed], 30., r.anim_lap_fraction())
 
 
 #################################################################

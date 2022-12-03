@@ -8,6 +8,7 @@ class runner(anim.circle):
     Hold all information about a runner, used to illustrate the
     lonely runner hypothesis.
     '''
+    speeds: _List[float] = []          # Runners speeds
     runners: _List[anim.circle] = []    # All runners
     runnings: _List[anim.circle] = []   # Runners except the lonely runner
     runners_count: int = 0              # How many runners there are, just len(runners)
@@ -16,12 +17,15 @@ class runner(anim.circle):
     always_colored = False              # Force all runners to update their colors
 
     @classmethod
-    def create_runners(clazz, speeds: _List[int], lonely_index: int, runner_size: float, track_radius: float, label_size: float) -> None:
+    def create_runners(clazz, speeds: _List[int], lonely_index: int, runner_size: float, track_radius: float) -> None:
         '''
         Creates all the runners corresponding to the given speeds and which
         runner we want to isolate to be lonely.
         '''
-        runner.runners = [clazz(speed, track_radius, runner_size, label_size) for speed in speeds]
+        runner.speeds = speeds
+        runner.runners = []
+        for speed in speeds:
+            runner.runners.append(clazz(speed, track_radius, runner_size, runner_size * 3. / 4.))
         runner.lonely = runner.runners[lonely_index]
         runner.runnings = [r for r in runner.runners if r != runner.lonely] 
         runner.runners_count = len(runner.runners)
@@ -36,7 +40,7 @@ class runner(anim.circle):
         self.colored = False
         self.label = None
         super().__init__(anim.radial_point(anim.origin, track_radius, anim.hpi), runner_size)
-        self.label = anim.scaling_text(f'{int(self.speed)}', self.center, label_size).set_opacity(0.)
+        self.label = anim.scaling_text(f'{int(self.speed)}', self.center, label_size)
         self.reset()
 
     def reset(self):
@@ -45,7 +49,7 @@ class runner(anim.circle):
         '''
         self.lap_fraction = 0.
         self.colored = False
-        self.fill(anim.white).set_opacity(0.)
+        self.fill(anim.white)
         self._update_geometry()
 
     @staticmethod
@@ -75,12 +79,22 @@ class runner(anim.circle):
         self.center.set_angle(anim.hpi + anim.tau * self.lap_fraction)
         return self
 
+    def distance_from(self, r) -> float:
+        '''
+        Returns the distance from this runner to another runner as a
+        fraction of a lap, between 0 and 0.5
+        '''
+        frac = runner._normalize_lap_fraction(self.lap_fraction - r.lap_fraction)
+        if frac > 0.5:
+            frac = 1. - frac
+        return frac
+
     def distance_from_lonely(self):
         '''
         Returns the distance from this runner to the lonely runner as a
-        fracgtion of a lap, between 0 and 1.
+        fraction of a lap, between 0 and 0.5
         '''
-        return runner._normalize_lap_fraction(self.lap_fraction - runner.lonely.lap_fraction)
+        return self.distance_from(runner.lonely)
 
     def anim_lap_fraction(self):
         '''
@@ -117,17 +131,17 @@ class runner(anim.circle):
         Returns true if this runner is in the lonely runner exclusion zone.
         '''
         distance = self.distance_from_lonely()
-        return distance < runner.lonely_zone_size or distance > 1. - runner.lonely_zone_size
+        return distance < runner.lonely_zone_size
 
     def set_colored(self, colored: bool):
         '''
         Sets if this runner should be drawn with colors.
         '''
         self.colored = colored
-        self._update_relative_position()
+        self._update_lonely_status()
         return self
 
-    def _update_relative_position(self) -> anim.circle:
+    def _update_lonely_status(self) -> anim.circle:
         '''
         Updates the color of this runner based on the colored flags and the
         position of the runner vs the lonely runner.
@@ -163,5 +177,5 @@ class runner(anim.circle):
         if runner.runners:
             if runner.always_colored or self == runner.runners[-1]:
                 for r in runner.runners:
-                    r._update_relative_position()
+                    r._update_lonely_status()
 

@@ -93,7 +93,6 @@ half_zone_thickness = 10.
 track_label_size: float = 200.
 lonely_zone_label_size: float = 100.
 timeline_label_size: float = 80.
-runner_label_size = 30.
 
 lonely_zone: anim.circle = None
 half_lonely_zone: anim.circle = None
@@ -114,7 +113,7 @@ timeline_labels = [
 timeline_solution_label = anim.scaling_text('', timeline.p1, timeline_label_size)
 
 def _gen_runners():
-    runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius, runner_label_size)
+    runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
 
 def _gen_lonely_zone():
     global lonely_zone
@@ -255,6 +254,7 @@ def _reset_runners() -> None:
     runner.always_colored = False
     for r in runner.runners:
         r.reset()
+        r.set_opacity(0.)
 
 def _reset_timeline() -> None:
     global last_runner_intervals_graphs
