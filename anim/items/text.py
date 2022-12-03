@@ -15,7 +15,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     def __init__(self, label: str, pos: point, font_size: float = 10., fixed_size = False) -> None:
         super().__init__(label, None)
         if isinstance(pos, relative_point):
-            self.position = relative_point(pos._origin, pos._start_pos)
+            self.position = relative_point(pos.origin, pos._start_pos)
         else:
             self.position = relative_point(pos)
         self.set_serif_font(font_size)

@@ -63,6 +63,14 @@ class runner(anim.circle):
         else:
             return fraction
 
+    def setZValue(self, z: float) -> anim.circle:
+        '''
+        Sets the Z-order of drawing, higher Z are on top.
+        '''
+        super().setZValue(z)
+        self.label.setZValue(z + 0.1)
+        return self
+
     def set_opacity(self, opacity) -> anim.circle:
         '''
         Sets the runner illiustrated opacity, and the opcaity of its label.
@@ -92,9 +100,9 @@ class runner(anim.circle):
     def distance_from_lonely(self):
         '''
         Returns the distance from this runner to the lonely runner as a
-        fraction of a lap, between 0 and 0.5
+        fraction of a lap, between 0 and 1.
         '''
-        return self.distance_from(runner.lonely)
+        return runner._normalize_lap_fraction(self.lap_fraction - runner.lonely.lap_fraction)
 
     def anim_lap_fraction(self):
         '''
@@ -131,7 +139,7 @@ class runner(anim.circle):
         Returns true if this runner is in the lonely runner exclusion zone.
         '''
         distance = self.distance_from_lonely()
-        return distance < runner.lonely_zone_size
+        return distance < runner.lonely_zone_size or distance > 1. - runner.lonely_zone_size
 
     def set_colored(self, colored: bool):
         '''

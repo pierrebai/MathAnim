@@ -49,9 +49,13 @@ class lonely_runner(runner):
 
     def _create_interval_arc(self):
         lonely_angle = anim.tau * runner.lonely_zone_size
-        pt1 = anim.relative_radial_point(self.center, 0., -lonely_angle)
-        pt2 = anim.relative_radial_point(self.center, 0.,  lonely_angle)
-        self.interval_arc = anim.partial_circle(self.center, self.radius, pt1, pt2).fill(anim.no_color).outline(anim.black)
+        pt1 = anim.relative_radial_point(self.center, 0.,  lonely_angle)
+        pt2 = anim.relative_radial_point(self.center, 0., -lonely_angle)
+        self.interval_arc = anim.partial_circle(self.center.origin, self.center.radius, pt1, pt2).fill(anim.pale_blue).outline(anim.no_color)
+
+    def setZValue(self, z: float) -> None:
+        self.interval_arc.setZValue(-2.)
+        return super().setZValue(z)
 
     def is_lonely(self) -> bool:
         closest = min([self.distance_from(r) for r in lonely_runner.runners if r != self])
@@ -76,14 +80,12 @@ track_radius: float = 500.
 track_width: float = runner_radius * 2.5
 
 track = anim.circle(anim.origin, track_radius).thickness(track_width).outline(anim.sable)
-track.setZValue(-1.)
 
 def _gen_runners():
     lonely_runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
     for r in lonely_runner.runners:
         r.set_colored(True)
-        r.label.setZValue(2.)
-        r.interval_arc.setZValue(4.)
+        r.setZValue(2.)
 
 
 #################################################################
@@ -96,6 +98,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     actors = [
         [anim.actor('Runner', '', r) for r in runner.runners],
         [anim.actor('Label', '', r.label) for r in runner.runners],
+        [anim.actor('Lonely', '', r.interval_arc) for r in runner.runners],
         anim.actor('Track', '', track),
     ]
     animation.add_actors(actors, scene)

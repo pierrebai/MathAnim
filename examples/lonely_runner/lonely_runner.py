@@ -121,8 +121,8 @@ def _gen_lonely_zone():
 
     count = runner.runners_count
     if count > 2:
-        zone_start = anim.relative_radial_point(runner.lonely.center, 0., anim.tau * runner.lonely_zone_size)
-        zone_end = anim.relative_radial_point(runner.lonely.center, 0.,  -anim.tau * runner.lonely_zone_size)
+        zone_start = anim.relative_radial_point(runner.lonely.center, 0., -anim.tau * runner.lonely_zone_size)
+        zone_end = anim.relative_radial_point(runner.lonely.center, 0.,    anim.tau * runner.lonely_zone_size)
         lonely_zone  = anim.partial_circle(track_center, lonely_zone_radius, zone_start, zone_end)
         half_lonely_zone  = anim.line(track_center, runner.lonely.center)
     else:
@@ -138,10 +138,8 @@ def _gen_lonely_zone():
 
 def _order_items():
     for i, r in enumerate(runner.runners):
-        r.setZValue(i * 3. + 1.)
-        r.label.setZValue(i * 3. + 2.)
+        r.setZValue(i)
     runner.lonely.setZValue(2000.)
-    runner.lonely.label.setZValue(2001.)
     lonely_zone.setZValue(-2.)
     lonely_zone_label.setZValue(-1.)
     half_lonely_zone.setZValue(-2.)
@@ -256,16 +254,30 @@ def _reset_runners() -> None:
         r.reset()
         r.set_opacity(0.)
 
-def _reset_timeline() -> None:
+def _reset_timeline(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
     global last_runner_intervals_graphs
-    last_runner_intervals_graphs = []
     global last_overal_intervals_graphs
-    last_overal_intervals_graphs = []
     global next_to_last_overal_intervals_graphs
+
+    try:
+        _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
+    except:
+        pass
+    try:
+        _remove_intervals_graphs(last_overal_intervals_graphs, animation, scene, animator)
+    except:
+        pass
+    try:
+        _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
+    except:
+        pass
+
+    last_runner_intervals_graphs = []
+    last_overal_intervals_graphs = []
     next_to_last_overal_intervals_graphs = []
 
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
-    _reset_timeline()
+    _reset_timeline(animation, scene, animator)
     _reset_opacities()
     _reposition_points()
     _reset_runners()

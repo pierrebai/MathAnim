@@ -4,6 +4,7 @@ from .item import item
 from ..geometry import four_points_angle, two_points_angle, cos, sin, sqrt, tau, pi
 
 from typing import Tuple as _Tuple, List as _List
+from math import modf as _modf
 
 from PySide6.QtWidgets import QGraphicsEllipseItem as _QGraphicsEllipseItem
 from PySide6.QtCore import QRectF as _QRectF
@@ -34,8 +35,6 @@ class _circle_base(_QGraphicsEllipseItem, item):
         """
         Set the start / end angle in radians of the partial circle.
         """
-        while start_angle > end_angle:
-            end_angle += tau
         start_16th_degrees = start_angle * 180. * 16. / pi
         span_16th_degrees = (end_angle - start_angle) * 180. * 16. / pi
         self.setStartAngle(start_16th_degrees)
@@ -210,7 +209,25 @@ class partial_circle(circle):
         """
         Updates the circle geometry if the rectangle changed.
         """
-        point1_angle  = -two_points_angle(self.center, self.radius_point1)
+        point1_angle = -two_points_angle(self.center, self.radius_point1)
         point2_angle = -two_points_angle(self.center, self.radius_point2)
-        self.set_angles_span(point1_angle, point2_angle)
+
+        def lap_distance(l1: float, l2: float) -> float:
+            if l2 > l1:
+                return abs(l2 - l1)
+            else:
+                return abs(1. - (l1 - l2))
+
+        lap1 = point1_angle / tau
+        lap2 = point2_angle / tau
+        lap1_delta = lap_distance(lap1, lap2)
+        lap2_delta = lap_distance(lap2, lap1)
+
+        if lap1_delta < lap2_delta:
+            small_angle = lap1 * tau
+            large_angle = (lap1 + lap1_delta) * tau
+        else:
+            small_angle = lap2 * tau
+            large_angle = (lap2 + lap2_delta) * tau
+        self.set_angles_span(small_angle, large_angle)
         super()._update_geometry()
