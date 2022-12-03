@@ -264,7 +264,7 @@ class animation(QObject, named):
         Place the pointing arrow to start at the description and
         point to the given point.
         """
-        desc_rect = scene.description_box.sceneBoundingRect()
+        desc_rect = scene.description.scene_rect()
         desc_pos = desc_rect.topLeft()
         scene.pointing_arrow.item.tail.set_point(desc_pos)
         scene.pointing_arrow.item.head.set_point(head_point)
@@ -276,7 +276,7 @@ class animation(QObject, named):
         """
         scene.pointing_arrow.item.set_head(point(scene.pointing_arrow.item.head))
         tail_pos = QPointF(scene.pointing_arrow.item.tail)
-        desc_rect = scene.description_box.sceneBoundingRect()
+        desc_rect = scene.description.scene_rect()
         desc_pos = desc_rect.topLeft()
         animator.animate_value([tail_pos, desc_pos], duration, anims.move_point(scene.pointing_arrow.item.tail))
 
@@ -385,8 +385,10 @@ class animation(QObject, named):
             self.prepare_playing(scene, animator)
 
         current_shot = self.shots[self.current_shot_index]
-        scene.set_title(current_shot.name)
-        scene.set_description(current_shot.description)
+        scene.set_main_title(self.name)
+        scene.set_subtitle(self.description)
+        scene.set_shot_title(current_shot.name)
+        scene.set_shot_description(current_shot.description)
         animator.play(current_shot, self, scene)
         self.on_shot_changed.emit(scene, animator, current_shot)
 

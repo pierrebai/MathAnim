@@ -7,7 +7,7 @@ from .runner import runner
 #
 # Description
 
-name = 'Lonely Runner - Sinplified'
+name = 'Lonely Runner - Simplified'
 description = 'https://en.wikipedia.org/wiki/Lonely_runner_conjecture'
 loop = True
 reset_on_change = True

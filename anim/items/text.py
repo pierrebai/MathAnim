@@ -12,7 +12,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     """
     Text graphics item that follows the scene.
     """
-    def __init__(self, label: str, pos: point, font_size: float = 10., fixed_size = False) -> None:
+    def __init__(self, label: str, pos: point, font_size: float = 10.) -> None:
         super().__init__(label, None)
         if isinstance(pos, relative_point):
             self.position = relative_point(pos.origin, pos._start_pos)
@@ -20,8 +20,6 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
             self.position = relative_point(pos)
         self.set_serif_font(font_size)
         self.position.add_user(self)
-        if fixed_size:
-            self.set_fixed_size()
         self._update_geometry()
 
     def set_font(self, font_name, font_size: float) -> _QGraphicsSimpleTextItem:
@@ -44,12 +42,6 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         Retrieves the font name of the text.
         """
         return self.font().family()
-
-    def set_fixed_size(self):
-        """
-        Sets the font name and floating-point font size of the text.
-        """
-        self.setFlag(_QGraphicsSimpleTextItem.ItemIgnoresTransformations)
 
     def set_serif_font(self, font_size: float = 10.) -> _QGraphicsSimpleTextItem:
         """
@@ -123,7 +115,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Retrieves the position of subscript (bottom-right) of the text.
         """
-        corner = self.sceneBoundingRect().bottomRight()
+        corner = self.scene_rect().bottomRight()
         delta = corner - self.position
         return relative_point(self.position, delta)
 
@@ -131,7 +123,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Retrieves the top-left corner of the text.
         """
-        corner = self.sceneBoundingRect().topLeft()
+        corner = self.scene_rect().topLeft()
         delta = corner - self.position
         return relative_point(self.position, delta)
 
@@ -155,10 +147,61 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
             self.prepareGeometryChange()
             self.setPos(self.position)
 
-
 class fixed_size_text(scaling_text):
     """
     Text graphics item that ignores the scene transformation.
     """
-    def __init__(self, text: str, pos: point, font_size: float = 10.) -> None:
-        super().__init__(text, pos, font_size, True)
+    def __init__(self, text: str, pos: point, font_size: float = 10., min_line_length: int = 36) -> None:
+        self.min_line_length = min_line_length
+        self._real_rect = static_rectangle(0, 0, 6, 2)
+        super().__init__(text, pos, font_size)
+        self.setFlag(_QGraphicsSimpleTextItem.ItemIgnoresTransformations)
+
+    def scene_rect(self) -> static_rectangle:
+        """
+        Retrieves the scene-scale dimension of the text.
+        """
+        return self.mapRectToScene(self._real_rect.x(), self._real_rect.y(), self._real_rect.width(), self._real_rect.height())
+
+    def pos(self) -> static_point:
+        pos = super().pos()
+        pos = self.transform().map(pos)
+        return pos
+
+    def scenePos(self) -> static_point:
+        pos = super().scenePos()
+        pos = self.transform().map(pos)
+        return pos
+
+    def boundingRect(self):
+        text_rect = super().boundingRect()
+        real_rect = self._real_rect
+        return self._real_rect
+
+    def sceneBoundingRect(self):
+        text_rect = super().sceneBoundingRect()
+        real_rect = self._real_rect
+        return self._real_rect
+
+    def setText(self, text: str) -> None:
+        super().setText(text)
+        self._update_geometry()
+
+    def _update_geometry(self):
+        """
+        Updates the text position after the point moved.
+        """
+        pos = self.transform().map(self.position)
+        if pos != self.scenePos():
+            self.prepareGeometryChange()
+            self.setPos(pos)
+        
+        self.prepareGeometryChange()
+        letter_width = self.get_font_size()
+        letter_height = self.get_font_size() * 2
+
+        lines = self.text().splitlines()
+        lineCount = len(lines)
+        letter_count = max([self.min_line_length] + [len(line) for line in lines])
+
+        self._real_rect.setRect(0., 0., int(letter_width * letter_count), letter_height * lineCount)

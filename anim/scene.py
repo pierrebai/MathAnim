@@ -1,6 +1,6 @@
 from .actor import actor
 from .view import view
-from .items import create_pointing_arrow, point, item, static_point, static_rectangle
+from .items import create_pointing_arrow, point, item, static_point, static_rectangle, fixed_size_text
 
 from PySide6.QtGui import QFont, QPen, QColor
 from PySide6.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsRectItem
@@ -71,23 +71,15 @@ class scene:
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.set_scene(self)
 
-        self.title = QGraphicsSimpleTextItem()
-        self.title.setFont(QFont("Georgia", 24))
-        self.title.setFlag(QGraphicsSimpleTextItem.ItemIgnoresTransformations)
+        self.main_title = fixed_size_text('', point(0., 0.), 36)
+        self.scene.addItem(self.main_title)
+        self.subtitle = fixed_size_text('', point(0., 0.), 10)
+        self.scene.addItem(self.subtitle)
+
+        self.title = fixed_size_text('', point(0., 0.), 24)
         self.scene.addItem(self.title)
-
-        self.title_box = QGraphicsRectItem(0, 0, 6, 2)
-        self.title_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
-        self.scene.addItem(self.title_box)
-
-        self.description = QGraphicsSimpleTextItem()
-        self.description.setFont(QFont("Georgia", 10))
-        self.description.setFlag(QGraphicsSimpleTextItem.ItemIgnoresTransformations)
+        self.description = fixed_size_text('', point(0., 0.), 10)
         self.scene.addItem(self.description)
-
-        self.description_box = QGraphicsRectItem(0, 0, 2, 6)
-        self.description_box.setPen(QPen(QColor(0, 0, 0, 0), 0))
-        self.scene.addItem(self.description_box)
 
         arrow = create_pointing_arrow(point(0., 0.), point(0., 0.))
         self.pointing_arrow = actor("pointing arrow", "The arrow that points to what the description is talking about.", arrow)
@@ -98,17 +90,33 @@ class scene:
     #
     # Title and Description
 
-    def set_title(self, title: str) -> None:
+    def set_main_title(self, title: str) -> None:
         """
-        Sets the title and redo its placement.
+        Sets the main title and redo its placement.
+        """
+        self.main_title.setText(title)
+        self.view.preserve_transform()
+        self.ensure_all_contents_fit()
+
+    def set_subtitle(self, title: str) -> None:
+        """
+        Sets the subtitle and redo its placement.
+        """
+        self.subtitle.setText(title)
+        self.view.preserve_transform()
+        self.ensure_all_contents_fit()
+
+    def set_shot_title(self, title: str) -> None:
+        """
+        Sets the shot title and redo its placement.
         """
         self.title.setText(title)
         self.view.preserve_transform()
         self.ensure_all_contents_fit()
 
-    def set_description(self, description: str) -> None:
+    def set_shot_description(self, description: str) -> None:
         """
-        Sets the description and redo its placement.
+        Sets the shot description and redo its placement.
         """
         self.description.setText(description)
         self.view.preserve_transform()
@@ -123,57 +131,35 @@ class scene:
         """
         Returns the boundary of non-title items and all items including title.
         """
+        self.scene.removeItem(self.main_title)
+        self.scene.removeItem(self.subtitle)
         self.scene.removeItem(self.title)
-        self.scene.removeItem(self.title_box)
         self.scene.removeItem(self.description)
-        self.scene.removeItem(self.description_box)
         self.scene.removeItem(self.pointing_arrow.item)
         # Note: we need to use itemsBoundingRect because sceneRect never shrink,
         #       so removing the title and description would have no effect.
         actors_rect = self.scene.itemsBoundingRect()
-        self.scene.addItem(self.title_box)
-        self.scene.addItem(self.description_box)
+
         self.scene.addItem(self.pointing_arrow.item)
-
-        scene_rect = self.scene.itemsBoundingRect()
-
+        self.scene.addItem(self.main_title)
+        self.scene.addItem(self.subtitle)
         self.scene.addItem(self.title)
         self.scene.addItem(self.description)
-        
-        return actors_rect, scene_rect
+        scene_rect = self.scene.itemsBoundingRect()
 
-    def _size_text_boxes(self):
-        """
-        Because the title and desciption are not transformed, the scene
-        does not calculate their size and boundaries correctly.
-        We use invisible boxes to fix that.
-        """
-        letter_count = len(self.title.text())
-        r = self.view.map_rect_to_scene(static_rectangle(0, 0, 15 * letter_count, 40))
-        self.title_box.setRect(static_rectangle(0, 0, r.width(), r.height()))
-        lines = self.description.text().splitlines()
-        lineCount = len(lines)
-        letter_count = max(36, max([len(line) for line in lines]) if lines else 1)
-        r = self.view.map_rect_to_scene(static_rectangle(0, 0, int(6.5 * letter_count), 20 * lineCount))
-        self.description_box.setRect(static_rectangle(0, 0, r.width(), r.height()))
+        return actors_rect, scene_rect
 
     def _place_title_and_desc(self) -> static_rectangle:
         """
         Places the title above other items the description to their right.
         """
-        self._size_text_boxes()
-
         actors_rect, scene_rect = self._get_items_rect()
 
-        view_top_left = self.view.map_point_from_scene(actors_rect.topLeft())
-        top_left = self.view.map_point_to_scene(view_top_left - static_point(0, self.title.font().pointSize() * 1.5))
-        self.title.setPos(top_left)
-        self.title_box.setPos(top_left)
+        self.title.position.set_absolute_point(actors_rect.topLeft() - static_point(0, self.title.font().pointSize() * 4))
+        self.description.position.set_absolute_point(actors_rect.topRight() + static_point(30, 0))
 
-        view_top_right = self.view.map_point_from_scene(actors_rect.topRight())
-        top_left = self.view.map_point_to_scene(view_top_right + static_point(30, 0))
-        self.description.setPos(top_left)
-        self.description_box.setPos(top_left)
+        self.subtitle.position.set_absolute_point(self.title.position - static_point(0, self.subtitle.font().pointSize() * 8))
+        self.main_title.position.set_absolute_point(self.subtitle.position - static_point(20, self.main_title.font().pointSize() * 4.5))
 
         return scene_rect
 
