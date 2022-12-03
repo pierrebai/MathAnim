@@ -10,8 +10,10 @@ from examples.vortex_maths.vortex_maths import vortex_maths
 from examples.three_bisectors.three_bisectors import three_bisectors
 from examples.pentagramaths.pentagramaths import pentagramaths
 from examples.lonely_runner.lonely_runner import lonely_runner
+from examples.lonely_runner.lonely_runner_simplified import lonely_runner_sinplified
 
 anims = [
+    lonely_runner_sinplified,
     lonely_runner,
     pentagramaths,
     three_bisectors,

@@ -13,23 +13,21 @@ class runner(anim.circle):
     runners_count: int = 0              # How many runners there are, just len(runners)
     lonely: anim.circle = None          # The lonely runner
     lonely_zone_size: float = 0.5       # The lonely zone size: 1  / runners_count
-    track_radius: float = 1.            # Size of the illustrated track 
     always_colored = False              # Force all runners to update their colors
 
-    @staticmethod
-    def create_runners(speeds: _List[int], lonely_index: int, runner_size: float, track_radius: float, label_size: float) -> None:
+    @classmethod
+    def create_runners(clazz, speeds: _List[int], lonely_index: int, runner_size: float, track_radius: float, label_size: float) -> None:
         '''
         Creates all the runners corresponding to the given speeds and which
         runner we want to isolate to be lonely.
         '''
-        runner.track_radius = track_radius
-        runner.runners = [runner(speed, runner_size, label_size) for speed in speeds]
+        runner.runners = [clazz(speed, track_radius, runner_size, label_size) for speed in speeds]
         runner.lonely = runner.runners[lonely_index]
         runner.runnings = [r for r in runner.runners if r != runner.lonely] 
         runner.runners_count = len(runner.runners)
         runner.lonely_zone_size = 1. / runner.runners_count
 
-    def __init__(self, speed: float, runner_size: float, label_size: float):
+    def __init__(self, speed: float, track_radius: float, runner_size: float, label_size: float):
         '''
         Initializes the runner speed, position, colored flag, label, etc.
         '''
@@ -37,7 +35,7 @@ class runner(anim.circle):
         self.lap_fraction = 0.
         self.colored = False
         self.label = None
-        super().__init__(anim.radial_point(anim.origin, runner.track_radius, anim.hpi), runner_size)
+        super().__init__(anim.radial_point(anim.origin, track_radius, anim.hpi), runner_size)
         self.label = anim.scaling_text(f'{int(self.speed)}', self.center, label_size).set_opacity(0.)
         self.reset()
 
@@ -126,10 +124,10 @@ class runner(anim.circle):
         Sets if this runner should be drawn with colors.
         '''
         self.colored = colored
-        self.update_color()
+        self._update_relative_position()
         return self
 
-    def update_color(self) -> anim.circle:
+    def _update_relative_position(self) -> anim.circle:
         '''
         Updates the color of this runner based on the colored flags and the
         position of the runner vs the lonely runner.
@@ -148,7 +146,7 @@ class runner(anim.circle):
             color = anim.green
         return self.fill(color)
 
-    def update_label(self) -> anim.circle:
+    def _update_label(self) -> anim.circle:
         '''
         Updates the position of the label to be on top of the runner.
         '''
@@ -161,9 +159,9 @@ class runner(anim.circle):
         Updates the runner illustration when its geometry has changed.
         '''
         super()._update_geometry()
-        self.update_label()
+        self._update_label()
         if runner.runners:
             if runner.always_colored or self == runner.runners[-1]:
                 for r in runner.runners:
-                    r.update_color()
+                    r._update_relative_position()
 

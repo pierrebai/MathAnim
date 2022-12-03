@@ -1,0 +1,113 @@
+import anim
+from typing import List as _List
+from .runners_allowed_intervals import *
+from .runner import runner
+
+#################################################################
+#
+# Description
+
+name = 'Lonely Runner - Sinplified'
+description = 'https://en.wikipedia.org/wiki/Lonely_runner_conjecture'
+loop = True
+reset_on_change = True
+has_pointing_arrow = False
+
+
+#################################################################
+#
+# Options
+
+runners_speeds_options = anim.option('Runner speeds', 'The runner speeds, a list of integers.', '0 1 3 4 7', '', '')
+lonely_runner_options = anim.option('Lonely Runner', 'The runner index, starting from zero, that will be lonely.', 0, 0, 100)
+
+def runners_speeds() -> _List[float]:
+    try:
+        return [float(s) for s in runners_speeds_options.value.split()]
+    except ValueError:
+        return [0]
+
+def lonely_runner_index() -> int:
+    return min(int(lonely_runner_options.value), len(runners_speeds()))
+
+
+#################################################################
+#
+# Runner with lonely detection
+
+class lonely_runner(runner):
+    def __init__(self, *args):
+        self.lonely_intervals = None
+        super().__init__(*args)
+        self._fill_intervals()
+
+    def _fill_intervals(self):
+        lonely_index = runner.runners.index(self)
+        self.lonely_intervals = runners_solution(
+            runner.runners, lonely_index).intervals
+
+    def is_lonely(self) -> bool:
+        for interval in self.lonely_intervals:
+            if interval[0] <= self.lap_fraction <= interval[1]:
+                return True
+        return False
+
+    def _update_relative_position(self) -> anim.circle:
+        super()._update_relative_position(self)
+        if self.is_lonely():
+            self.interval_arc.set_opacity(1.)
+        else:
+            self.interval_arc.set_opacity(0.)
+
+
+#################################################################
+#
+# Points and geometries
+
+runner_radius: float = 40.
+track_radius: float = 500.
+track_width: float = runner_radius * 2.5
+
+track = anim.circle(anim.origin, track_radius).thickness(track_width).outline(anim.sable)
+track.setZValue(-1.)
+
+def _gen_runners():
+    lonely_runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius, runner_label_size)
+
+#################################################################
+#
+# Actors
+
+def generate_actors(animation: anim.animation, scene: anim.scene):
+    _gen_runners()
+
+    actors = [
+        [anim.actor('Runner', '', r) for r in runner.runners],
+        anim.actor('Track', '', track),
+    ]
+    animation.add_actors(actors, scene)
+    rect_radius = track_radius * 1.1
+    scene.add_item(anim.create_invisible_rect(-rect_radius, -rect_radius, rect_radius * 2, rect_radius * 2))
+
+
+#################################################################
+#
+# Shots
+
+def running_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Runners
+
+    Each one runs at their
+    own speed. All speeds
+    are different.
+    '''
+    for r in runner.runners:
+        animator.animate_value([0., r.speed], 10., r.anim_lap_fraction())
+
+
+#################################################################
+#
+# Animation
+
+lonely_runner_sinplified = anim.simple_animation.from_module(globals())
