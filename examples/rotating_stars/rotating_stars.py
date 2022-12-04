@@ -66,6 +66,13 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     global inner_polygons; inner_polygons = _gen_inner_polygons(scene)
     global inter_polygons; inter_polygons = _gen_inter_polygons(scene)
 
+    for c in inner_circles:
+        c.item.setZValue(-1)
+
+    for ds in inner_dots:
+        for d in ds:
+            d.item.setZValue(1)
+
     animation.add_actors([outer_circle, inner_circles, inner_dots, inner_polygons, inter_polygons, star], scene)
 
 def _gen_star(scene: anim.scene):
@@ -134,8 +141,8 @@ def outer_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     """
     Draw the outer circle
 
-    This is the ounter circle
-    insides which the smaller ones
+    This is the outer circle,
+    in which the smaller one
     will rotate.
     """
     circle = outer_circle
@@ -147,8 +154,9 @@ def inner_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     """
     Draw an inner circle
 
-    This is one of the inner circle that
-    rotates inside the outer circle.
+    This is one of the inner
+    circle that rotates inside
+    the outer circle.
     """
     _anim_inner_circle(0, animator)
     circle = inner_circles[0]
@@ -158,10 +166,11 @@ def inner_circle_dot_shot(shot: anim.shot, animation: anim.animation, scene: ani
     """
     Draw an inner-circle dot
 
-    This dot on a circle is one
-    of the corners of a polygon
-    that will rotate, following
-    the circle is it placed on.
+    This dot on a circle is
+    one of the corners of a
+    polygon. This polygon
+    will spin, dragged along
+    by the circle beneath it.
     """
     dot = inner_dots[0][0]
     reveal = anim.reveal_item(dot)
@@ -172,11 +181,11 @@ def star_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, ani
     """
     Draw the star
 
-    This is the star shape that is
-    formed by the path that one dot
-    on the inner circle follows as
-    this inner circle rotates inside
-    the outer one.
+    This is the star that is
+    traced by one of the dots
+    on the inner circle as it
+    rotates inside the outer
+    circle.
     """
     reveal = anim.reveal_item(star)
     animator.animate_value([0., 1.], reveal_duration, reveal)
@@ -186,10 +195,11 @@ def other_inner_circle_dots_shot(shot: anim.shot, animation: anim.animation, sce
     """
     Draw the other inner-circle dots
 
-    Place the other inner-circle dots
-    at the corners of the polygon which
-    will follow the inner circle in its
-    rotation.
+    The other inner-circle
+    dots are placed to form
+    the corners of the polygon
+    attached on top the inner
+    circle.
     """
     for which_dot in range(1, dots_count()):
         _anim_other_inner_circle_dots(0, which_dot, animator)
@@ -198,9 +208,9 @@ def inner_circle_polygon_shot(shot: anim.shot, animation: anim.animation, scene:
     """
     Draw the inner-circle polygon
 
-    This is the polygon that will
-    follow the inner circle in its
-    rotation.
+    This is the polygon which
+    follows the inner circle
+    in its rotation.
     """
     _anim_inner_circle_polygon_arrow(0, animation, scene, animator)
     _anim_inner_circle_polygon(0, animator)
@@ -209,8 +219,9 @@ def other_circles_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     """
     Draw the other inner circles
 
-    These are all the other inner circles,
-    their dots and their polygons.
+    These are all the other
+    inner circles, their dots
+    and their polygons.
     """
     _anim_inner_circle_polygon_arrow(1, animation, scene, animator)
     for which_inner in range(1, inner_count()):
@@ -224,12 +235,16 @@ def inter_circle_polygons_shot(shot: anim.shot, animation: anim.animation, scene
     """
     Draw the inter-circle polygons
 
-    These are the polygons formed
-    by linking the corresponding
-    dots on each inner circle.
-    They will also rotate when
-    the inner circles rotate and
-    surprisingly not deform.
+    By linking each group of
+    corresponding dots on each
+    inner circle, we form these
+    inter-circle polygons.
+
+    These polygons will also
+    rotate when dragged along
+    by the inner circles and,
+    surprisingly, will keep
+    their rigid shape.
     """
     polys = [inter_polygons[which_dot] for which_dot in range(0, dots_count())]
     for poly in polys:
@@ -239,9 +254,10 @@ def rotate_all_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     """
     Animate all polygons
 
-    Rotate the inner circle inside
-    the outer one dragging along
-    the polygons in a curious dance.
+    Rotate the inner circles
+    inside the outer ones,
+    dragging along the polygons
+    in a curious dance.
     """
     shot.repeat = True
 

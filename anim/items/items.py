@@ -85,7 +85,7 @@ def create_disk(center: point, radius: float) -> circle:
     """
     Creates a dynamic gray filled disk.
     """
-    return circle(center, radius).outline(no_color).fill(gray)
+    return circle(center, radius).outline(no_color).fill(pale_gray)
 
 def create_line(p1: point, p2: point) -> line:
     """

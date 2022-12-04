@@ -26,16 +26,13 @@ class scene:
         Creates the scene (QGraphicsScene) and the view.
         """
         super().__init__()
-        self.view = view()
+        self.view = view(margin)
         self.remove_all_items()
 
-    def reset(self, margin: int = None) -> None:
+    def reset(self) -> None:
         """
-        Resets to a new scene and resets the view with the given margin
-        or the default margin.
+        Resets to a new scene and resets the view.
         """
-        self.title = ""
-        self.description = ""
         self.view.preserve_transform()
         self.ensure_all_contents_fit()
         
@@ -155,11 +152,14 @@ class scene:
         """
         actors_rect, scene_rect = self._get_items_rect()
 
-        self.title.position.set_absolute_point(actors_rect.topLeft() - static_point(0, self.title.font().pointSize() * 4))
+        def text_height(t: fixed_size_text, factor: float = 1.6) -> static_point:
+            return factor * self.view.transform().inverted()[0].map(static_point(0., t.font().pointSize())).y()
+
+        self.title.position.set_absolute_point(actors_rect.topLeft() - static_point(0, text_height(self.title)))
         self.description.position.set_absolute_point(actors_rect.topRight() + static_point(30, 0))
 
-        self.subtitle.position.set_absolute_point(self.title.position - static_point(0, self.subtitle.font().pointSize() * 8))
-        self.main_title.position.set_absolute_point(self.subtitle.position - static_point(20, self.main_title.font().pointSize() * 4.5))
+        self.subtitle.position.set_absolute_point(self.title.position - static_point(60, text_height(self.subtitle, 3.)))
+        self.main_title.position.set_absolute_point(self.subtitle.position - static_point(20, text_height(self.main_title)))
 
         return scene_rect
 

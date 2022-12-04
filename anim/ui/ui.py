@@ -253,7 +253,7 @@ def create_main_window(title: str, central_widget) -> QMainWindow:
     """
     window = QMainWindow()
     window.setWindowTitle(title)
-    window.resize(1000, 800)
+    window.resize(1280, 800)
     window.setCentralWidget(central_widget)
     return window
 
