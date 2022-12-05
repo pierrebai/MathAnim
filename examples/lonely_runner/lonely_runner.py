@@ -499,6 +499,8 @@ def first_runner_on_timeline_shot(shot: anim.shot, animation: anim.animation, sc
         _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
         r = runner.runnings[which]
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+        if runner.lonely.speed:
+            animator.animate_value([0., runner.lonely.speed], duration, runner.lonely.anim_lap_fraction())
 
 def overal_allowed_times_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -534,6 +536,8 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
         _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
         r = runner.runnings[which]
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
+        if runner.lonely.speed:
+            animator.animate_value([0., runner.lonely.speed], duration, runner.lonely.anim_lap_fraction())
     if _has_more_runner_intervals():
         animation.add_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
     else:

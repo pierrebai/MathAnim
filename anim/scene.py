@@ -68,12 +68,12 @@ class scene:
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.set_scene(self)
 
-        self.main_title = fixed_size_text('', point(0., 0.), 36)
+        self.main_title = fixed_size_text('', point(0., 0.), 36).set_sans_font(36)
         self.scene.addItem(self.main_title)
         self.subtitle = fixed_size_text('', point(0., 0.), 10)
         self.scene.addItem(self.subtitle)
 
-        self.title = fixed_size_text('', point(0., 0.), 24)
+        self.title = fixed_size_text('', point(0., 0.), 24).set_sans_font(24)
         self.scene.addItem(self.title)
         self.description = fixed_size_text('', point(0., 0.), 10)
         self.scene.addItem(self.description)
@@ -152,14 +152,16 @@ class scene:
         """
         actors_rect, scene_rect = self._get_items_rect()
 
-        def text_height(t: fixed_size_text, factor: float = 1.6) -> static_point:
-            return factor * self.view.transform().inverted()[0].map(static_point(0., t.font().pointSize())).y()
+        def text_height(t: fixed_size_text, factor: float) -> static_point:
+            return t.boundingRect().height() * factor
 
-        self.title.position.set_absolute_point(actors_rect.topLeft() - static_point(0, text_height(self.title)))
         self.description.position.set_absolute_point(actors_rect.topRight() + static_point(30, 0))
 
-        self.subtitle.position.set_absolute_point(self.title.position - static_point(60, text_height(self.subtitle, 3.)))
-        self.main_title.position.set_absolute_point(self.subtitle.position - static_point(20, text_height(self.main_title)))
+        title_factor = 1.1 if self.title.text().strip() else 0.
+
+        self.title.position.set_absolute_point(actors_rect.topLeft() - static_point(0, text_height(self.title, title_factor)))
+        self.subtitle.position.set_absolute_point(self.title.position - static_point(-40, text_height(self.subtitle, 3.)))
+        self.main_title.position.set_absolute_point(self.subtitle.position - static_point(60, text_height(self.main_title, 1.1)))
 
         return scene_rect
 

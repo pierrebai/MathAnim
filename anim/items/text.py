@@ -3,10 +3,11 @@ from .point import point, relative_point, static_point
 from .item import item
 
 from PySide6.QtWidgets import QGraphicsSimpleTextItem as _QGraphicsSimpleTextItem
-from PySide6.QtGui import QFont as _QFont
+from PySide6.QtGui import QFont as _QFont, QFontMetricsF as _QFontMetricsF
+from PySide6.QtCore import QRectF as _QRectF
 
 import math
-from typing import List as _List
+from typing import List as _List, Tuple as _Tuple
 
 class scaling_text(_QGraphicsSimpleTextItem, item):
     """
@@ -154,8 +155,23 @@ class fixed_size_text(scaling_text):
     def __init__(self, text: str, pos: point, font_size: float = 10., min_line_length: int = 36) -> None:
         self.min_line_length = min_line_length
         self._real_rect = static_rectangle(0, 0, 6, 2)
+        self.letter_width = 1.
+        self.letter_height = 1.
         super().__init__(text, pos, font_size)
         self.setFlag(_QGraphicsSimpleTextItem.ItemIgnoresTransformations)
+        self._update_letter_size()
+
+    def set_font(self, font_name, font_size: float) -> scaling_text:
+        """
+        Sets the font name and floating-point font size of the text.
+        """
+        super().set_font(font_name, font_size)
+        return self._update_letter_size()
+
+    def _update_letter_size(self) -> scaling_text:
+        self.letter_width = _QFontMetricsF(self.font()).averageCharWidth()
+        self.letter_height = _QFontMetricsF(self.font()).height()
+        return self
 
     def scene_rect(self) -> static_rectangle:
         """
@@ -174,18 +190,31 @@ class fixed_size_text(scaling_text):
         return pos
 
     def boundingRect(self):
-        text_rect = super().boundingRect()
-        real_rect = self._real_rect
         return self._real_rect
 
     def sceneBoundingRect(self):
-        text_rect = super().sceneBoundingRect()
-        real_rect = self._real_rect
         return self._real_rect
 
     def setText(self, text: str) -> None:
         super().setText(text)
         self._update_geometry()
+
+    def _get_scaling(self) -> _Tuple[float, float]:
+        '''
+        Retrieve the scaling of the view, rounded to the nearest quarter.
+        The rounding is to give some stability, avoiding constant small
+        shifts.
+        '''
+        sx = sy = 1.
+        scene = self.scene()
+        if scene:
+            views = scene.views()
+            if views and views[0]:
+                sz = views[0].transform().mapRect(_QRectF(0., 0., 1., 1.)).size()
+                sx, sy = 1. / sz.width(), 1. / sz.height()
+                sx = round(sx * 2.) / 2.
+                sy = round(sy * 2.) / 2.
+        return sx, sy
 
     def _update_geometry(self):
         """
@@ -195,10 +224,11 @@ class fixed_size_text(scaling_text):
         if pos != self.scenePos():
             self.prepareGeometryChange()
             self.setPos(pos)
-        
+
         self.prepareGeometryChange()
-        letter_width = self.get_font_size()
-        letter_height = self.get_font_size() * 2
+        sx, sy = self._get_scaling()
+        letter_width  = self.letter_width  * sx
+        letter_height = self.letter_height * sy
 
         lines = self.text().splitlines()
         lineCount = len(lines)
