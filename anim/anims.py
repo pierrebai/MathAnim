@@ -1,11 +1,12 @@
 from anim.items.items import create_roll_circle_in_circle_angles
 from .actor import actor
 from .animator import animator
-from .items import point, circle, item, static_point
+from .geometry import *
+from .items import point, circle, item, static_point, line, polygon, rectangle
 from . import trf
 from .trf import pi, hpi, tau
 
-from typing import List as _List
+from typing import List as _List, Callable as _Callable
 
 
 #################################################################
@@ -25,6 +26,24 @@ def geometric_serie(start: float, value: float, ratio: float, count: int) -> _Li
     with successive values being in the given ratio.
     """
     return [start + value * (ratio ** i) for i in range(count)]
+
+def scaled_serie(value: float, count: int, scaler: _Callable) -> _List[float]:
+    """
+    Create a list containing a serie based on the given value and
+    the scaler. The scaler should take a value between 0 and 1 as
+    input and produce a factor to multiply the value.
+    """
+    fc = float(count - 1)
+    return [value * scaler(i / fc) for i in range(count)]
+
+def ondulation_serie(value: float, factor: float, count: int):
+    """
+    Create an ondulating series that goes from value / factor to value * factor.
+    """
+    log_factor = log(factor)
+    def scaler(fraction: float) -> float:
+        return exp(log_factor * sin(tau * fraction))
+    return scaled_serie(value, count, scaler)
 
 
 #################################################################
@@ -117,6 +136,18 @@ def reveal_item(item):
     if isinstance(item, actor):
         item = item.item
     return lambda opacity: item.set_opacity(opacity) if item else None
+
+def anim_reveal_thickness(animator: animator, duration: float, item, zoom_factor: float = 5.):
+    if isinstance(item, actor):
+        item = item.item
+    animator.animate_value([0., 1.], duration, reveal_item(item))
+    animator.animate_value(ondulation_serie(item.get_thickness(), zoom_factor, 10), duration, lambda t: item.thickness(t))
+
+def anim_reveal_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
+    if isinstance(item, actor):
+        item = item.item
+    animator.animate_value([0., 1.], duration, reveal_item(item))
+    animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, lambda r: item.set_radius(r))
 
 
 #################################################################

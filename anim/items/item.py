@@ -42,6 +42,12 @@ class item:
         """
         self.setPen(pen(self.pen().color(), new_width))
         return self
+
+    def get_thickness(self) -> float:
+        """
+        Retrieves the thickness of the item outline.
+        """
+        return self.pen().widthF()
         
     def fill(self, new_color: color):
         """

@@ -36,7 +36,7 @@ def inner_circle_dot_ratio():
 def animation_speedup():
     return inner_count()
 
-reveal_duration = 0.3
+reveal_duration = 2.
 
 
 #################################################################
@@ -120,13 +120,13 @@ def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim
 # Reused animations
 
 def _anim_inner_circle(which_inner: int, animator: anim.animator):
-    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_circles[which_inner]))
+    anim.anim_reveal_radius(animator, reveal_duration, inner_circles[which_inner])
 
 def _anim_other_inner_circle_dots(which_inner: int, which_dot: int, animator: anim.animator):
-    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_dots[which_inner][which_dot]))
+    anim.anim_reveal_radius(animator, reveal_duration, inner_dots[which_inner][which_dot])
 
 def _anim_inner_circle_polygon(which_inner: int, animator: anim.animator):
-    animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(inner_polygons[which_inner]))
+    anim.anim_reveal_thickness(animator, reveal_duration, inner_polygons[which_inner])
 
 def _anim_inner_circle_polygon_arrow(which_inner: int, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     poly = inner_polygons[which_inner]
