@@ -43,13 +43,50 @@ reveal_duration = 2.
 #
 # Points
 
-def _generate_points():
-    global outer_center;   outer_center   = anim.point(0., 0.)
-    global outer_radius;   outer_radius   = anim.outer_size
-    global inner_radius;   inner_radius   = outer_radius * inner_circle_ratio()
-    global inner_centers;  inner_centers  = anim.create_relative_points_around_center(outer_center, outer_radius - inner_radius, inner_count())
-    global dot_radius;     dot_radius     = inner_radius * inner_circle_dot_ratio()
-    global inner_dots_pos; inner_dots_pos = [anim.create_relative_points_around_center(center, dot_radius, skip()) for center in inner_centers]
+class points:
+    def __init__(self):
+        self.outer_center   = anim.point(0., 0.)
+        self.outer_radius   = anim.outer_size
+        self.inner_radius   = self.outer_radius * inner_circle_ratio()
+        self.inner_centers  = anim.create_relative_points_around_center(self.outer_center, self.outer_radius - self.inner_radius, inner_count())
+        self.dot_radius     = self.inner_radius * inner_circle_dot_ratio()
+        self.inner_dots_pos = [anim.create_relative_points_around_center(center, self.dot_radius, skip()) for center in self.inner_centers]
+
+
+#################################################################
+#
+# Geometries
+
+class geoms:
+    def __init__(self, pts):
+        self._gen_star(pts)
+        self._gen_outer_circle(pts)
+        self._gen_inner_circles(pts)
+        self._gen_inner_dots(pts)
+        self._gen_inner_polygons(pts)
+        self._gen_inter_polygons(pts)
+
+    def _gen_star(self, pts):
+        pts = anim.create_roll_circle_in_circle_points(pts.inner_radius, pts.outer_radius, skip(), 240, inner_circle_dot_ratio())
+        self.star = anim.create_polygon(pts).outline(anim.dark_gray).thickness(5.)
+
+    def _gen_outer_circle(self, pts):
+        self.outer_circle = anim.create_circle(pts.outer_center, anim.outer_size).outline(anim.dark_blue).thickness(anim.line_width * 2)
+
+    def _gen_inner_circles(self, pts):
+        self.inner_circles = [anim.create_disk(center, pts.inner_radius) for center in pts.inner_centers]
+
+    def _gen_inner_dots(self, pts):
+        self.inner_dots = [
+            [anim.create_disk(dot, anim.dot_size).fill(anim.orange) for dot in dots]
+                for dots in pts.inner_dots_pos]
+
+    def _gen_inner_polygons(self, pts):
+        self.inner_polygons = [anim.create_polygon(dots).outline(anim.green) for dots in pts.inner_dots_pos]
+
+    def _gen_inter_polygons(self, pts):
+        outer_dots_pos = anim.transpose_lists(pts.inner_dots_pos)
+        self.inter_polygons = [anim.create_polygon(dots).outline(anim.blue) for dots in outer_dots_pos]
 
 
 #################################################################
@@ -57,53 +94,24 @@ def _generate_points():
 # Actors
 
 def generate_actors(animation: anim.animation, scene: anim.scene):
-    _generate_points()
+    global pts; pts = points()
+    global geo; geo = geoms(pts)
 
-    global star;           star           = _gen_star(scene)
-    global outer_circle;   outer_circle   = _gen_outer_circle(scene)
-    global inner_circles;  inner_circles  = _gen_inner_circles(scene)
-    global inner_dots;     inner_dots     = _gen_inner_dots(scene)
-    global inner_polygons; inner_polygons = _gen_inner_polygons(scene)
-    global inter_polygons; inter_polygons = _gen_inter_polygons(scene)
+    animation.add_actor(anim.actor("star", "The star that the dots on the inner circle follow.", geo.star), scene)
+    animation.add_actor(anim.actor("outer circle", "", geo.outer_circle), scene)
+    animation.add_actors([anim.actor("inner circle", "", circle) for circle in geo.inner_circles], scene)
+    animation.add_actors([
+        [anim.actor("inner circle dot", "", dot) for dot in dots]
+            for dots in geo.inner_dots], scene)
+    animation.add_actors([anim.actor("inner polygon", "", poly) for poly in geo.inner_polygons], scene)
+    animation.add_actors([anim.actor("outer polygon", "", poly) for poly in geo.inter_polygons], scene)
 
-    for c in inner_circles:
-        c.item.setZValue(-1)
+    for c in geo.inner_circles:
+        c.setZValue(-1)
 
-    for ds in inner_dots:
+    for ds in geo.inner_dots:
         for d in ds:
-            d.item.setZValue(1)
-
-    animation.add_actors([outer_circle, inner_circles, inner_dots, inner_polygons, inter_polygons, star], scene)
-
-def _gen_star(scene: anim.scene):
-    pts = anim.create_roll_circle_in_circle_points(inner_radius, outer_radius, skip(), 240, inner_circle_dot_ratio())
-
-    return anim.actor("star", "The star that the dots on the inner circle follow.",
-        anim.create_polygon(pts).outline(anim.dark_gray))
-
-def _gen_outer_circle(scene: anim.scene):
-    return anim.actor("outer circle", "",
-        anim.create_circle(outer_center, anim.outer_size).outline(anim.dark_blue).thickness(anim.line_width * 2))
-
-def _gen_inner_circles(scene: anim.scene):
-    return [anim.actor("inner circle", "", anim.create_disk(center, inner_radius)) for center in inner_centers]
-
-def _gen_inner_dots(scene: anim.scene):
-    return [
-        [anim.actor("inner circle dot", "",
-            anim.create_disk(dot, anim.dot_size).fill(anim.orange)) for dot in dots]
-        for dots in inner_dots_pos]
-
-def _gen_inner_polygons(scene: anim.scene):
-    return [anim.actor("inner polygon", "",
-        anim.create_polygon(dots).outline(anim.green))
-        for dots in inner_dots_pos]
-
-def _gen_inter_polygons(scene: anim.scene):
-    outer_dots_pos = anim.transpose_lists(inner_dots_pos)
-    return [anim.actor("outer polygon", "",
-        anim.create_polygon(dots).outline(anim.blue))
-        for dots in outer_dots_pos]
+            d.setZValue(1)
 
 
 #################################################################
@@ -120,17 +128,19 @@ def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim
 # Reused animations
 
 def _anim_inner_circle(which_inner: int, animator: anim.animator):
-    anim.anim_reveal_radius(animator, reveal_duration, inner_circles[which_inner])
+    anim.anim_reveal_radius(animator, reveal_duration, geo.inner_circles[which_inner])
 
-def _anim_other_inner_circle_dots(which_inner: int, which_dot: int, animator: anim.animator):
-    anim.anim_reveal_radius(animator, reveal_duration, inner_dots[which_inner][which_dot])
+def _anim_inner_circle_dots(which_inner: int, which_dot: int, animator: anim.animator):
+    anim.anim_reveal_radius(animator, reveal_duration, geo.inner_dots[which_inner][which_dot], 4)
 
 def _anim_inner_circle_polygon(which_inner: int, animator: anim.animator):
-    anim.anim_reveal_thickness(animator, reveal_duration, inner_polygons[which_inner])
+    anim.anim_reveal_thickness(animator, reveal_duration, geo.inner_polygons[which_inner])
 
 def _anim_inner_circle_polygon_arrow(which_inner: int, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    poly = inner_polygons[which_inner]
-    animation.anim_pointing_arrow(poly.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+    if which_inner < len(geo.inner_polygons):
+        poly = geo.inner_polygons[which_inner]
+        mid_line = (poly.points[0] + poly.points[-1]) / 2.
+        animation.anim_pointing_arrow(mid_line, reveal_duration / 2, scene, animator)
 
 
 #################################################################
@@ -145,10 +155,11 @@ def outer_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     in which the smaller one
     will rotate.
     """
-    circle = outer_circle
+    circle = geo.outer_circle
     animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(circle))
     animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(scene.pointing_arrow))
-    animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+    point_on_circle = anim.create_relative_point_around_center(circle.center, circle.radius, -anim.qpi)
+    animation.anim_pointing_arrow(point_on_circle, reveal_duration / 2, scene, animator)
 
 def inner_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -159,8 +170,8 @@ def inner_circle_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
     the outer circle.
     """
     _anim_inner_circle(0, animator)
-    circle = inner_circles[0]
-    animation.anim_pointing_arrow(circle.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+    circle = geo.inner_circles[0]
+    animation.anim_pointing_arrow(circle.scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def inner_circle_dot_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -172,10 +183,8 @@ def inner_circle_dot_shot(shot: anim.shot, animation: anim.animation, scene: ani
     will spin, dragged along
     by the circle beneath it.
     """
-    dot = inner_dots[0][0]
-    reveal = anim.reveal_item(dot)
-    animator.animate_value([0., 1.], reveal_duration, reveal)
-    animation.anim_pointing_arrow(dot.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+    _anim_inner_circle_dots(0, 0, animator)
+    animation.anim_pointing_arrow(geo.inner_dots[0][0].scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def star_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -187,9 +196,8 @@ def star_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, ani
     rotates inside the outer
     circle.
     """
-    reveal = anim.reveal_item(star)
-    animator.animate_value([0., 1.], reveal_duration, reveal)
-    animation.anim_pointing_arrow(star.item.scene_rect().center(), reveal_duration / 2, scene, animator)
+    anim.anim_reveal_thickness(animator, reveal_duration, geo.star)
+    animation.anim_pointing_arrow(geo.star.scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def other_inner_circle_dots_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -201,8 +209,11 @@ def other_inner_circle_dots_shot(shot: anim.shot, animation: anim.animation, sce
     attached on top the inner
     circle.
     """
+    if dots_count() < 2:
+        return
     for which_dot in range(1, dots_count()):
-        _anim_other_inner_circle_dots(0, which_dot, animator)
+        _anim_inner_circle_dots(0, which_dot, animator)
+    animation.anim_pointing_arrow(geo.inner_dots[0][1].scene_rect().center(), reveal_duration / 2, scene, animator)
 
 def inner_circle_polygon_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     """
@@ -227,7 +238,7 @@ def other_circles_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     for which_inner in range(1, inner_count()):
         _anim_inner_circle(which_inner, animator)
         for which_dots in range(0, dots_count()):
-            _anim_other_inner_circle_dots(which_inner, which_dots, animator)
+            _anim_inner_circle_dots(which_inner, which_dots, animator)
         _anim_inner_circle_polygon(which_inner, animator)
                 
 
@@ -246,7 +257,7 @@ def inter_circle_polygons_shot(shot: anim.shot, animation: anim.animation, scene
     surprisingly, will keep
     their rigid shape.
     """
-    polys = [inter_polygons[which_dot] for which_dot in range(0, dots_count())]
+    polys = [geo.inter_polygons[which_dot] for which_dot in range(0, dots_count())]
     for poly in polys:
         animator.animate_value([0., 1.], reveal_duration, anim.reveal_item(poly))
 
@@ -262,9 +273,12 @@ def rotate_all_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     shot.repeat = True
 
     for which_inner in range(inner_count()):
-        anim.roll_points_on_circle_in_circle(animator, 2. * animation_speedup(), inner_circles[which_inner].item, outer_circle.item, skip(), inner_dots_pos[which_inner])
+        anim.roll_points_on_circle_in_circle(animator, 2. * animation_speedup(),
+            geo.inner_circles[which_inner],
+            geo.outer_circle, skip(),
+            pts.inner_dots_pos[which_inner])
 
-    animation.anim_pointing_arrow(outer_circle.item.get_circumference_point(-math.pi / 4), reveal_duration, scene, animator)
+    animation.anim_pointing_arrow(geo.outer_circle.get_circumference_point(-math.pi / 4), reveal_duration, scene, animator)
 
 
 #################################################################
