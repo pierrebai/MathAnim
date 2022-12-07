@@ -249,6 +249,9 @@ def _reposition_points() -> None:
         circle.center.reset()
 
 def _reset_runners() -> None:
+    global next_runner_to_introduce
+    next_runner_to_introduce = 0
+
     runner.always_colored = False
     for r in runner.runners:
         r.reset()
@@ -301,7 +304,7 @@ def show_track_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     Imagine a track around
     which runners make laps.
     '''
-    animator.animate_value([0., 1.], duration / 4., anim.reveal_item(track))
+    anim.anim_reveal_thickness(animator, duration / 4., track)
     animation.anim_pointing_arrow(track.get_circumference_point(-0.4), arrow_duration, scene, animator)
 
 def measure_track_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -325,14 +328,23 @@ def introduce_runners_shot(shot: anim.shot, animation: anim.animation, scene: an
     laps around the circular
     track.
     '''
+    global next_runner_to_introduce
     count = runner.runners_count
-    for i, r in zip(range(count), runner.runners):
-        opacities = [0.] + [0.] * i + [1.] * (count - i)
-        animator.animate_value(opacities, duration, anim.reveal_item(r))
+    if next_runner_to_introduce < count:
+        i = next_runner_to_introduce
 
-        lap_fractions = [0.] + [i  / 12.] * (count - i)
-        animator.animate_value(lap_fractions, duration, r.anim_lap_fraction())
-    animation.attach_pointing_arrow(runner.runners[-1].center, scene)
+        r = runner.runners[i]
+
+        animator.animate_value([0., 1.], duration / (count * 3.), anim.reveal_item(r))
+        anim.anim_ondulate_radius(animator, duration / count, r)
+
+        animator.animate_value([(i-1) / 12., i  / 12.], duration / count, r.anim_lap_fraction())
+
+        animation.attach_pointing_arrow(runner.runners[i].center, scene)
+
+        next_runner_to_introduce += 1
+        if next_runner_to_introduce < count:
+            animation.add_next_shots(anim.anim_description._create_shot(introduce_runners_shot))
 
 def show_runners_running_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -539,11 +551,9 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
         if runner.lonely.speed:
             animator.animate_value([0., runner.lonely.speed], duration, runner.lonely.anim_lap_fraction())
     if _has_more_runner_intervals():
-        animation.add_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
-    else:
-        animation.add_shots(anim.anim_description._create_shot(final_shot_protype))
+        animation.add_next_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
 
-def final_shot_protype(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def final_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     The Final Solution
 

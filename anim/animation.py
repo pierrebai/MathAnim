@@ -256,8 +256,18 @@ class animation(QObject, named):
         if isinstance(shots, shot):
             self.shots.append(shots)
         else:
-            for a in shots:
-                self.add_shots(a)
+            for s in shots:
+                self.add_shots(s)
+
+    def add_next_shots(self, shots) -> None:
+        """
+        Insert the given shots after the currently playing shot.
+        """
+        if isinstance(shots, shot):
+            self.shots.insert(self.current_shot_index, shots)
+        else:
+            for s in reversed(shots):
+                self.add_next_shots(s)
 
     def place_anim_pointing_arrow(self, head_point: static_point, scene: scene):
         """

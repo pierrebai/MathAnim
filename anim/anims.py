@@ -143,11 +143,16 @@ def anim_reveal_thickness(animator: animator, duration: float, item, zoom_factor
     animator.animate_value([0., 1.], duration, reveal_item(item))
     animator.animate_value(ondulation_serie(item.get_thickness(), zoom_factor, 10), duration, lambda t: item.thickness(t))
 
+def anim_ondulate_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
+    if isinstance(item, actor):
+        item = item.item
+    animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, lambda r: item.set_radius(r))
+
 def anim_reveal_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
     if isinstance(item, actor):
         item = item.item
-    animator.animate_value([0., 1.], duration, reveal_item(item))
-    animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, lambda r: item.set_radius(r))
+    animator.animate_value([0., 1.], duration / 3., reveal_item(item))
+    anim_ondulate_radius(animator, duration, item, zoom_factor)
 
 
 #################################################################
