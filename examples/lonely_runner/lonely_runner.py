@@ -86,7 +86,7 @@ class points(anim.point):
         self.half_zone_thickness = 10.
 
         self.track_label_size: float = 200.
-        self.lonely_zone_label_size: float = 100.
+        self.lonely_zone_label_size: float = 60.
         self.timeline_label_size: float = 80.
 
 
@@ -131,8 +131,9 @@ class geometries(anim.geometries):
         self.half_lonely_zone  = anim.partial_circle(pts.track_center, pts.lonely_zone_radius, half_zone_start, half_zone_end)
         self.half_lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.red)
 
-        lonely_zone_label_pos = anim.point(anim.center_of(self.lonely_zone.get_all_points()))
-        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos, pts.lonely_zone_label_size)
+        lonely_zone_label_pos = anim.point(anim.center_of(self.half_lonely_zone.get_all_points()))
+        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos, pts.lonely_zone_label_size).set_position_is_center()
+        self.lonely_zone_label.center_on(self.half_lonely_zone)
 
     def _order_items(self):
         for i, r in enumerate(runner.runners):
@@ -429,7 +430,7 @@ def exclusion_distance_shot(shot: anim.shot, animation: anim.animation, scene: a
     of runners.
     '''
     animator.animate_value([0., 1.], duration, anim.reveal_item(geo.lonely_zone_label))
-    animation.anim_pointing_arrow(anim.center_of(geo.lonely_zone.get_all_points()), arrow_duration, scene, animator)
+    animation.anim_pointing_arrow(anim.center_of(geo.half_lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def in_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''

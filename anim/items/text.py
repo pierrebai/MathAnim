@@ -21,7 +21,16 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
             self.position = relative_point(pos)
         self.set_serif_font(font_size)
         self.position.add_user(self)
+        self.position_on_center = False
         self._update_geometry()
+
+    def set_position_is_center(self, on_center = True) -> _QGraphicsSimpleTextItem:
+        """
+        Sets that the position is the position of the center of the text.
+        Otherwise, the position is the top-left.
+        """
+        self.position_on_center = on_center
+        return self
 
     def set_font(self, font_name, font_size: float) -> _QGraphicsSimpleTextItem:
         """
@@ -101,7 +110,7 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
 
         rect = self.scene_rect()
 
-        delta = pt + dist- rect.center()
+        delta = pt + dist - rect.center()
         return relative_point(self.position, delta)
 
     def exponent_pos(self) -> relative_point:
@@ -144,9 +153,14 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Updates the text position after the point moved.
         """
-        if self.position != self.scenePos():
+
+        if self.position_on_center:
+            new_pos = self.position - static_point(self.scene_rect().width() / 2., self.scene_rect().height() / 2.)
+        else:
+            new_pos = self.position
+        if new_pos != self.scenePos():
             self.prepareGeometryChange()
-            self.setPos(self.position)
+            self.setPos(new_pos)
 
 class fixed_size_text(scaling_text):
     """

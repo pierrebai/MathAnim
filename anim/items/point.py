@@ -314,5 +314,5 @@ class selected_point(point):
         """
         new_pos = self._selector(self._points)
         if new_pos != self:
-            super().set_point(new_pos)
+            super().set_absolute_point(new_pos)
 

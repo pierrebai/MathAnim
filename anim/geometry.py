@@ -13,11 +13,18 @@ origin = point(0., 0.)
 #
 # Centers
 
-def center_of(points: _List[static_point]) -> static_point:
+def weighted_center_of(points: _List[static_point]) -> static_point:
     total = static_point()
     for pt in points:
         total = total + pt
     return total / len(points)
+
+def center_of(points: _List[static_point]) -> static_point:
+    minX = min([pt.x() for pt in points])
+    maxX = max([pt.x() for pt in points])
+    minY = min([pt.y() for pt in points])
+    maxY = max([pt.y() for pt in points])
+    return static_point((maxX + minX) / 2., (maxY + minY) / 2.)
 
 
 #################################################################
