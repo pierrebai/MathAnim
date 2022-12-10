@@ -65,10 +65,11 @@ solver: lonely_solver = None
 
 #################################################################
 #
-# Points and geometries
+# Points
 
-class points:
+class points(anim.point):
     def __init__(self):
+        super().__init__()
         self.runner_radius: float = 40.
         self.track_center = anim.point(0., 0.)
         self.track_radius: float = 500.
@@ -88,14 +89,17 @@ class points:
         self.lonely_zone_label_size: float = 100.
         self.timeline_label_size: float = 80.
 
-    def reset(self):
-        for pt in anim.find_all_of_type(self.__dict__, anim.point):
-            pt.reset()
 
 pts: points = None
 
-class geometries:
+
+#################################################################
+#
+# Geometries
+
+class geometries(anim.geometries):
     def __init__(self, pts: points):
+        super().__init__()
         self.lonely_zone: anim.circle = None
         self.half_lonely_zone: anim.circle = None
         self.lonely_zone_label: anim.scaling_text = None
@@ -106,12 +110,6 @@ class geometries:
         self._gen_runners(pts)
         self._gen_lonely_zone(pts)
         self._order_items()
-
-    def reset(self):
-        for item in anim.find_all_of_type(self.__dict__, anim.item):
-            item.set_opacity(0.)
-        for circle in anim.find_all_of_type(self.__dict__, anim.circle):
-            circle.center.reset()
 
     def _gen_runners(self, pts):
         runner.create_runners(runners_speeds(), lonely_runner_index(), pts.runner_radius, pts.track_radius)
@@ -344,7 +342,8 @@ def introduce_runners_shot(shot: anim.shot, animation: anim.animation, scene: an
         r = runner.runners[i]
 
         animator.animate_value([0., 1.], duration / (count * 3.), anim.reveal_item(r))
-        anim.anim_ondulate_radius(animator, duration / count, r)
+        animator.animate_value([r.radius, r.radius * 2, r.radius], duration / count, anim.change_radius(r))
+        animator.animate_value([anim.white] + [anim.blue] * 4 + [anim.white], duration / count, anim.change_fill_color(r))
 
         animator.animate_value([(i-1) / 12., i  / 12.], duration / count, r.anim_lap_fraction())
 
@@ -393,7 +392,7 @@ def lonely_runner_definition_shot(shot: anim.shot, animation: anim.animation, sc
     runner.lonely.set_colored(True)
     animator.animate_value([anim.white, anim.blue], duration / 10., anim.change_fill_color(runner.lonely))
     radius = runner.lonely.radius
-    animator.animate_value([radius, radius * 2, radius, radius * 2, radius, radius * 2, radius], duration, anim.change_radius(runner.lonely))
+    animator.animate_value([radius] + [radius * 2, radius] * 3, duration, anim.change_radius(runner.lonely))
     animation.anim_pointing_arrow(runner.lonely.center, arrow_duration, scene, animator)
 
 def exclusion_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):

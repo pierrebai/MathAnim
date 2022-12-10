@@ -68,14 +68,32 @@ class point(static_point):
         """
         Resets the point to its original location.
         """
-        self.set_point(self.original_point)
+        self.set_absolute_point(self.original_point)
         return self
 
-    def distance_squared(self, pt: static_point) -> float:
-        delta = self - pt
+    @staticmethod
+    def distance_squared(p1: static_point, p2: static_point) -> float:
+        """
+        Returns the square of the distance between two points.
+        This is used when only relative distance need to be compared,
+        avoiding a square root.
+        """
+        delta = p1 - p2
         return delta.x() ** 2 + delta.y() ** 2
 
+    @staticmethod
+    def distance(p1: static_point, p2: static_point) -> float:
+        """
+        Returns the distance between two points.
+        """
+        return _sqrt(point.distance_squared(p1, p2))
 
+    @staticmethod
+    def distance_from_origin(p1: static_point) -> float:
+        """
+        Returns the distance between two points.
+        """
+        return _sqrt(point.distance_squared(p1, static_point(0., 0.)))
 
 class relative_point(point):
     """
@@ -86,7 +104,9 @@ class relative_point(point):
         super().__init__(*args)
         self.origin = None
         self.delta = static_point(self._start_pos)
+        self.original_delta = self.delta
         self.set_origin(origin)
+        self._start_pos = static_point(self)
 
     def set_delta(self, new_delta: static_point) -> point:
         if self.delta != new_delta:
@@ -140,6 +160,7 @@ class radial_point(point):
         self.radius = radius
         self.angle = angle
         self.set_origin(origin)
+        self._start_pos = static_point(self)
 
     def set_angle(self, new_angle: float) -> point:
         if self.angle != new_angle:
@@ -182,7 +203,7 @@ class radial_point(point):
         """
         Updates the point position relative to its origin and notifies its users.
         """
-        self.radius = _sqrt(new_point.distance_squared(static_point(0., 0.)))
+        self.radius = point.distance(new_point, static_point(0., 0.))
         self.angle = _atan2(new_point.y(), new_point.x())
         self._update_geometry()
         return self
@@ -191,7 +212,7 @@ class radial_point(point):
         """
         Updates the point absolute position and notifies its users.
         """
-        self.radius = _sqrt(self.origin.distance_squared(new_point))
+        self.radius = point.distance(self.origin, new_point)
         self.angle = _atan2(self.origin.y() - new_point.y(), self.origin.x() - new_point.x())
         self._update_geometry()
         return self
@@ -208,6 +229,7 @@ class relative_radial_point(point):
         self.angle_delta = angle_delta
         self.origin: radial_point = None
         self.set_origin(origin)
+        self._start_pos = static_point(self)
 
     def set_origin(self, new_origin: radial_point) -> point:
         """
@@ -244,7 +266,7 @@ class relative_radial_point(point):
         """
         Updates the point position relative to its origin and notifies its users.
         """
-        self.radius_delta = _sqrt(new_point.distance_squared(static_point(0., 0.)))
+        self.radius_delta = point.distance(new_point, static_point(0., 0.))
         self.angle_delta = _atan2(new_point.y(), new_point.x())
         self._update_geometry()
         return self
@@ -254,7 +276,7 @@ class relative_radial_point(point):
         Updates the point absolute position and notifies its users.
         """
         delta_from_origin = self.origin.origin - new_point
-        radius_target = _sqrt(delta_from_origin.distance_squared(static_point(0., 0.)))
+        radius_target = point.distance(delta_from_origin, static_point(0., 0.))
         angle_target = _atan2(delta_from_origin.y(), delta_from_origin.x())
         self.radius_delta = radius_target - self.origin.radius
         self.angle_delta = angle_target - self.origin.angle
@@ -272,6 +294,7 @@ class selected_point(point):
         self._selector = selector
         self._points = []
         self.set_points(points)
+        self._start_pos = static_point(self)
 
     def set_points(self, points: _List[point]) -> point:
         """

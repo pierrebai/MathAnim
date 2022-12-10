@@ -25,8 +25,8 @@ def other2(which: int):
 corners = [anim.point(0., 0.), anim.point(1000., -300.), anim.point(400., 200.)]
 lengths = [
     (
-        anim.two_points_distance(corners[i], corners[other1(i)]),
-        anim.two_points_distance(corners[i], corners[other2(i)])
+        anim.point.distance(corners[i], corners[other1(i)]),
+        anim.point.distance(corners[i], corners[other2(i)])
     )
     for i in range(3)
 ]

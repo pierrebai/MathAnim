@@ -52,12 +52,14 @@ class points:
         self.dot_radius     = self.inner_radius * inner_circle_dot_ratio()
         self.inner_dots_pos = [anim.create_relative_points_around_center(center, self.dot_radius, skip()) for center in self.inner_centers]
 
+pts: points = None
+
 
 #################################################################
 #
 # Geometries
 
-class geoms:
+class geometries(anim.geometries):
     def __init__(self, pts):
         self._gen_star(pts)
         self._gen_outer_circle(pts)
@@ -65,6 +67,7 @@ class geoms:
         self._gen_inner_dots(pts)
         self._gen_inner_polygons(pts)
         self._gen_inter_polygons(pts)
+        self._set_z_orders()
 
     def _gen_star(self, pts):
         pts = anim.create_roll_circle_in_circle_points(pts.inner_radius, pts.outer_radius, skip(), 240, inner_circle_dot_ratio())
@@ -88,6 +91,16 @@ class geoms:
         outer_dots_pos = anim.transpose_lists(pts.inner_dots_pos)
         self.inter_polygons = [anim.create_polygon(dots).outline(anim.blue) for dots in outer_dots_pos]
 
+    def _set_z_orders(self):
+        for c in self.inner_circles:
+            c.setZValue(-1)
+
+        for ds in self.inner_dots:
+            for d in ds:
+                d.setZValue(1)
+
+geo: geometries = None
+
 
 #################################################################
 #
@@ -95,7 +108,7 @@ class geoms:
 
 def generate_actors(animation: anim.animation, scene: anim.scene):
     global pts; pts = points()
-    global geo; geo = geoms(pts)
+    global geo; geo = geometries(pts)
 
     animation.add_actor(anim.actor("star", "The star that the dots on the inner circle follow.", geo.star), scene)
     animation.add_actor(anim.actor("outer circle", "", geo.outer_circle), scene)
@@ -106,21 +119,13 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     animation.add_actors([anim.actor("inner polygon", "", poly) for poly in geo.inner_polygons], scene)
     animation.add_actors([anim.actor("outer polygon", "", poly) for poly in geo.inter_polygons], scene)
 
-    for c in geo.inner_circles:
-        c.setZValue(-1)
-
-    for ds in geo.inner_dots:
-        for d in ds:
-            d.setZValue(1)
-
 
 #################################################################
 #
 # Prepare animation
 
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    for actor in animation.actors:
-        actor.item.set_opacity(0)
+    geo.reset()
 
 
 #################################################################

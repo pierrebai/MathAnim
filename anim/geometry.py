@@ -34,8 +34,8 @@ def four_points_bisector(l1_p1: static_point, l1_p2: static_point, l2_p1: static
     a1 = two_points_angle(l1_p1, l1_p2)
     a2 = two_points_angle(l2_p1, l2_p2)
     bisector_angle = (a1 + a2) / 2.
-    d1 = two_points_distance(l1_p1, l1_p2)
-    d2 = two_points_distance(l2_p1, l2_p2)
+    d1 = point.distance(l1_p1, l1_p2)
+    d2 = point.distance(l2_p1, l2_p2)
     d = min(d1, d2)
     p2 = point(p1 + static_point(cos(bisector_angle) * d, sin(bisector_angle) * d))
     return (p1, p2)
@@ -86,18 +86,6 @@ def two_points_sin_dot(p1: static_point, p2: static_point) -> float:
 #
 # Distances
 
-def two_points_distance(p1: static_point, p2: static_point) -> float:
-    """
-    Returns the distance between two points.
-    """
-    return delta_distance(p2 - p1)
-
-def delta_distance(delta: static_point) -> float:
-    """
-    Returns the length of the delta.
-    """
-    return sqrt(delta.x() ** 2 + delta.y() ** 2)
-
 def point_to_line_distance(pt: static_point, line: line) -> float:
     return point_to_two_points_distance(pt, line.p1, line.p2)
 
@@ -105,16 +93,16 @@ def point_to_two_points_distance(pt: static_point, p1: static_point, p2: static_
     delta = p2 - p1
     delta_dot = two_points_dot(delta, delta)
     if not delta_dot:
-        return two_points_distance(pt, p1)
+        return point.distance(pt, p1)
     t = two_points_dot(pt - p1, delta) / delta_dot
     if -epsilon < t < 1. + epsilon:
         ox = p1.x() + t * (p2.x() - p1.x())
         oy = p1.y() + t * (p2.y() - p1.y())
         return sqrt((pt.x() - ox) ** 2 + (pt.y() - oy) ** 2)
     elif t < 0.:
-        return two_points_distance(pt, p1)
+        return point.distance(pt, p1)
     else:
-        return two_points_distance(pt, p2)
+        return point.distance(pt, p2)
 
 
 #################################################################

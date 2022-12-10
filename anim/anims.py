@@ -2,6 +2,8 @@ from anim.items.items import create_roll_circle_in_circle_angles
 from .actor import actor
 from .animator import animator
 from .geometry import *
+from .geometries import geometries
+from .points import points
 from .items import point, circle, item, static_point, line, polygon, rectangle
 from . import trf
 from .trf import pi, hpi, tau
@@ -62,7 +64,7 @@ def rotate_point_around(moved_point: point, center: point):
     return lambda angle: _rotate_point_around(moved_point, org_point, center, angle)
 
 def _rotate_relative_point_around(moved_point: point, center: point, angle: float) -> None:
-    moved_point.set_point(trf.rotate_around(moved_point.original_point, center, angle))
+    moved_point.set_point(trf.rotate_around(moved_point.original_delta, center, angle))
 
 def rotate_relative_point_around(moved_point: point, center: point):
     """
@@ -76,7 +78,7 @@ def move_point(moved_point: point):
     Returns a function that sets the position of the point.
     The returned function only takes the position as parameter.
     """
-    return lambda pt: moved_point.set_point(point(pt))
+    return lambda pt: moved_point.set_point(point(pt)) if pt else None
 
 
 #################################################################
@@ -90,12 +92,12 @@ def change_fill_color(item: item):
     """
     if isinstance(item, actor):
         item = item.item
-    return lambda co: item.fill(co)
+    return lambda co: item.fill(co) if item else None
 
 
 #################################################################
 #
-# Circle animations
+# Items animations
 
 def change_radius(item: item):
     """
@@ -104,7 +106,16 @@ def change_radius(item: item):
     """
     if isinstance(item, actor):
         item = item.item
-    return lambda radius: item.set_radius(radius)
+    return lambda radius: item.set_radius(radius) if item else None
+
+def change_thickness(item: item):
+    """
+    Returns a function that sets the thickness of an actor or item.
+    The returned function only takes the thickness.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    return lambda thickness: item.thickness(thickness) if item else None
 
 
 #################################################################
@@ -141,12 +152,12 @@ def anim_reveal_thickness(animator: animator, duration: float, item, zoom_factor
     if isinstance(item, actor):
         item = item.item
     animator.animate_value([0., 1.], duration, reveal_item(item))
-    animator.animate_value(ondulation_serie(item.get_thickness(), zoom_factor, 10), duration, lambda t: item.thickness(t))
+    animator.animate_value(ondulation_serie(item.get_thickness(), zoom_factor, 10), duration, change_thickness(item))
 
 def anim_ondulate_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
     if isinstance(item, actor):
         item = item.item
-    animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, lambda r: item.set_radius(r))
+    animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, change_radius(item))
 
 def anim_reveal_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
     if isinstance(item, actor):

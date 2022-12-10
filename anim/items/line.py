@@ -22,7 +22,7 @@ class line(_QGraphicsLineItem, item):
         self._update_geometry()
 
     def length(self) -> float:
-        return math.sqrt(self.p1.distance_squared(self.p2))
+        return point.distance(self.p1, self.p2)
 
     def get_all_points(self) -> _List[point]:
         """

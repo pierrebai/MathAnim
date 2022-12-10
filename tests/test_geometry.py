@@ -83,23 +83,23 @@ class geometry_test(unittest.TestCase):
         global dx, dy
         for dx in range(-3, 3):
             for dy in range(-3, 3):
-                self.assertAlmostEqual( 1.,   two_points_distance(pt(0., 0.), pt( 1.,  0.)))
-                self.assertAlmostEqual( rt2,  two_points_distance(pt(0., 1.), pt( 1.,  0.)))
-                self.assertAlmostEqual( trt2, two_points_distance(pt(1., 1.), pt(-1., -1.)))
-                self.assertAlmostEqual( 0.,   two_points_distance(pt(0., 1.), pt( 0.,  1.)))
-                self.assertAlmostEqual( 2.,   two_points_distance(pt(1., 0.), pt(-1.,  0.)))
-                self.assertAlmostEqual( 1.,   two_points_distance(pt(0., 1.), pt( 0.,  2.)))
+                self.assertAlmostEqual( 1.,   point.distance(pt(0., 0.), pt( 1.,  0.)))
+                self.assertAlmostEqual( rt2,  point.distance(pt(0., 1.), pt( 1.,  0.)))
+                self.assertAlmostEqual( trt2, point.distance(pt(1., 1.), pt(-1., -1.)))
+                self.assertAlmostEqual( 0.,   point.distance(pt(0., 1.), pt( 0.,  1.)))
+                self.assertAlmostEqual( 2.,   point.distance(pt(1., 0.), pt(-1.,  0.)))
+                self.assertAlmostEqual( 1.,   point.distance(pt(0., 1.), pt( 0.,  2.)))
 
     def test_delta_distance(self):
         global dx, dy
         for dx in range(-3, 3):
             for dy in range(-3, 3):
-                self.assertAlmostEqual( 1.,   delta_distance(pt(0., 0.) - pt( 1.,  0.)))
-                self.assertAlmostEqual( rt2,  delta_distance(pt(0., 1.) - pt( 1.,  0.)))
-                self.assertAlmostEqual( trt2, delta_distance(pt(1., 1.) - pt(-1., -1.)))
-                self.assertAlmostEqual( 0.,   delta_distance(pt(0., 1.) - pt( 0.,  1.)))
-                self.assertAlmostEqual( 2.,   delta_distance(pt(1., 0.) - pt(-1.,  0.)))
-                self.assertAlmostEqual( 1.,   delta_distance(pt(0., 1.) - pt( 0.,  2.)))
+                self.assertAlmostEqual( 1.,   point.distance_from_origin(pt(0., 0.) - pt( 1.,  0.)))
+                self.assertAlmostEqual( rt2,  point.distance_from_origin(pt(0., 1.) - pt( 1.,  0.)))
+                self.assertAlmostEqual( trt2, point.distance_from_origin(pt(1., 1.) - pt(-1., -1.)))
+                self.assertAlmostEqual( 0.,   point.distance_from_origin(pt(0., 1.) - pt( 0.,  1.)))
+                self.assertAlmostEqual( 2.,   point.distance_from_origin(pt(1., 0.) - pt(-1.,  0.)))
+                self.assertAlmostEqual( 1.,   point.distance_from_origin(pt(0., 1.) - pt( 0.,  2.)))
 
     def test_point_to_two_points_distance(self):
         global dx, dy
