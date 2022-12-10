@@ -9,11 +9,13 @@ class geometries:
     easily reset all opacities to zero and all geometries' points to their
     starting positions when the animation is reset.
     """
-    def __init__(self):
+    def __init__(self, reset_opacities = True):
+        self.reset_opacities = reset_opacities
         return super().__init__()
 
     def reset(self):
         for it in find_all_of_type(self.__dict__, item):
-            it.set_opacity(0.)
+            if self.reset_opacities:
+                it.set_opacity(0.)
             for pt in it.get_all_points():
                 pt.reset()
