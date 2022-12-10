@@ -101,7 +101,7 @@ class geometries(anim.geometries):
     def __init__(self, pts: points):
         super().__init__()
         self.lonely_zone: anim.circle = None
-        self.half_lonely_zone: anim.circle = None
+        self.half_lonely_zone: anim.partial_circle = None
         self.lonely_zone_label: anim.scaling_text = None
 
         self.track = anim.circle(pts.track_center, pts.track_radius).thickness(pts.track_width).outline(anim.sable)
@@ -120,13 +120,16 @@ class geometries(anim.geometries):
             zone_start = anim.relative_radial_point(runner.lonely.center, 0., -anim.tau * runner.lonely_zone_size)
             zone_end = anim.relative_radial_point(runner.lonely.center, 0.,    anim.tau * runner.lonely_zone_size)
             self.lonely_zone  = anim.partial_circle(pts.track_center, pts.lonely_zone_radius, zone_start, zone_end)
-            self.half_lonely_zone  = anim.line(pts.track_center, runner.lonely.center)
         else:
             zone_end = anim.relative_radial_point(runner.lonely.center, 0., anim.pi)
             self.lonely_zone  = anim.circle(pts.track_center, pts.lonely_zone_radius)
-            self.half_lonely_zone  = anim.line(zone_end, runner.lonely.center)
+
         self.lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.pale_red)
-        self.half_lonely_zone.thickness(pts.half_zone_thickness).outline(anim.red)
+
+        half_zone_start = zone_start
+        half_zone_end = runner.lonely.center
+        self.half_lonely_zone  = anim.partial_circle(pts.track_center, pts.lonely_zone_radius, half_zone_start, half_zone_end)
+        self.half_lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.red)
 
         lonely_zone_label_pos = anim.point(anim.center_of(self.lonely_zone.get_all_points()))
         self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos, pts.lonely_zone_label_size)
@@ -135,7 +138,7 @@ class geometries(anim.geometries):
         for i, r in enumerate(runner.runners):
             r.setZValue(i)
         runner.lonely.setZValue(2000.)
-        self.lonely_zone.setZValue(-2.)
+        self.lonely_zone.setZValue(-3.)
         self.lonely_zone_label.setZValue(-1.)
         self.half_lonely_zone.setZValue(-2.)
 
