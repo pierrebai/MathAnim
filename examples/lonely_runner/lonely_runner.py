@@ -38,173 +38,213 @@ def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator)
 #
 # Lonely runner solver
 
-normalized_running_runners: _List[float] = []
-allowed_time_intervals: _List[_List[float]] = [(0.0, 1.0)]
-next_runner_to_solve: int = 0
+class lonely_solver:
+    def __init__(self):
+        self.reset()
 
-def _gen_normalized_runners():
-    global normalized_running_runners
-  
-    normalized_running_runners = generate_running_runners(runners_speeds(), lonely_runner_index())
+    def reset(self):
+        self.normalized_running_runners = generate_running_runners(runners_speeds(), lonely_runner_index())
+        self.allowed_time_intervals = [(0.0, 1.0)]
+        self.next_runner_to_solve = 0
 
-    global allowed_time_intervals
-    allowed_time_intervals = [(0.0, 1.0)]
+    def gen_runner_allowed_time_intervals(self, which: int) -> _List[_List[float]]:
+        self.runner_allowed_time_intervals = generate_one_runner_allowed_time_intervals(self.normalized_running_runners[which], runner.runners_count)
+        self.allowed_time_intervals = intersect_time_intervals(self.runner_allowed_time_intervals, self.allowed_time_intervals)
+        return self.runner_allowed_time_intervals
 
-    global next_runner_to_solve
-    next_runner_to_solve = 0
+    def get_next_runner_intervals_index(self) -> int:
+        which = self.next_runner_to_solve
+        self.next_runner_to_solve += 1
+        return which
 
-def _gen_runner_allowed_time_intervals(which: int) -> _List[_List[float]]:
-    global allowed_time_intervals
-    global normalized_running_runners
-    runner_allowed_time_intervals = generate_one_runner_allowed_time_intervals(normalized_running_runners[which], runner.runners_count)
-    allowed_time_intervals = intersect_time_intervals(runner_allowed_time_intervals, allowed_time_intervals)
-    return runner_allowed_time_intervals
+    def has_more_runner_intervals(self) -> bool:
+        return self.next_runner_to_solve < len(self.normalized_running_runners)
 
-def _get_next_runner_intervals_index() -> int:
-    global next_runner_to_solve
-    which = next_runner_to_solve
-    next_runner_to_solve += 1
-    return which
-
-def _has_more_runner_intervals() -> bool:
-    return next_runner_to_solve < len(normalized_running_runners)
+solver: lonely_solver = None
 
 
 #################################################################
 #
 # Points and geometries
 
-runner_radius: float = 40.
+class points:
+    def __init__(self):
+        self.runner_radius: float = 40.
+        self.track_center = anim.point(0., 0.)
+        self.track_radius: float = 500.
+        self.track_width: float = self.runner_radius * 2.5
 
-track_center = anim.point(0., 0.)
-track_radius: float = 500.
-track_width: float = runner_radius * 2.5
+        self.timeline_thickness = 10.
+        self.timeline_offset: float = 400.
+        self.timeline_width: float = self.track_radius * 2.
 
-timeline_thickness = 10.
-timeline_offset: float = 400.
-timeline_width: float = track_radius * 2.
+        self.runner_graph_height:  float = self.timeline_offset * 2. / 3.
+        self.overal_graph_height: float = self.timeline_offset * 1. / 2.
 
-runner_graph_height:  float = timeline_offset * 2. / 3.
-overal_graph_height: float = timeline_offset * 1. / 2.
+        self.lonely_zone_radius: float = self.track_radius
+        self.half_zone_thickness = 10.
 
-lonely_zone_radius: float = track_radius
-half_zone_thickness = 10.
+        self.track_label_size: float = 200.
+        self.lonely_zone_label_size: float = 100.
+        self.timeline_label_size: float = 80.
 
-track_label_size: float = 200.
-lonely_zone_label_size: float = 100.
-timeline_label_size: float = 80.
+    def reset(self):
+        for pt in anim.find_all_of_type(self.__dict__, anim.point):
+            pt.reset()
 
-lonely_zone: anim.circle = None
-half_lonely_zone: anim.circle = None
-lonely_zone_label: anim.scaling_text = None
+pts: points = None
 
-track = anim.circle(track_center, track_radius).thickness(track_width).outline(anim.sable)
-track_label = anim.scaling_text('1', track_center, track_label_size)
+class geometries:
+    def __init__(self, pts: points):
+        self.lonely_zone: anim.circle = None
+        self.half_lonely_zone: anim.circle = None
+        self.lonely_zone_label: anim.scaling_text = None
 
-timeline = anim.line(
-    anim.point(-track_radius, track_radius + timeline_offset),
-    anim.point( track_radius, track_radius + timeline_offset)).thickness(timeline_thickness)
+        self.track = anim.circle(pts.track_center, pts.track_radius).thickness(pts.track_width).outline(anim.sable)
+        self.track_label = anim.scaling_text('1', pts.track_center, pts.track_label_size)
 
-timeline_labels = [
-    anim.scaling_text('0', timeline.p1, timeline_label_size),
-    anim.scaling_text('1', timeline.p2, timeline_label_size),
-]
+        self._gen_runners(pts)
+        self._gen_lonely_zone(pts)
+        self._order_items()
 
-timeline_solution_label = anim.scaling_text('', timeline.p1, timeline_label_size)
+    def reset(self):
+        for item in anim.find_all_of_type(self.__dict__, anim.item):
+            item.set_opacity(0.)
+        for circle in anim.find_all_of_type(self.__dict__, anim.circle):
+            circle.center.reset()
 
-def _gen_runners():
-    runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
+    def _gen_runners(self, pts):
+        runner.create_runners(runners_speeds(), lonely_runner_index(), pts.runner_radius, pts.track_radius)
 
-def _gen_lonely_zone():
-    global lonely_zone
-    global half_lonely_zone
+    def _gen_lonely_zone(self, pts):
+        count = runner.runners_count
+        if count > 2:
+            zone_start = anim.relative_radial_point(runner.lonely.center, 0., -anim.tau * runner.lonely_zone_size)
+            zone_end = anim.relative_radial_point(runner.lonely.center, 0.,    anim.tau * runner.lonely_zone_size)
+            self.lonely_zone  = anim.partial_circle(pts.track_center, pts.lonely_zone_radius, zone_start, zone_end)
+            self.half_lonely_zone  = anim.line(pts.track_center, runner.lonely.center)
+        else:
+            zone_end = anim.relative_radial_point(runner.lonely.center, 0., anim.pi)
+            self.lonely_zone  = anim.circle(pts.track_center, pts.lonely_zone_radius)
+            self.half_lonely_zone  = anim.line(zone_end, runner.lonely.center)
+        self.lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.pale_red)
+        self.half_lonely_zone.thickness(pts.half_zone_thickness).outline(anim.red)
 
-    count = runner.runners_count
-    if count > 2:
-        zone_start = anim.relative_radial_point(runner.lonely.center, 0., -anim.tau * runner.lonely_zone_size)
-        zone_end = anim.relative_radial_point(runner.lonely.center, 0.,    anim.tau * runner.lonely_zone_size)
-        lonely_zone  = anim.partial_circle(track_center, lonely_zone_radius, zone_start, zone_end)
-        half_lonely_zone  = anim.line(track_center, runner.lonely.center)
-    else:
-        lonely_zone  = anim.circle(track_center, lonely_zone_radius)
-        zone_end = anim.relative_radial_point(runner.lonely.center, 0., anim.pi)
-        half_lonely_zone  = anim.line(zone_end, runner.lonely.center)
-    lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.pale_red)
-    half_lonely_zone.thickness(half_zone_thickness).outline(anim.red)
+        lonely_zone_label_pos = anim.point(anim.center_of(self.lonely_zone.get_all_points()))
+        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos, pts.lonely_zone_label_size)
 
-    global lonely_zone_label
+    def _order_items(self):
+        for i, r in enumerate(runner.runners):
+            r.setZValue(i)
+        runner.lonely.setZValue(2000.)
+        self.lonely_zone.setZValue(-2.)
+        self.lonely_zone_label.setZValue(-1.)
+        self.half_lonely_zone.setZValue(-2.)
 
-    lonely_zone_label = anim.scaling_text(f'1 / {count}', anim.point(anim.center_of(lonely_zone.get_all_points())), lonely_zone_label_size)
-
-def _order_items():
-    for i, r in enumerate(runner.runners):
-        r.setZValue(i)
-    runner.lonely.setZValue(2000.)
-    lonely_zone.setZValue(-2.)
-    lonely_zone_label.setZValue(-1.)
-    half_lonely_zone.setZValue(-2.)
-    timeline.setZValue(2.)
-    timeline_solution_label.setZValue(3.)
+geo: geometries = None
 
 
 #################################################################
 #
 # Geometries for timeline graph
 
-last_runner_intervals_graphs: _List[anim.item] = []
-last_overal_intervals_graphs: _List[anim.item] = []
-next_to_last_overal_intervals_graphs: _List[anim.item] = []
+class timeline_geometries:
+    def __init__(self, pts: points, animation: anim.animation, scene: anim.scene):
+        self.pts = pts
+        self.animation = animation
+        self.scene = scene
 
-def _remove_intervals_graphs(graphs: _List, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    for graph in graphs:
-        scene.remove_item(graph)
-    scene.scene.invalidate(scene.scene.sceneRect())
-    graphs.clear()
+        self.last_runner_intervals_graphs: _List[anim.item] = []
+        self.last_overal_intervals_graphs: _List[anim.item] = []
+        self.next_to_last_overal_intervals_graphs: _List[anim.item] = []
 
-def _gen_interval_graph(interval: _List[float], height: float, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    interval_width = interval[1] - interval[0]
-    p1 = anim.two_points_convex_sum(timeline.p1, timeline.p2, interval[0])
-    p2 = anim.relative_point(p1, anim.static_point(0., -height))
-    if interval_width * timeline_width > 1.0:
-        allowed_graph = anim.create_two_points_rect(p1, p2)
-    else:
-        allowed_graph = anim.line(p1, p2)
-    allowed_graph.outline(anim.no_color).thickness(0.).fill(anim.green).set_opacity(0.)
-    scene.add_item(allowed_graph)
+        self.timeline = anim.line(
+            anim.point(-pts.track_radius, pts.track_radius + pts.timeline_offset),
+            anim.point( pts.track_radius, pts.track_radius + pts.timeline_offset)).thickness(pts.timeline_thickness)
 
-    animator.animate_value([0., 1.], duration / 4., anim.reveal_item(allowed_graph))
+        self.labels = [
+            anim.scaling_text('0', self.timeline.p1, pts.timeline_label_size),
+            anim.scaling_text('1', self.timeline.p2, pts.timeline_label_size),
+        ]
 
-    graph_grow = [
-        anim.static_point(0.             * timeline_width, -height),
-        anim.static_point(interval_width * timeline_width, -height)]
-    animator.animate_value(graph_grow, duration, anim.move_point(p2))
+        self.solution_label = anim.scaling_text('', self.timeline.p1, pts.timeline_label_size)
 
-    return allowed_graph
+        self.timeline.setZValue(2.)
+        self.solution_label.setZValue(3.)
 
-def _gen_intervals_graphs(allowed_time_intervals: _List[_List[float]], height: float, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    intervals_graphs = []
-    for interval in allowed_time_intervals:
-        graph = _gen_interval_graph(interval, height, animation, scene, animator)
-        intervals_graphs.append(graph)
-    return intervals_graphs
+    def animate_runner_intervals(self, runner_allowed_time_intervals: _List[_List[float]], animator: anim.animator):
+        self._remove_graphs(self.last_runner_intervals_graphs)
+        new_intervals_graphs = self._gen_intervals_graphs(runner_allowed_time_intervals, self.pts.runner_graph_height, animator)
+        self.last_runner_intervals_graphs = new_intervals_graphs
+        self.animation.anim_pointing_arrow([anim.center_of(g.get_all_points()) for g  in new_intervals_graphs], duration, self.scene, animator)
+        
+    def animator_overal_intervals(self, allowed_time_intervals: _List[_List[float]], animator: anim.animator):
+        self._remove_graphs(self.next_to_last_overal_intervals_graphs)
+        self.next_to_last_overal_intervals_graphs = self.last_overal_intervals_graphs[:]
+        for graph in self.next_to_last_overal_intervals_graphs:
+            graph.fill(anim.pale_green)
+        new_intervals_graphs = self._gen_intervals_graphs(allowed_time_intervals, -self.pts.overal_graph_height, animator)
+        self.last_overal_intervals_graphs = new_intervals_graphs
 
-def _gen_runner_intervals_graph(runner_allowed_time_intervals: _List[_List[float]], animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    global last_runner_intervals_graphs
-    _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
-    new_intervals_graphs = _gen_intervals_graphs(runner_allowed_time_intervals, runner_graph_height, animation, scene, animator)
-    arrow_anim_values = new_intervals_graphs if len(new_intervals_graphs) < 10 else new_intervals_graphs[:5] + new_intervals_graphs[-5:]
-    animation.anim_pointing_arrow([anim.center_of(g.get_all_points()) for g  in new_intervals_graphs], duration, scene, animator)
-    last_runner_intervals_graphs = new_intervals_graphs
+    def cleanup_final_intervals(self):
+        self._remove_graphs(self.next_to_last_overal_intervals_graphs)
+        self._remove_graphs(self.last_runner_intervals_graphs)
 
-def _merge_runner_intervals_with_overal_intervals(animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    global last_overal_intervals_graphs
-    global next_to_last_overal_intervals_graphs
-    _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
-    next_to_last_overal_intervals_graphs = last_overal_intervals_graphs[:]
-    for graph in next_to_last_overal_intervals_graphs:
-        graph.fill(anim.pale_green)
-    new_intervals_graphs = _gen_intervals_graphs(allowed_time_intervals, -overal_graph_height, animation, scene, animator)
-    last_overal_intervals_graphs = new_intervals_graphs
+    def reset(self) -> None:
+        try:
+            self._remove_graphs(self.next_to_last_overal_intervals_graphs)
+        except:
+            pass
+        try:
+            self._remove_graphs(self.last_overal_intervals_graphs)
+        except:
+            pass
+        try:
+            self._remove_graphs(self.last_runner_intervals_graphs)
+        except:
+            pass
+
+        self.last_runner_intervals_graphs = []
+        self.last_overal_intervals_graphs = []
+        self.next_to_last_overal_intervals_graphs = []
+        for item in anim.find_all_of_type(self.__dict__, anim.item):
+            item.set_opacity(0.)
+
+    def _remove_graphs(self, graphs: _List):
+        for graph in graphs:
+            self.scene.remove_item(graph)
+        self.scene.scene.invalidate(self.scene.scene.sceneRect())
+        graphs.clear()
+
+    def _gen_intervals_graphs(self, allowed_time_intervals: _List[_List[float]], height: float, animator: anim.animator):
+        intervals_graphs = []
+        for interval in allowed_time_intervals:
+            graph = self._gen_interval_graph(interval, height, animator)
+            intervals_graphs.append(graph)
+        return intervals_graphs
+
+    def _gen_interval_graph(self, interval: _List[float], height: float, animator: anim.animator):
+        interval_width = interval[1] - interval[0]
+        p1 = anim.two_points_convex_sum(self.timeline.p1, self.timeline.p2, interval[0])
+        p2 = anim.relative_point(p1, anim.static_point(0., -height))
+        if interval_width * self.pts.timeline_width > 1.0:
+            allowed_graph = anim.create_two_points_rect(p1, p2)
+        else:
+            allowed_graph = anim.line(p1, p2)
+        allowed_graph.outline(anim.no_color).thickness(0.).fill(anim.green).set_opacity(0.)
+        self.scene.add_item(allowed_graph)
+
+        animator.animate_value([0., 1.], duration / 4., anim.reveal_item(allowed_graph))
+
+        graph_grow = [
+            anim.static_point(0.             * self.pts.timeline_width, -height),
+            anim.static_point(interval_width * self.pts.timeline_width, -height)]
+        animator.animate_value(graph_grow, duration, anim.move_point(p2))
+
+        return allowed_graph
+
+
+timeline: timeline_geometries = None
 
 
 #################################################################
@@ -212,41 +252,31 @@ def _merge_runner_intervals_with_overal_intervals(animation: anim.animation, sce
 # Actors
 
 def generate_actors(animation: anim.animation, scene: anim.scene):
-    _gen_runners()
-    _gen_normalized_runners()
-    _gen_lonely_zone()
-    _order_items()
+    global solver;   solver = lonely_solver()
+    global pts;      pts = points()
+    global geo;      geo = geometries(pts)
+    global timeline; timeline = timeline_geometries(pts, animation, scene)
 
     actors = [
         [anim.actor('Runner', '', r) for r in runner.runners],
         [anim.actor('Label', '', r.label) for r in runner.runners],
-        anim.actor('Track', '', track),
-        anim.actor('Label', '', track_label),
-        anim.actor('Label', '', lonely_zone_label),
-        [anim.actor('Label', '', label) for label in timeline_labels],
-        anim.actor('Timeline', '', timeline),
-        anim.actor('Lonely zone', '', lonely_zone),
-        anim.actor('Lonely zone', '', half_lonely_zone),
-        anim.actor('Solution', '', timeline_solution_label),
+        anim.actor('Track', '', geo.track),
+        anim.actor('Label', '', geo.track_label),
+        anim.actor('Label', '', geo.lonely_zone_label),
+        [anim.actor('Label', '', label) for label in timeline.labels],
+        anim.actor('Timeline', '', timeline.timeline),
+        anim.actor('Lonely zone', '', geo.lonely_zone),
+        anim.actor('Lonely zone', '', geo.half_lonely_zone),
+        anim.actor('Solution', '', timeline.solution_label),
     ]
     animation.add_actors(actors, scene)
-    rect_radius =  track_radius + 50
+    rect_radius =  pts.track_radius + 50
     scene.add_item(anim.create_invisible_rect(-rect_radius, -rect_radius, rect_radius * 2, rect_radius * 4))
 
 
 #################################################################
 #
 # Prepare animation
-
-def _reset_opacities() -> None:
-    for item in anim.find_all_of_type(globals(), anim.item):
-        item.set_opacity(0.)
-
-def _reposition_points() -> None:
-    for pt in anim.find_all_of_type(globals(), anim.point):
-        pt.reset()
-    for circle in anim.find_all_of_type(globals(), anim.circle):
-        circle.center.reset()
 
 def _reset_runners() -> None:
     global next_runner_to_introduce
@@ -257,34 +287,12 @@ def _reset_runners() -> None:
         r.reset()
         r.set_opacity(0.)
 
-def _reset_timeline(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
-    global last_runner_intervals_graphs
-    global last_overal_intervals_graphs
-    global next_to_last_overal_intervals_graphs
-
-    try:
-        _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
-    except:
-        pass
-    try:
-        _remove_intervals_graphs(last_overal_intervals_graphs, animation, scene, animator)
-    except:
-        pass
-    try:
-        _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
-    except:
-        pass
-
-    last_runner_intervals_graphs = []
-    last_overal_intervals_graphs = []
-    next_to_last_overal_intervals_graphs = []
-
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
-    _reset_timeline(animation, scene, animator)
-    _reset_opacities()
-    _reposition_points()
+    timeline.reset()
+    geo.reset()
+    pts.reset()
     _reset_runners()
-    _gen_normalized_runners()
+    solver.reset()
 
 def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator) -> None:
     prepare_playing(animation, scene, animator)
@@ -304,8 +312,8 @@ def show_track_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     Imagine a track around
     which runners make laps.
     '''
-    anim.anim_reveal_thickness(animator, duration / 4., track)
-    animation.anim_pointing_arrow(track.get_circumference_point(-0.4), arrow_duration, scene, animator)
+    anim.anim_reveal_thickness(animator, duration / 4., geo.track)
+    animation.anim_pointing_arrow(geo.track.get_circumference_point(-0.4), arrow_duration, scene, animator)
 
 def measure_track_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -316,9 +324,9 @@ def measure_track_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     of the track is one,
     in some arbitrary units.
     '''
-    track_label.center_on(track)
-    animator.animate_value([0., 1.], duration / 4., anim.reveal_item(track_label))
-    animation.anim_pointing_arrow(track.get_circumference_point(-0.4), arrow_duration, scene, animator)
+    geo.track_label.center_on(geo.track)
+    animator.animate_value([0., 1.], duration / 4., anim.reveal_item(geo.track_label))
+    animation.anim_pointing_arrow(geo.track.get_circumference_point(-0.4), arrow_duration, scene, animator)
 
 def introduce_runners_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -368,7 +376,7 @@ def lonely_runner_theorem_shot(shot: anim.shot, animation: anim.animation, scene
     will eventually be lonely
     at some time.
     '''
-    animator.animate_value([1., 0.], duration, anim.reveal_item(track_label))
+    animator.animate_value([1., 0.], duration, anim.reveal_item(geo.track_label))
     animation.anim_pointing_arrow([r.center for r in runner.runners], duration, scene, animator)
 
 def lonely_runner_definition_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -396,8 +404,8 @@ def exclusion_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     other runners are outside
     this exclusion zone.
     '''
-    animator.animate_value([0., 1.], duration, anim.reveal_item(lonely_zone))
-    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
+    animator.animate_value([0., 1.], duration, anim.reveal_item(geo.lonely_zone))
+    animation.anim_pointing_arrow(anim.center_of(geo.lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def exclusion_sides_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -407,8 +415,8 @@ def exclusion_sides_shot(shot: anim.shot, animation: anim.animation, scene: anim
     equally on each side of
     the lonely runner.
     '''
-    animator.animate_value([0., 1.], duration, anim.reveal_item(half_lonely_zone))
-    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
+    animator.animate_value([0., 1.], duration, anim.reveal_item(geo.half_lonely_zone))
+    animation.anim_pointing_arrow(anim.center_of(geo.lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def exclusion_distance_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -418,8 +426,8 @@ def exclusion_distance_shot(shot: anim.shot, animation: anim.animation, scene: a
     set to 1 over the number
     of runners.
     '''
-    animator.animate_value([0., 1.], duration, anim.reveal_item(lonely_zone_label))
-    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
+    animator.animate_value([0., 1.], duration, anim.reveal_item(geo.lonely_zone_label))
+    animation.anim_pointing_arrow(anim.center_of(geo.lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def in_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -473,12 +481,12 @@ def far_enough_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     the track, they go in and
     out of the exclusion zone.
     '''
-    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(half_lonely_zone))
-    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(lonely_zone_label))
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(geo.half_lonely_zone))
+    animator.animate_value([1., 0.], duration / 10., anim.reveal_item(geo.lonely_zone_label))
     for r in runner.runners:
         r.set_colored(True)
         animator.animate_value([0., r.speed], duration * 3., r.anim_lap_fraction())
-    animation.anim_pointing_arrow(anim.center_of(lonely_zone.get_all_points()), arrow_duration, scene, animator)
+    animation.anim_pointing_arrow(anim.center_of(geo.lonely_zone.get_all_points()), arrow_duration, scene, animator)
 
 def introduce_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -490,10 +498,10 @@ def introduce_timeline_shot(shot: anim.shot, animation: anim.animation, scene: a
     when each runner is in or
     out of the exclusion zone.
     '''
-    animator.animate_value([0., 1.], duration, anim.reveal_item(timeline))
-    for label in timeline_labels:
+    animator.animate_value([0., 1.], duration, anim.reveal_item(timeline.timeline))
+    for label in timeline.labels:
         animator.animate_value([0., 1.], duration, anim.reveal_item(label))
-    animation.anim_pointing_arrow(anim.center_of(timeline.get_all_points()), arrow_duration, scene, animator)
+    animation.anim_pointing_arrow(anim.center_of(timeline.timeline.get_all_points()), arrow_duration, scene, animator)
 
 def first_runner_on_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -506,9 +514,9 @@ def first_runner_on_timeline_shot(shot: anim.shot, animation: anim.animation, sc
     out of the exclusion zone.
     '''
     runner.always_colored = True
-    if _has_more_runner_intervals():
-        which = _get_next_runner_intervals_index()
-        _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
+    if solver.has_more_runner_intervals():
+        which = solver.get_next_runner_intervals_index()
+        timeline.animate_runner_intervals(solver.gen_runner_allowed_time_intervals(which), animator)
         r = runner.runnings[which]
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
         if runner.lonely.speed:
@@ -524,9 +532,9 @@ def overal_allowed_times_shot(shot: anim.shot, animation: anim.animation, scene:
     produce the final allowed
     time intervals.
     '''
-    if _has_more_runner_intervals():
-        _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
-        animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
+    if solver.has_more_runner_intervals():
+        timeline.animator_overal_intervals(solver.allowed_time_intervals, animator)
+        animation.anim_pointing_arrow(anim.center_of(timeline.last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
 
 def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -542,15 +550,15 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
     until we are left with the
     final solution.
     '''
-    if _has_more_runner_intervals():
-        which = _get_next_runner_intervals_index()
-        _gen_runner_intervals_graph(_gen_runner_allowed_time_intervals(which), animation, scene, animator)
-        _merge_runner_intervals_with_overal_intervals(animation, scene, animator)
+    if solver.has_more_runner_intervals():
+        which = solver.get_next_runner_intervals_index()
+        timeline.animate_runner_intervals(solver.gen_runner_allowed_time_intervals(which), animator)
+        timeline.animator_overal_intervals(solver.allowed_time_intervals, animator)
         r = runner.runnings[which]
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
         if runner.lonely.speed:
             animator.animate_value([0., runner.lonely.speed], duration, runner.lonely.anim_lap_fraction())
-    if _has_more_runner_intervals():
+    if solver.has_more_runner_intervals():
         animation.add_next_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
 
 def final_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -565,19 +573,18 @@ def final_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, an
     They each arrive at their
     position at the shown time.
     '''
-    _remove_intervals_graphs(next_to_last_overal_intervals_graphs, animation, scene, animator)
-    _remove_intervals_graphs(last_runner_intervals_graphs, animation, scene, animator)
-    first_valid_time = (allowed_time_intervals[0][0] + allowed_time_intervals[0][1]) / 2.
+    timeline.cleanup_final_intervals()
+    first_valid_time = (solver.allowed_time_intervals[0][0] + solver.allowed_time_intervals[0][1]) / 2.
     runner.always_colored = False
     for r in runner.runners:
         r.set_colored(True)
         animator.animate_value([0., first_valid_time * r.speed], duration * 2., r.anim_lap_fraction())
 
-    if last_overal_intervals_graphs:
-        animation.anim_pointing_arrow(anim.center_of(last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
-        timeline_solution_label.setText(f'{first_valid_time:3.3}')
-        timeline_solution_label.position.set_absolute_point(max(last_overal_intervals_graphs[0].get_all_points(), key=lambda pt: pt.x() + pt.y()))
-        animator.animate_value([0., 1.], duration, anim.reveal_item(timeline_solution_label))
+    if timeline.last_overal_intervals_graphs:
+        animation.anim_pointing_arrow(anim.center_of(timeline.last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
+        timeline.solution_label.setText(f'{first_valid_time:3.3}')
+        timeline.solution_label.position.set_absolute_point(max(timeline.last_overal_intervals_graphs[0].get_all_points(), key=lambda pt: pt.x() + pt.y()))
+        animator.animate_value([0., 1.], duration, anim.reveal_item(timeline.solution_label))
 
 
 #################################################################
