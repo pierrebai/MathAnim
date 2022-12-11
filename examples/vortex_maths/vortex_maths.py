@@ -78,7 +78,6 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     width = line_width.value / 10.
 
     points = gen_points(point_count)
-    point_labels = gen_point_labels(points)
     lines = gen_lines(multiplier, points)
     lengths = gen_lengths(lines)
 
@@ -99,6 +98,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     circle = anim.actor('Circle', 'Circle on which the points lies', anim.create_circle(anim.point(0., 0.), radius).outline(anim.pale_blue).thickness(10.))
 
     if len(points) <= 60:
+        point_labels = gen_point_labels(points)
         point_label_actors = [anim.actor('Number', 'The numbers corresponding to each point around teh circle', point_label) for point_label in point_labels]
     else:
         point_label_actors = []
