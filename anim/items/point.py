@@ -213,7 +213,7 @@ class radial_point(point):
         Updates the point absolute position and notifies its users.
         """
         self.radius = point.distance(self.origin, new_point)
-        self.angle = _atan2(self.origin.y() - new_point.y(), self.origin.x() - new_point.x())
+        self.angle = _atan2(new_point.y() - self.origin.y(), new_point.x() - self.origin.x())
         self._update_geometry()
         return self
 
@@ -275,7 +275,7 @@ class relative_radial_point(point):
         """
         Updates the point absolute position and notifies its users.
         """
-        delta_from_origin = self.origin.origin - new_point
+        delta_from_origin = new_point - self.origin.origin
         radius_target = point.distance(delta_from_origin, static_point(0., 0.))
         angle_target = _atan2(delta_from_origin.y(), delta_from_origin.x())
         self.radius_delta = radius_target - self.origin.radius
