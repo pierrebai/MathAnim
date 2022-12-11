@@ -45,6 +45,7 @@ reveal_duration = 2.
 
 class points:
     def __init__(self):
+        super().__init__()
         self.outer_center   = anim.point(0., 0.)
         self.outer_radius   = anim.outer_size
         self.inner_radius   = self.outer_radius * inner_circle_ratio()
@@ -61,6 +62,7 @@ pts: points = None
 
 class geometries(anim.geometries):
     def __init__(self, pts):
+        super().__init__()
         self._gen_star(pts)
         self._gen_outer_circle(pts)
         self._gen_inner_circles(pts)
@@ -119,6 +121,9 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
     animation.add_actors([anim.actor("inner polygon", "", poly) for poly in geo.inner_polygons], scene)
     animation.add_actors([anim.actor("outer polygon", "", poly) for poly in geo.inter_polygons], scene)
 
+    rect_radius =  pts.outer_radius * 1.2
+    scene.add_item(anim.create_invisible_rect(-rect_radius, -rect_radius, rect_radius * 2, rect_radius * 2))
+
 
 #################################################################
 #
@@ -133,7 +138,7 @@ def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim
 # Reused animations
 
 def _anim_inner_circle(which_inner: int, animator: anim.animator):
-    anim.anim_reveal_radius(animator, reveal_duration, geo.inner_circles[which_inner])
+    anim.anim_reveal_radius(animator, reveal_duration, geo.inner_circles[which_inner], 1.3)
 
 def _anim_inner_circle_dots(which_inner: int, which_dot: int, animator: anim.animator):
     anim.anim_reveal_radius(animator, reveal_duration, geo.inner_dots[which_inner][which_dot], 4)

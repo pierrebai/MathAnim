@@ -180,7 +180,7 @@ class timeline_geometries:
         self.last_runner_intervals_graphs = new_intervals_graphs
         self.animation.anim_pointing_arrow([anim.center_of(g.get_all_points()) for g  in new_intervals_graphs], duration, self.scene, animator)
         
-    def animator_overal_intervals(self, allowed_time_intervals: _List[_List[float]], animator: anim.animator):
+    def animate_overal_intervals(self, allowed_time_intervals: _List[_List[float]], animator: anim.animator):
         self._remove_graphs(self.next_to_last_overal_intervals_graphs)
         self.next_to_last_overal_intervals_graphs = self.last_overal_intervals_graphs[:]
         for graph in self.next_to_last_overal_intervals_graphs:
@@ -536,7 +536,7 @@ def overal_allowed_times_shot(shot: anim.shot, animation: anim.animation, scene:
     time intervals.
     '''
     if solver.has_more_runner_intervals():
-        timeline.animator_overal_intervals(solver.allowed_time_intervals, animator)
+        timeline.animate_overal_intervals(solver.allowed_time_intervals, animator)
         animation.anim_pointing_arrow(anim.center_of(timeline.last_overal_intervals_graphs[0].get_all_points()), arrow_duration, scene, animator)
 
 def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -556,7 +556,7 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
     if solver.has_more_runner_intervals():
         which = solver.get_next_runner_intervals_index()
         timeline.animate_runner_intervals(solver.gen_runner_allowed_time_intervals(which), animator)
-        timeline.animator_overal_intervals(solver.allowed_time_intervals, animator)
+        timeline.animate_overal_intervals(solver.allowed_time_intervals, animator)
         r = runner.runnings[which]
         animator.animate_value([0., r.speed], duration, r.anim_lap_fraction())
         if runner.lonely.speed:

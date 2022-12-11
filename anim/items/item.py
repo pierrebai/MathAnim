@@ -35,6 +35,12 @@ class item:
         """
         self.setPen(pen(new_color, self.pen().widthF()))
         return self
+
+    def get_outline(self) -> color:
+        """
+        Retrieves the outline color.
+        """
+        return self.pen().color()
         
     def thickness(self, new_width: float):
         """
@@ -56,6 +62,12 @@ class item:
         self.setBrush(_QBrush(new_color))
         return self
 
+    def get_fill(self) -> color:
+        """
+        Retrieves the color used to fill the item.
+        """
+        return self.brush().color()
+
 
     ########################################################################
     #
@@ -68,11 +80,12 @@ class item:
         self.setOpacity(opacity)
         return self
 
-    def set_shown(self, shown: bool) -> None:
+    def set_shown(self, shown: bool):
         """
         Shows or hides the item.
         """
         self.setVisible(shown)
+        return self
 
     @property
     def shown(self) -> bool:
