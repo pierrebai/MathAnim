@@ -266,7 +266,7 @@ class relative_radial_point(point):
         """
         Updates the point position relative to its origin and notifies its users.
         """
-        self.radius_delta = point.distance(new_point, static_point(0., 0.))
+        self.radius_delta = point.distance_from_origin(new_point)
         self.angle_delta = _atan2(new_point.y(), new_point.x())
         self._update_geometry()
         return self

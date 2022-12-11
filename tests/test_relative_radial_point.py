@@ -5,153 +5,224 @@ from anim import *
 
 class relative_radial_point_test(unittest.TestCase):
 
-    # Radius, angle, result delta x and y
+    # Radius, angle
     bases = [
-        [ 0., 0.,      0.,      0.],
-        # TODO: adding raidus and angle affects results in a complex
-        #       relation, so the test need to be more sophisticated,
-        # [ 2., 0.,      2.,      0.],
-        # [ 2., pi / 3., 1.,      sqrt(3)],
-        # [ 4., pi / 6., sqrt(3), 1.],
+        [ 0., 0.],
+        [ 2., 0.],
+        [ 2., pi / 3.],
+        [ 4., pi / 6.],
     ]
 
     def test_relative_radial_point_init(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, 0., 0.)
-                self.assertAlmostEqual(pt.x(), bx + 0.)
-                self.assertAlmostEqual(pt.y(), by + 0.)
+                    total_radius = 0. + br
+                    total_angle  = 0.  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    pt = relative_radial_point(base, 0., 0.)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
+
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
 
     def test_set_radius_delta(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                pt.set_radius_delta(5.)
-                self.assertAlmostEqual(pt.x(), bx + dx * 5 / radius)
-                self.assertAlmostEqual(pt.y(), by + dy * 5 / radius)
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+
+                    total_radius = 5. + br
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
+
+                    pt.set_radius_delta(5.)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
 
     def test_set_angle_delta(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                # Note: going from 60 to 30 degrees invert the dx and dy
-                pt.set_angle_delta(pi / 6.)
-                self.assertAlmostEqual(pt.x(), bx + dy)
-                self.assertAlmostEqual(pt.y(), by + dx)
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+
+                    total_radius = radius + br
+                    total_angle  = pi / 6.  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
+
+                    pt.set_angle_delta(pi / 6.)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
 
     def test_set_origin(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                pt.set_origin(radial_point(point(0., 0.), 3., pi))
-                self.assertAlmostEqual(pt.x(), -(3. / 2. + dx))
-                self.assertAlmostEqual(pt.y(), - sqrt( (radius + 3.) ** 2 - ((radius + 3.) / 2.) ** 2 ) )
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+
+                    total_radius = radius + 3.
+                    total_angle  = angle  + pi
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
+
+                    pt.set_origin(radial_point(point(0., 0.), 3., pi))
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
 
     def test_set_point(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                pt.setX(5.)
-                pt.setY(6.)
-                self.assertAlmostEqual(pt.x(), 5.)
-                self.assertAlmostEqual(pt.y(), 6.)
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
 
-                pt.set_point(static_point(7., 8.))
-                self.assertAlmostEqual(pt.x(), bx + 7.)
-                self.assertAlmostEqual(pt.y(), by + 8.)
-                # TODO: should assert on new angle and radius
+                    pt.setX(5.)
+                    pt.setY(6.)
+                    self.assertAlmostEqual(pt.x(), 5.)
+                    self.assertAlmostEqual(pt.y(), 6.)
 
-                pt.set_absolute_point(static_point(1., 6.))
-                self.assertAlmostEqual(pt.x(), 1.)
-                self.assertAlmostEqual(pt.y(), 6.)
-                # TODO: should assert on new angle and radius
+                    nrd = sqrt(7 ** 2 + 8 **2)
+                    nad = atan2(8., 7.)
+                    total_radius = nrd + br
+                    total_angle  = nad + ba
+                    nx = cos(total_angle) * total_radius
+                    ny = sin(total_angle) * total_radius
+
+                    pt.set_point(static_point(7., 8.))
+                    self.assertAlmostEqual(pt.x(), nx)
+                    self.assertAlmostEqual(pt.y(), ny)
+                    self.assertAlmostEqual(pt.radius_delta, nrd)
+                    self.assertAlmostEqual(pt.angle_delta, nad)
+
+                    nrd = sqrt(1 ** 2 + 6 **2) - br
+                    nad = atan2(6., 1.) - ba
+
+                    pt.set_absolute_point(static_point(1., 6.))
+                    self.assertAlmostEqual(pt.x(), 1.)
+                    self.assertAlmostEqual(pt.y(), 6.)
+                    self.assertAlmostEqual(pt.radius_delta, nrd)
+                    self.assertAlmostEqual(pt.angle_delta, nad)
 
     def test_original_point(self):
-        # Radius, angle, resulting delta x and y
+        # Radius, angle
         radius_angle_deltas = [
-            [2, pi / 3., 1., sqrt(3) ],
+            [2, pi / 3. ],
         ]
 
-        for radius, angle, dx, dy in radius_angle_deltas:
-            for br, ba, bx, by in self.bases:
-                base = radial_point(point(0., 0.), br, ba)
+        for radius, angle in radius_angle_deltas:
+            for br, ba in self.bases:
+                with self.subTest(f'r {radius} - a {round(360 * angle / tau)} - br {br} - ba {round(360 * ba / tau)}'):
+                    base = radial_point(point(0., 0.), br, ba)
 
-                pt = relative_radial_point(base, radius, angle)
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
-                self.assertAlmostEqual(pt.original_point.x(), bx + dx)
-                self.assertAlmostEqual(pt.original_point.y(), by + dy)
+                    total_radius = radius + br
+                    total_angle  = angle  + ba
+                    ex = cos(total_angle) * total_radius
+                    ey = sin(total_angle) * total_radius
 
-                pt.setX(5.)
-                pt.setY(6.)
-                self.assertAlmostEqual(pt.x(), 5.)
-                self.assertAlmostEqual(pt.y(), 6.)
-                self.assertAlmostEqual(pt.original_point.x(), bx + dx)
-                self.assertAlmostEqual(pt.original_point.y(), by + dy)
+                    pt = relative_radial_point(base, radius, angle)
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+                    self.assertAlmostEqual(pt.original_point.x(), ex)
+                    self.assertAlmostEqual(pt.original_point.y(), ey)
 
-                pt.set_point(static_point(7., 8.))
-                self.assertAlmostEqual(pt.x(), bx + 7.)
-                self.assertAlmostEqual(pt.y(), by + 8.)
-                self.assertAlmostEqual(pt.original_point.x(), bx + dx)
-                self.assertAlmostEqual(pt.original_point.y(), by + dy)
+                    pt.setX(5.)
+                    pt.setY(6.)
+                    self.assertAlmostEqual(pt.x(), 5.)
+                    self.assertAlmostEqual(pt.y(), 6.)
+                    self.assertAlmostEqual(pt.original_point.x(), ex)
+                    self.assertAlmostEqual(pt.original_point.y(), ey)
 
-                pt.set_absolute_point(static_point(1., 6.))
-                self.assertAlmostEqual(pt.x(), 1.)
-                self.assertAlmostEqual(pt.y(), 6.)
-                self.assertAlmostEqual(pt.original_point.x(), bx + dx)
-                self.assertAlmostEqual(pt.original_point.y(), by + dy)
+                    total_radius = sqrt(7 ** 2 + 8 **2) + br
+                    total_angle  = atan2(8., 7.) + ba
+                    nx = cos(total_angle) * total_radius
+                    ny = sin(total_angle) * total_radius
 
-                pt.reset()
-                self.assertAlmostEqual(pt.x(), bx + dx)
-                self.assertAlmostEqual(pt.y(), by + dy)
+                    pt.set_point(static_point(7., 8.))
+                    self.assertAlmostEqual(pt.x(), nx)
+                    self.assertAlmostEqual(pt.y(), ny)
+                    self.assertAlmostEqual(pt.original_point.x(), ex)
+                    self.assertAlmostEqual(pt.original_point.y(), ey)
+
+                    pt.set_absolute_point(static_point(1., 6.))
+                    self.assertAlmostEqual(pt.x(), 1.)
+                    self.assertAlmostEqual(pt.y(), 6.)
+                    self.assertAlmostEqual(pt.original_point.x(), ex)
+                    self.assertAlmostEqual(pt.original_point.y(), ey)
+
+                    pt.reset()
+                    self.assertAlmostEqual(pt.x(), ex)
+                    self.assertAlmostEqual(pt.y(), ey)
+                    self.assertAlmostEqual(pt.radius_delta, radius)
+                    self.assertAlmostEqual(pt.angle_delta, angle)
