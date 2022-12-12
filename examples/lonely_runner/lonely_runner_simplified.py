@@ -122,4 +122,4 @@ def running_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, 
 #
 # Animation
 
-lonely_runner_sinplified = anim.simple_animation.from_module(globals())
+lonely_runner_simplified = anim.simple_animation.from_module(globals())

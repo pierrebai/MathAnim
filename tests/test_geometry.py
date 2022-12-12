@@ -181,3 +181,25 @@ class geometry_test(unittest.TestCase):
 
                 self.assertEqual(pt( 2., 0.), two_lines_any_intersection(line(pt(-1., 0.), pt(1., 0.)), line(pt(2., 1.), pt(2., -1))))
 
+    def test_mirror_point_on_line(self):
+        mirror_line = line(point(0., 1.), point(0., -1.))
+        global dx, dy
+        for dx in range(-3, 3):
+            for dy in range(-3, 3):
+                self.assertEqual(point( -dx, dy), mirror_point_on_line(pt(0., 0.), mirror_line))
+
+        mirror_line = line(point(-2., 1.), point(-2., -1.))
+        self.assertEqual(point(3., 0.), mirror_point_on_line(point(3., 0.), mirror_line, 0.))
+        self.assertEqual(point(-7., 0.), mirror_point_on_line(point(3., 0.), mirror_line))
+        self.assertEqual(point(-2., 0.), mirror_point_on_line(point(3., 0.), mirror_line, 0.5))
+
+        mirror_line = line(point(1., 0.), point(-1., -0.))
+        self.assertEqual(point(3., 0.), mirror_point_on_line(point(3., 0.), mirror_line, 0.))
+        self.assertEqual(point(3., 0.), mirror_point_on_line(point(3., 0.), mirror_line))
+        self.assertEqual(point(3., 0.), mirror_point_on_line(point(3., 0.), mirror_line, 0.5))
+
+        mirror_line = line(point(1., 1.), point(-1., -1.))
+        self.assertEqual(point(3., 0.), mirror_point_on_line(point(3., 0.), mirror_line, 0.))
+        self.assertEqual(point(0., 3.), mirror_point_on_line(point(3., 0.), mirror_line))
+        self.assertEqual(point(1.5, 1.5), mirror_point_on_line(point(3., 0.), mirror_line, 0.5))
+

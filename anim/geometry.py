@@ -11,6 +11,18 @@ origin = point(0., 0.)
 
 #################################################################
 #
+# Min/max
+
+def min_max(points: _List[static_point]) -> _Tuple[static_point]:
+    minX = min([pt.x() for pt in points])
+    maxX = max([pt.x() for pt in points])
+    minY = min([pt.y() for pt in points])
+    maxY = max([pt.y() for pt in points])
+    return static_point(minX, minY), static_point(maxX, maxY)
+
+
+#################################################################
+#
 # Centers
 
 def weighted_center_of(points: _List[static_point]) -> static_point:
@@ -20,11 +32,8 @@ def weighted_center_of(points: _List[static_point]) -> static_point:
     return total / len(points)
 
 def center_of(points: _List[static_point]) -> static_point:
-    minX = min([pt.x() for pt in points])
-    maxX = max([pt.x() for pt in points])
-    minY = min([pt.y() for pt in points])
-    maxY = max([pt.y() for pt in points])
-    return static_point((maxX + minX) / 2., (maxY + minY) / 2.)
+    p1, p2 = min_max(points)
+    return (p1 + p2) / 2.
 
 
 #################################################################
@@ -77,6 +86,37 @@ def two_points_angle(p1: static_point, p2: static_point) -> float:
     delta = p2 - p1
     return atan2(delta.y(), delta.x())
 
+#################################################################
+#
+# Angles to align lines
+
+def straighten_angle(p1: point, p2: point, horizontal) -> float:
+    """
+    Returns the angle by which the points must be rotated
+    to aligned the line to be horizontal or vertical.
+    """
+    extra = 0. if horizontal else hpi
+    angle = -two_points_angle(p1, p2) + extra
+    if angle >= pi:
+        angle -= pi
+    if angle <= -pi:
+        angle += pi
+    return angle
+
+def horizontal_angle(p1: point, p2: point) -> float:
+    """
+    Returns the angle by which the points must be rotated
+    to aligned the line to be horizontal.
+    """
+    return straighten_angle(p1, p2, True)
+
+def vertical_angle(p1: point, p2: point) -> float:
+    """
+    Returns the angle by which the points must be rotated
+    to aligned the line to be vertical.
+    """
+    return straighten_angle(p1, p2, False)
+
 
 #################################################################
 #
@@ -119,6 +159,9 @@ def point_to_two_points_distance(pt: static_point, p1: static_point, p2: static_
 def two_points_convex_sum(p1: static_point, p2: static_point, t: float) -> point:
     return point(p1 * (1. - t) + p2 * t)
 
+def mid_point(p1: static_point, p2: static_point) -> point:
+    return two_points_convex_sum(p1, p2, 0.5)
+
 def point_to_line_projection(pt: static_point, line: line) -> point:
     return point_to_two_points_projection(pt, line.p1, line.p2)
 
@@ -129,6 +172,18 @@ def point_to_two_points_projection(pt: static_point, p1: static_point, p2: stati
         return p1
     t = two_points_dot(pt - p1, delta) / delta_dot
     return two_points_convex_sum(p1 , p2, t)
+
+def mirror_point_on_line(mirrored_point: point, mirror_line: line, ratio: float = 1.) -> static_point:
+    # The following is equivalent to these steps, but with each equation
+    # folded into the next:
+    #
+    #     delta = org_point - pt_on_line
+    #     mirror = pt_on_line - delta
+    #     delta = org_point - mirror
+    #     position = org_point - delta * ratio
+    #     mirrored_point.set_absolute_point(position)
+    pt_on_line = point_to_line_projection(mirrored_point, mirror_line)
+    return mirrored_point - (mirrored_point - pt_on_line) * (2 * ratio)
 
 
 #################################################################

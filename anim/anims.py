@@ -80,6 +80,16 @@ def move_point(moved_point: point):
     """
     return lambda pt: moved_point.set_point(point(pt)) if pt else None
 
+def move_point_to_line_mirror(mirrored_point: point, mirror_line: line):
+    """
+    Returns a function that mirrors the position of the point
+    around the given line.
+    The retiurned function only takes the ratio between zero
+    and one of the complete mirror.
+    """
+    org_point = static_point(mirrored_point)
+    return lambda ratio: mirrored_point.set_absolute_point(mirror_point_on_line(org_point, mirror_line, ratio))
+
 
 #################################################################
 #
@@ -148,13 +158,31 @@ def reveal_item(item):
         item = item.item
     return lambda opacity: item.set_opacity(opacity) if item else None
 
+def anim_reveal_item(animator: animator, duration: float, item):
+    """
+    Adds an animation to reveal the item in the given duration.
+    """
+    animator.animate_value([0., 1., 1.], duration, reveal_item(item))
+
+def anim_hide_item(animator: animator, duration: float, item):
+    """
+    Adds an animation to hide the item in the given duration.
+    """
+    animator.animate_value([1., 0.], duration, reveal_item(item))
+
 def anim_reveal_thickness(animator: animator, duration: float, item, zoom_factor: float = 5.):
+    """
+    Adds an animation to reveal the item and ondulate its thickness in the given duration.
+    """
     if isinstance(item, actor):
         item = item.item
-    animator.animate_value([0., 1.], duration, reveal_item(item))
+    animator.animate_value([0., 1., 1.], duration, reveal_item(item))
     animator.animate_value(ondulation_serie(item.get_thickness(), zoom_factor, 10), duration, change_thickness(item))
 
 def anim_ondulate_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
+    """
+    Adds an animation to reveal the item and ondulate its radius in the given duration.
+    """
     if isinstance(item, actor):
         item = item.item
     animator.animate_value(ondulation_serie(item.radius, zoom_factor, 10), duration, change_radius(item))
