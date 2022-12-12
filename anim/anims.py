@@ -76,9 +76,17 @@ def rotate_relative_point_around(moved_point: point, center: point):
 def move_point(moved_point: point):
     """
     Returns a function that sets the position of the point.
+    For relative points, that changes the delta, not the position.
     The returned function only takes the position as parameter.
     """
     return lambda pt: moved_point.set_point(point(pt)) if pt else None
+
+def move_absolute_point(moved_point: point):
+    """
+    Returns a function that sets the absolute position of the point.
+    The returned function only takes the position as parameter.
+    """
+    return lambda pt: moved_point.set_absolute_point(point(pt)) if pt else None
 
 def move_point_to_line_mirror(mirrored_point: point, mirror_line: line):
     """
