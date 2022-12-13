@@ -70,11 +70,11 @@ class anim_description:
 
     @staticmethod
     def _create_shot(prep):
-        shot_name = "Shot"
+        shot_name = "-"
         shot_description = ""
         if prep.__doc__:
             lines: list[str] = prep.__doc__.strip().splitlines()
-            shot_name = lines[0]
+            shot_name = lines[0] if lines else '-'
             if len(lines) > 1:
                 first_line = 1
                 while not lines[first_line].strip():

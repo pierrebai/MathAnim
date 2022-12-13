@@ -97,8 +97,8 @@ class geometries(anim.geometries):
         min_pt, max_pt = anim.min_max(self.main_triangle.points + self.right_triangle.points + self.left_triangle.points)
         delta = max_pt - min_pt
         delta = max(delta.x(), delta.y())
-        p1 = anim.point(min_pt - anim.static_point(delta * 0.25, delta * 0.57))
-        p2 = anim.point(max_pt + anim.static_point(delta * 0.25, delta * 0.15))
+        p1 = anim.point(min_pt - anim.static_point(delta * 0.3, delta * 0.57))
+        p2 = anim.point(max_pt + anim.static_point(delta * 0.3, delta * 0.15))
         return anim.rectangle(p1, p2).outline(anim.gray).thickness(5.).fill(anim.no_color)
 
     def _order_items(self):
@@ -284,7 +284,7 @@ def _animate_triangle_scale_labels(side_labels, scale_labels, animator: anim.ani
 
 def scale_left_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the left triangle by B
+    Scale the left triangle by a factor of A ...
     '''
     tri = geo.left_triangle
     p0, p1, p2 = tri.points
@@ -293,13 +293,13 @@ def scale_left_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
 
 def scale_left_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the left triangle by B
+    Scale the left triangle by a factor of A ...
     '''
     _animate_triangle_scale_labels(geo.left_side_labels, geo.left_scale_labels, animator)
 
 def scale_right_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the right triangle by A
+    Scale the right triangle by a factor of B ...
     '''
     tri = geo.right_triangle
     p0, p1, p2 = tri.points
@@ -308,20 +308,20 @@ def scale_right_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
 
 def scale_right_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the right triangle by A
+    Scale the right triangle by a factor of B ...
     '''
     _animate_triangle_scale_labels(geo.right_side_labels, geo.right_scale_labels, animator)
 
 def scale_main_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the main triangle by C
+    ... scale the last triangle by a factor of C
     '''
     scale_factor = 1.1
     _animate_triangle_scale(geo.main_triangle, scale_factor, animator)
 
 def scale_main_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Scale the main triangle by C
+    ... scale the last triangle by a factor of C
     '''
     _animate_triangle_scale_labels(geo.main_side_labels, geo.main_scale_labels, animator)
 
@@ -329,8 +329,8 @@ def corresponding_sides_shot(shot: anim.shot, animation: anim.animation, scene: 
     '''
     Now comes the magic
     '''
-    anim.anim_reveal_item(animator, quick_reveal_duration, geo.left_to_main_arrow)
-    anim.anim_reveal_item(animator, quick_reveal_duration, geo.right_to_main_arrow)
+    anim.anim_reveal_item(animator, duration, geo.left_to_main_arrow)
+    anim.anim_reveal_item(animator, long_duration, geo.right_to_main_arrow)
 
 def bring_together_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -366,21 +366,39 @@ def _animate_label_merge(moved_label: anim.scaling_text, dest_label: anim.scalin
     animator.animate_value([from_pt, dest_pt], short_duration, anim.move_absolute_point(moved_label.position))
     anim.anim_reveal_item(animator, duration, power_label)
 
-def square_A_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def square_A_hint_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     A squared ...
     '''
+    animator.animate_value([0., 0.], duration, lambda x: x)
+
+def square_A_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    ...
+    '''
     _animate_label_merge(geo.left_side_labels [1], geo.left_scale_labels [1], geo.left_power_label, animator)
 
-def square_B_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def square_B_hint_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     ... plus B squared ...
     '''
+    animator.animate_value([0., 0.], duration, lambda x: x)
+
+def square_B_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    ...
+    '''
     _animate_label_merge(geo.right_side_labels[0], geo.right_scale_labels[0], geo.right_power_label, animator)
+
+def square_C_hint_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    ... equals C squared
+    '''
+    animator.animate_value([0., 0.], duration, lambda x: x)
 
 def square_C_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    ... equals C squared
+    ...
     '''
     _animate_label_merge(geo.main_side_labels[2], geo.main_scale_labels[2], geo.main_power_label, animator)
 
