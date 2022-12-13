@@ -384,6 +384,12 @@ def square_C_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim
     '''
     _animate_label_merge(geo.main_side_labels[2], geo.main_scale_labels[2], geo.main_power_label, animator)
 
+def final_equation_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    A² + B² = C²
+    '''
+    pass
+
 
 #################################################################
 #
