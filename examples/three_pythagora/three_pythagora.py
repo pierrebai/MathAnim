@@ -13,7 +13,8 @@ reset_on_change = False
 has_pointing_arrow = False
 
 duration = 2.
-short_duration = duration / 3.
+short_duration = duration / 2.
+long_duration = duration * 2.
 quick_reveal_duration = duration / 8.
 
 #################################################################
@@ -68,11 +69,15 @@ class geometries(anim.geometries):
         self.left_side_labels  = geometries._create_tri_side_labels(self.left_triangle,
             [anim.static_point(-dlt4, -dlt2), anim.static_point(-dlt2, -dlt3), anim.static_point(dlt2, -dlt)])
         self.right_side_labels = geometries._create_tri_side_labels(self.right_triangle,
-            [anim.static_point(0., -dlt4), anim.static_point(dlt2, 0.), anim.static_point(-dlt2, 0.)])
+            [anim.static_point(0., -dlt3), anim.static_point(dlt2, 0.), anim.static_point(-dlt2, 0.)])
 
         self.main_scale_labels  = geometries._create_tri_scale_labels(self.main_triangle,  'C')
-        self.left_scale_labels  = geometries._create_tri_scale_labels(self.left_triangle,  'B')
-        self.right_scale_labels = geometries._create_tri_scale_labels(self.right_triangle, 'A')
+        self.left_scale_labels  = geometries._create_tri_scale_labels(self.left_triangle,  'A')
+        self.right_scale_labels = geometries._create_tri_scale_labels(self.right_triangle, 'B')
+
+        self.main_power_label  = geometries._create_tri_power_label(self.main_scale_labels[2])
+        self.left_power_label  = geometries._create_tri_power_label(self.left_scale_labels[1])
+        self.right_power_label = geometries._create_tri_power_label(self.right_scale_labels[0])
 
         self.right_angle = anim.polygon(pts.angle_corners).fill(anim.black).outline(anim.no_color)
 
@@ -87,18 +92,6 @@ class geometries(anim.geometries):
         self.background_rect = self._create_background_rect()
 
         self._order_items()
-
-    def reset(self):
-        super().reset()
-        change_labels = [
-            self.main_scale_labels [2],
-            self.left_scale_labels [1],
-            self.right_scale_labels[0],
-        ]
-        new_labels = ['C', 'B', 'A']
-        for label, text in zip(change_labels, new_labels):
-            label.setText(text)
-            label.set_sans_font(geometries.label_size)
 
     def _create_background_rect(self):
         min_pt, max_pt = anim.min_max(self.main_triangle.points + self.right_triangle.points + self.left_triangle.points)
@@ -119,8 +112,8 @@ class geometries(anim.geometries):
         return anim.selected_point(points, lambda points: anim.weighted_center_of(points))
 
     @staticmethod
-    def _create_tri_label(label: str, pos: anim.point) -> anim.scaling_text:
-        return anim.create_scaling_sans_text(label, pos, geometries.label_size).fill(anim.black)
+    def _create_tri_label(label: str, pos: anim.point, font_size: float = label_size) -> anim.scaling_text:
+        return anim.create_scaling_sans_text(label, pos, font_size).fill(anim.black)
 
     @staticmethod
     def _create_tri_side_label(tri: anim.polygon, s1: int, s2: int, label: str, offset: anim.static_point) -> anim.scaling_text:
@@ -128,21 +121,21 @@ class geometries(anim.geometries):
         pos = geometries._relative_mid_point([p1, p2])
         pos = anim.relative_point(pos, offset)
         angle = anim.two_points_angle(p1, p2) + anim.hpi
-        return geometries._create_tri_label(label, pos).place_around(pos, angle, geometries.label_size * 2)
-
-    @staticmethod
-    def _create_tri_scale_label(tri: anim.polygon, label: str) -> anim.scaling_text:
-        pos = geometries._relative_mid_point(tri.points)
-        #pos = anim.point(anim.center_of(tri.points))
         return geometries._create_tri_label(label, pos)
 
     @staticmethod
     def _create_tri_side_labels(tri: anim.polygon, offsets: _List[anim.static_point]) -> _List[anim.scaling_text]:
         return [
-            geometries._create_tri_side_label(tri, 0, 1, 'A', offsets[0]),
-            geometries._create_tri_side_label(tri, 1, 2, 'B', offsets[1]),
+            geometries._create_tri_side_label(tri, 0, 1, 'B', offsets[0]),
+            geometries._create_tri_side_label(tri, 1, 2, 'A', offsets[1]),
             geometries._create_tri_side_label(tri, 2, 0, 'C', offsets[2]),
         ]
+
+    @staticmethod
+    def _create_tri_scale_label(tri: anim.polygon, label: str) -> anim.scaling_text:
+        pos = geometries._relative_mid_point(tri.points)
+        return geometries._create_tri_label(label, pos)
+
     @staticmethod
     def _create_tri_scale_labels(tri: anim.polygon, label: str) -> _List[anim.scaling_text]:
         return [
@@ -150,6 +143,12 @@ class geometries(anim.geometries):
             geometries._create_tri_scale_label(tri, label),
             geometries._create_tri_scale_label(tri, label),
         ]
+
+    @staticmethod
+    def _create_tri_power_label(scale_label: anim.scaling_text) -> anim.scaling_text:
+        pos = anim.relative_point(scale_label.exponent_pos())
+        return geometries._create_tri_label('2', pos, geometries.label_size * 0.6)
+
 
 geo: geometries = geometries(pts)
 
@@ -170,6 +169,9 @@ actors = [
     [anim.actor('Label', '', label) for label in geo.main_scale_labels],
     [anim.actor('Label', '', label) for label in geo.right_scale_labels],
     [anim.actor('Label', '', label) for label in geo.left_scale_labels],
+    anim.actor('Label', '', geo.main_power_label),
+    anim.actor('Label', '', geo.right_power_label),
+    anim.actor('Label', '', geo.left_power_label),
     anim.actor('Arrow', '', geo.left_to_main_arrow),
     anim.actor('Arrow', '', geo.right_to_main_arrow),
 ]
@@ -342,7 +344,7 @@ def bring_together_shot(shot: anim.shot, animation: anim.animation, scene: anim.
         for pt in tri.points:
             from_pt = anim.static_point(pt)
             dest_pt = anim.static_point(pt - delta)
-            animator.animate_value([from_pt, dest_pt], duration, anim.move_absolute_point(pt))
+            animator.animate_value([from_pt, dest_pt, dest_pt, dest_pt], long_duration, anim.move_absolute_point(pt))
     
     anim.anim_hide_item(animator, quick_reveal_duration, geo.left_to_main_arrow)
     anim.anim_hide_item(animator, quick_reveal_duration, geo.right_to_main_arrow)
@@ -358,19 +360,29 @@ def bring_together_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     for label in hide_labels:
         anim.anim_hide_item(animator, short_duration, label)
 
+def _animate_label_merge(moved_label: anim.scaling_text, dest_label: anim.scaling_text, power_label: anim.scaling_text, animator: anim.animator):
+    from_pt = anim.static_point(moved_label.position)
+    dest_pt = anim.static_point(dest_label.position)
+    animator.animate_value([from_pt, dest_pt], short_duration, anim.move_absolute_point(moved_label.position))
+    anim.anim_reveal_item(animator, duration, power_label)
 
-def square_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def square_A_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
-    Can you see it?
+    A squared ...
     '''
-    change_labels = [
-        geo.main_scale_labels [2],
-        geo.left_scale_labels [1],
-        geo.right_scale_labels[0],
-    ]
-    for label in change_labels:
-        label.setText('2')
-        label.set_sans_font(geo.label_size * 0.6)
+    _animate_label_merge(geo.left_side_labels [1], geo.left_scale_labels [1], geo.left_power_label, animator)
+
+def square_B_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    ... plus B squared ...
+    '''
+    _animate_label_merge(geo.right_side_labels[0], geo.right_scale_labels[0], geo.right_power_label, animator)
+
+def square_C_labels_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    ... equals C squared
+    '''
+    _animate_label_merge(geo.main_side_labels[2], geo.main_scale_labels[2], geo.main_power_label, animator)
 
 
 #################################################################
