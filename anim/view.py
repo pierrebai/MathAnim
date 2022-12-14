@@ -2,7 +2,7 @@ from .items import static_point, static_rectangle
 
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QGraphicsView
-from PySide6.QtCore import Qt, QMarginsF, QRect, QPoint
+from PySide6.QtCore import Qt as _Qt, QMarginsF as _QMarginsF, QRect as _QRect, QPoint as _QPoint, QSize as _QSize
 
 from math import floor as _floor, ceil as _ceil
 
@@ -27,12 +27,18 @@ class view(QGraphicsView):
 
         self.setInteractive(False)
         self.setResizeAnchor(QGraphicsView.AnchorViewCenter)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(_Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(_Qt.ScrollBarAlwaysOff)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setOptimizationFlag(QGraphicsView.DontSavePainterState)
+
+    def sizeHint(self) -> _QSize:
+        return _QSize(800, 800)
+
+    def minimumSizeHint(self) -> _QSize:
+        return _QSize(800, 800)
 
     def set_scene(self, scene):
         """
@@ -60,8 +66,8 @@ class view(QGraphicsView):
         margins added around it.
         """
         margin = self.margin
-        rect = rect.marginsAdded(QMarginsF(margin, margin, margin, margin))
-        self.fitInView(rect, Qt.KeepAspectRatio)
+        rect = rect.marginsAdded(_QMarginsF(margin, margin, margin, margin))
+        self.fitInView(rect, _Qt.KeepAspectRatio)
         self.apply_transform(self.transform())
 
     def preserve_transform(self) -> None:
@@ -90,14 +96,14 @@ class view(QGraphicsView):
 
     def map_rect_to_scene(self, rect: static_rectangle) -> static_rectangle:
         # Unfortunately, Qt does *not* provide a mapToScene taking floating-point rect!
-        return self.mapToScene(QRect(_floor(rect.x()), _floor(rect.y()), _ceil(rect.width()), _ceil(rect.height()))).boundingRect()
+        return self.mapToScene(_QRect(_floor(rect.x()), _floor(rect.y()), _ceil(rect.width()), _ceil(rect.height()))).boundingRect()
 
     def map_rect_from_scene(self, rect: static_rectangle) -> static_rectangle:
         return static_rectangle(self.mapfromScene(rect).boundingRect())
 
     def map_point_to_scene(self, pt: static_point) -> static_point:
         # Unfortunately, Qt does *not* provide a mapToScene taking floating-point point!
-        return self.mapToScene(QPoint(round(pt.x()), round(pt.y())))
+        return self.mapToScene(_QPoint(round(pt.x()), round(pt.y())))
 
     def map_point_from_scene(self, pt: static_point) -> static_point:
         return static_point(self.mapFromScene(pt))

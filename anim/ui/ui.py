@@ -36,6 +36,7 @@ def start_app(app: QApplication, window: QMainWindow) -> None:
 def _create_dock_container(dock: QDockWidget) -> QVBoxLayout:
     container = QWidget()
     container.setMinimumWidth(150)
+    container.setMaximumWidth(350)
     layout = QVBoxLayout(container)
     dock.setWidget(container)
     return layout

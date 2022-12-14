@@ -245,7 +245,7 @@ class fixed_size_text(scaling_text):
         letter_height = self.letter_height * sy
 
         lines = self.text().splitlines()
-        lineCount = len(lines)
+        lineCount = max(1, len(lines))
         letter_count = max([self.min_line_length] + [len(line) for line in lines])
 
         self._real_rect.setRect(0., 0., int(letter_width * letter_count), letter_height * lineCount)
