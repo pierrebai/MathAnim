@@ -1,8 +1,10 @@
 from .items.line import line
 from .items.point import point, static_point
+from .maths import spread_item
+from .types import deep_map
 
 from math import cos, sin, atan2, sqrt, pi, exp, log
-from typing import List as _List, Tuple as _Tuple
+from typing import List as _List, Tuple as _Tuple, Callable as _Callable, Any as _Any
 
 hpi = pi / 2.
 qpi = pi / 4.
@@ -286,42 +288,10 @@ def _stay_on_units(params: static_point) -> static_point:
 #
 # Points spreads
 
-def create_triangle_rows_of_count(rows: int) -> _List[int]:
+def create_spread_of_points(spread: _List[_List[spread_item]], top: point, row_offset: static_point, column_offset: static_point) -> _List[_List[point]]:
     """
-    Creates a list of counts of each row of a triangle of things.
+    Creates a spread (list of lists) of points in an arrangement starting at top.
+    Each row is offset from the preceeding row by the row_offset.
+    Each point in the row is offset from the preceeding point by the column_offset.
     """
-    return [count for count in range(1, rows+1)]
-
-def create_triangle_rows_of_numbers(rows: int, start = 0) -> _List[int]:
-    """
-    Creates a triangle of rows of numbers.
-    """
-    rows_of_count = create_triangle_rows_of_count(rows)
-    rows_of_nmumbers = []
-    for count in rows_of_count:
-        rows_of_nmumbers.append([i + start for i in range(count)])
-        start += count+1
-    return rows_of_nmumbers
-
-def create_rows_of_points(rows_of_count: _List[int], top: point, element_size: static_point, row_offset: static_point) -> _List[_List[point]]:
-    """
-    Creates a list of lists of points in an arrangement of rows starting at top.
-    Each row is offset from the preceeding by the row_offset. (Both the vertical and horizontal offsets.)
-    Each element in the triangle has the given element size.
-    """
-    pos = static_point(top)
-    width = element_size.x()
-    rows_of_points = []
-    for count in rows_of_count:
-        row = [point(pos + static_point(col * 2. * width, 0)) for col in range(count)]
-        rows_of_points.append(row)
-        pos = pos + row_offset
-    return rows_of_points
-
-def create_triangle_of_points(rows: int, top: point, element_size: static_point) -> _List[_List[point]]:
-    """
-    Creates a list of points in a triagular arrangement starting at top.
-    Each element in the triangle has the given element size.
-    """
-    return create_rows_of_points(
-        create_triangle_rows_of_count(rows), top, element_size, static_point(-element_size.x(), element_size.y()))
+    return deep_map(lambda item: point(top + row_offset * item.row + column_offset * item.column), spread)

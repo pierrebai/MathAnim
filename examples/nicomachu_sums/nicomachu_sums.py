@@ -28,16 +28,18 @@ class points(anim.points):
         self.text_height = 60.
         self.rows = 4
 
-        self.rows_of_numbers = anim.deep_map(lambda i: str(i*2 + 1), anim.create_triangle_rows_of_numbers(self.rows))
-        numbers_rect = [anim.scaling_text(number, anim.point(0., 0.), self.text_height).scene_rect() for number in anim.flatten(self.rows_of_numbers)]
+        self.triangle_spread = anim.create_triangle_spread(self.rows)
+        self.numbers_spread = anim.deep_map(lambda item: str(item.index * 2 + 1), self.triangle_spread)
+        numbers_rect = [anim.scaling_text(number, anim.point(0., 0.), self.text_height).scene_rect() for number in anim.flatten(self.numbers_spread)]
         self.element_size = anim.static_point(
             max([number.width()  for number in numbers_rect]),
             max([number.height() for number in numbers_rect]))
-        self.element_offset = anim.static_point(-self.element_size.x(), self.element_size.y() * 1.5)
 
         self.top = anim.point(0., 0.)
 
-        self.rows_of_points = anim.create_rows_of_points(anim.create_triangle_rows_of_count(self.rows), self.top, self.element_size, self.element_offset)
+        row_offset = anim.static_point(-self.element_size.x(), self.element_size.y() * 1.5)
+        col_offset = anim.static_point(self.element_size.x() * 2, 0.)
+        self.points_spread = anim.create_spread_of_points(self.triangle_spread, self.top, row_offset, col_offset)
 
         self.highlight_corner = anim.relative_point(self.top, anim.point(0., self.text_height * -3.))
 
@@ -57,10 +59,8 @@ class geometries(anim.geometries):
         def _create_label(number: str, pt: anim.point):
             return anim.create_scaling_sans_text(number, pt, pts.text_height)
 
-        self.rows_of_numbers = anim.deep_map(_create_label, pts.rows_of_numbers, pts.rows_of_points)
-
-        self.number_highlight = anim.center_rectangle(pts.highlight_corner, pts.element_size * 1.2).fill(anim.no_color).outline(anim.pale_red).thickness(15.)
-
+        self.numbers_spread = anim.deep_map(_create_label, pts.numbers_spread, pts.points_spread)
+        self.number_highlight = anim.center_rectangle(pts.highlight_corner, pts.element_size * 1.2).fill(anim.no_color).outline(anim.red).thickness(15.)
         self.background_rect = self.create_background_rect(pts)
 
 geo: geometries = geometries(pts)
@@ -71,7 +71,7 @@ geo: geometries = geometries(pts)
 # Actors
 
 actors = [
-    [anim.actor('Number', '', number) for number in anim.flatten(geo.rows_of_numbers)],
+    [anim.actor('Number', '', number) for number in anim.flatten(geo.numbers_spread)],
     anim.actor('Highlight', '', geo.number_highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -100,7 +100,7 @@ def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     '''
     def reveal(item):
         anim.anim_reveal_item(animator, duration, item)
-    anim.deep_map(reveal, geo.rows_of_numbers)
+    anim.deep_map(reveal, geo.numbers_spread)
 
 def highlight_numbers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -108,7 +108,7 @@ def highlight_numbers_shot(shot: anim.shot, animation: anim.animation, scene: an
     '''
     anim.anim_reveal_item(animator, quick_reveal_duration, geo.number_highlight)
     targets = [anim.static_point(pts.highlight_corner)] * 4
-    for points, numbers in zip(pts.rows_of_points, geo.rows_of_numbers):
+    for points, numbers in zip(pts.points_spread, geo.numbers_spread):
         count = 12 // len(points)
         for pt, number in zip(points, numbers):
             geo.number_highlight.center_on(number)

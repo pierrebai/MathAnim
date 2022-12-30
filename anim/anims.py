@@ -6,46 +6,8 @@ from .geometries import geometries
 from .points import points
 from .items import point, circle, item, static_point, line, polygon, rectangle
 from . import trf
-from .trf import pi, hpi, tau
 
 from typing import List as _List, Callable as _Callable
-
-
-#################################################################
-#
-# Float animations
-
-def linear_serie(start: float, value: float, count: int) -> _List[float]:
-    """
-    Create a list containing a geometric serie starting at a given value
-    with successive values increasing by the value.
-    """
-    return [start + value * i for i in range(count)]
-
-def geometric_serie(start: float, value: float, ratio: float, count: int) -> _List[float]:
-    """
-    Create a list containing a geometric serie starting at a given value
-    with successive values being in the given ratio.
-    """
-    return [start + value * (ratio ** i) for i in range(count)]
-
-def scaled_serie(value: float, count: int, scaler: _Callable) -> _List[float]:
-    """
-    Create a list containing a serie based on the given value and
-    the scaler. The scaler should take a value between 0 and 1 as
-    input and produce a factor to multiply the value.
-    """
-    fc = float(count - 1)
-    return [value * scaler(i / fc) for i in range(count)]
-
-def ondulation_serie(value: float, factor: float, count: int):
-    """
-    Create an ondulating series that goes from value / factor to value * factor.
-    """
-    log_factor = log(factor)
-    def scaler(fraction: float) -> float:
-        return exp(log_factor * sin(tau * fraction))
-    return scaled_serie(value, count, scaler)
 
 
 #################################################################
