@@ -24,6 +24,19 @@ class item:
         """
         return []
 
+    def center_on(self, other):
+        """
+        Centers this item on the given item.
+        """
+        self_rect = self.scene_rect()
+        other_rect = other.scene_rect()
+        self_center = self_rect.center()
+        other_center = other_rect.center()
+        delta = other_center - self_center
+        for pt in self.get_all_points():
+            pt.set_absolute_point(pt + delta)
+        return self
+
 
     ########################################################################
     #

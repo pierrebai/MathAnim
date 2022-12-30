@@ -27,8 +27,8 @@ class rectangle(_QGraphicsRectItem, item):
         """
         return [self.p1, self.p2]
 
-    def scene_rect(self):
-        return self
+    def scene_rect(self) -> static_rectangle:
+        return static_rectangle(static_point(self.p1), static_point(self.p2))
 
     def _update_geometry(self):
         """
@@ -43,10 +43,10 @@ class center_rectangle(_QGraphicsRectItem, item):
     """
     A rectangle graphics item that is dynamically updated when its center point moves.
     """
-    def __init__(self, center: point, width: float, height: float):
+    def __init__(self, center: point, *args):
         super().__init__()
         self.center = center
-        self.extent = point(width, height)
+        self.extent = point(*args)
         center.add_user(self)
         self.extent.add_user(self)
         self._update_geometry()
@@ -57,15 +57,15 @@ class center_rectangle(_QGraphicsRectItem, item):
         """
         return [self.center]
 
-    def scene_rect(self):
-        return self
+    def scene_rect(self) -> static_rectangle:
+        corner = self.center - self.extent / 2
+        return static_rectangle(corner.x(), corner.y(), self.extent.x(), self.extent.y())
 
     def _update_geometry(self):
         """
         Updates the rectangle geometry after the rectangle points moved.
         """
-        corner = self.center - self.extent / 2
-        current_rect = _QRectF(corner.x(), corner.y(), self.extent.x(), self.extent.y())
+        current_rect = self.scene_rect()
         if current_rect != self.rect():
             self.prepareGeometryChange()
             self.setRect(current_rect)

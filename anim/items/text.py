@@ -65,18 +65,6 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         return self.set_font("Trebuchet MS", font_size)
 
-    def center_on(self, other: item) -> _QGraphicsSimpleTextItem:
-        """
-        Centers the text on the given item.
-        """
-        self_rect = self.scene_rect()
-        other_rect = other.scene_rect()
-        self_center = self_rect.center()
-        other_center = other_rect.center()
-        delta = other_center - self_center
-        self.position.set_absolute_point(self.position + delta)
-        return self
-
     def place_around(self, pt: static_point, angle_from_point: float, distance_from_point: float) -> _QGraphicsSimpleTextItem:
         """
         Places the text around the given point in the given direction from the point, in radians.

@@ -21,7 +21,7 @@ quick_reveal_duration = duration / 8.
 #
 # Points
 
-class points(anim.point):
+class points(anim.points):
     def __init__(self):
         super().__init__()
         short_side = 600.
@@ -53,7 +53,7 @@ pts: points = points()
 class geometries(anim.geometries):
     label_size = 50.
 
-    def __init__(self, pts):
+    def __init__(self, pts: points):
         super().__init__()
         self.main_triangle  = anim.polygon(pts.main_corners ).thickness(0.).outline(anim.black).fill(anim.red)
         self.left_triangle  = anim.polygon(pts.left_corners ).thickness(0.).outline(anim.black).fill(anim.red)
@@ -89,17 +89,9 @@ class geometries(anim.geometries):
             self.right_scale_labels[2].position,
             self.main_scale_labels[0].position, anim.pale_blue)
 
-        self.background_rect = self._create_background_rect()
+        self.background_rect = self.create_background_rect(pts, anim.point(0.3, 0.57), anim.point(0.3, 0.15))
 
         self._order_items()
-
-    def _create_background_rect(self):
-        min_pt, max_pt = anim.min_max(self.main_triangle.points + self.right_triangle.points + self.left_triangle.points)
-        delta = max_pt - min_pt
-        delta = max(delta.x(), delta.y())
-        p1 = anim.point(min_pt - anim.static_point(delta * 0.3, delta * 0.57))
-        p2 = anim.point(max_pt + anim.static_point(delta * 0.3, delta * 0.15))
-        return anim.rectangle(p1, p2).outline(anim.gray).thickness(5.).fill(anim.no_color)
 
     def _order_items(self):
         self.main_triangle.setZValue(1.)
@@ -108,7 +100,7 @@ class geometries(anim.geometries):
             label.setZValue(3.)
 
     @staticmethod
-    def _relative_mid_point(points) -> anim.selected_point:
+    def _relative_mid_point(points: _List[anim.point]) -> anim.selected_point:
         return anim.selected_point(points, lambda points: anim.weighted_center_of(points))
 
     @staticmethod
@@ -204,7 +196,7 @@ def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
     for label in geo.main_side_labels:
         anim.anim_reveal_item(animator, duration, label)
 
-def make_copies_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def create_copies_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     Make two copies
     '''

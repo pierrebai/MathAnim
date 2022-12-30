@@ -1,4 +1,4 @@
-from typing import Dict as _Dict, Any as _Any
+from typing import Dict as _Dict, Any as _Any, List as _List, Callable as _Callable
 
 def is_of_type(var, type) -> bool:
     """
@@ -12,7 +12,7 @@ def is_of_type(var, type) -> bool:
     else:
         return isinstance(var, type)
 
-def flatten(var) -> list:
+def flatten(var) -> _List[_Any]:
     """
     Flatten a potentially recursive list or tuple of list or tuple,
     until what we have is a simple flat list.
@@ -24,6 +24,22 @@ def flatten(var) -> list:
     else:
         items.append(var)
     return items
+
+def deep_map(mapping: _Callable, *args):
+    """
+    Recurse on all lists with lists to map all non-list items.
+    The results will have the same list-of-lists structure.
+    Also support tuples.
+    """
+    if not args:
+        return None
+    if isinstance(args[0], list):
+        return [deep_map(mapping, *items) for items in zip(*args)]
+    elif isinstance(args[0], tuple):
+        return [deep_map(mapping, *items) for items in zip(*args)]
+    else:
+        return mapping(*args)
+
 
 def find_all_of_type(module_dict: _Dict[str, _Any], type, ignore_private: bool = True) -> list:
     """

@@ -67,7 +67,7 @@ solver: lonely_solver = None
 #
 # Points
 
-class points(anim.point):
+class points(anim.points):
     def __init__(self):
         super().__init__()
         self.runner_radius: float = 40.

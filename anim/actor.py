@@ -1,8 +1,6 @@
 from .named import named
 from .items import item
 
-from PySide6.QtWidgets import QGraphicsItem
-
 class actor(named):
     """
     A named actor used in an animation.

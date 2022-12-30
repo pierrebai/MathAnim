@@ -1,5 +1,7 @@
 from .types import find_all_of_type
-from .items import item, circle
+from .items import item, point, static_point, rectangle, gray, no_color
+from .points import points
+from .geometry import min_max
 
 class geometries:
     """
@@ -19,3 +21,13 @@ class geometries:
                 it.set_opacity(0.)
             for pt in it.get_all_points():
                 pt.reset()
+
+    @staticmethod
+    def create_background_rect(pts: points, min_margin = static_point(0.1, 0.1), max_margin = static_point(0.1, 0.1)):
+        min_pt, max_pt = min_max(pts.get_all_points())
+        delta = max_pt - min_pt
+        delta = max(delta.x(), delta.y())
+        p1 = point(min_pt - static_point(delta * min_margin.x(), delta * min_margin.y()))
+        p2 = point(max_pt + static_point(delta * max_margin.x(), delta * max_margin.y()))
+        return rectangle(p1, p2).outline(gray).thickness(5.).fill(no_color)
+

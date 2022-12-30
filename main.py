@@ -12,8 +12,10 @@ from examples.pentagramaths.pentagramaths import pentagramaths
 from examples.lonely_runner.lonely_runner import lonely_runner
 from examples.lonely_runner.lonely_runner_simplified import lonely_runner_simplified
 from examples.three_pythagora.three_pythagora import three_pythagora
+from examples.nicomachu_sums.nicomachu_sums import nicomachu_sums
 
 anims = [
+    nicomachu_sums,
     three_pythagora,
     lonely_runner_simplified,
     lonely_runner,
