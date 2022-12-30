@@ -105,7 +105,7 @@ class geometries(anim.geometries):
         self.lonely_zone_label: anim.scaling_text = None
 
         self.track = anim.circle(pts.track_center, pts.track_radius).thickness(pts.track_width).outline(anim.sable)
-        self.track_label = anim.scaling_text('1', pts.track_center, pts.track_label_size)
+        self.track_label = anim.scaling_text('1', pts.track_center).set_sans_font(pts.track_label_size, True)
 
         self._gen_runners(pts)
         self._gen_lonely_zone(pts)
@@ -132,7 +132,7 @@ class geometries(anim.geometries):
         self.half_lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.red)
 
         lonely_zone_label_pos = anim.point(anim.center_of(self.half_lonely_zone.get_all_points()))
-        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos, pts.lonely_zone_label_size).set_position_is_center()
+        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos).set_sans_font(pts.lonely_zone_label_size, True).set_position_is_center()
         self.lonely_zone_label.center_on(self.half_lonely_zone)
 
     def _order_items(self):
@@ -165,11 +165,11 @@ class timeline_geometries:
             anim.point( pts.track_radius, pts.track_radius + pts.timeline_offset)).thickness(pts.timeline_thickness)
 
         self.labels = [
-            anim.scaling_text('0', self.timeline.p1, pts.timeline_label_size),
-            anim.scaling_text('1', self.timeline.p2, pts.timeline_label_size),
+            anim.scaling_text('0', self.timeline.p1).set_sans_font(pts.timeline_label_size),
+            anim.scaling_text('1', self.timeline.p2).set_sans_font(pts.timeline_label_size),
         ]
 
-        self.solution_label = anim.scaling_text('', self.timeline.p1, pts.timeline_label_size)
+        self.solution_label = anim.scaling_text('', self.timeline.p1).set_sans_font(pts.timeline_label_size)
 
         self.timeline.setZValue(2.)
         self.solution_label.setZValue(3.)
@@ -355,7 +355,7 @@ def introduce_runners_shot(shot: anim.shot, animation: anim.animation, scene: an
 
         next_runner_to_introduce += 1
         if next_runner_to_introduce < count:
-            animation.add_next_shots(anim.anim_description._create_shot(introduce_runners_shot))
+            animation.add_next_shots(anim.anim_description.create_shot(introduce_runners_shot))
 
 def show_runners_running_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
@@ -446,20 +446,20 @@ def in_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.
         animator.animate_value([0., runner.lonely_zone_size / 2.], duration, r.anim_lap_fraction())
         animation.attach_pointing_arrow(r.center, scene)
 
-def barely_out_of_onely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def barely_out_of_lonely_zone_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''
     Runners Colors
 
-    Runners just out of the
-    zone on either side are
-    yellow.
+    Runners on the limit of
+    the exclusion zone are
+    green.
     '''
     if runner.runners_count > 2:
         r = runner.runnings[-2]
         r.set_colored(False)
         r.fill(anim.red)
         animator.animate_value([runner.lonely_zone_size * 1. / 2., runner.lonely_zone_size], duration, r.anim_lap_fraction())
-        animator.animate_value([anim.red, anim.yellow], duration, anim.change_fill_color(r))
+        animator.animate_value([anim.red, anim.green], duration, anim.change_fill_color(r))
         animation.attach_pointing_arrow(r.center, scene)
 
 def completely_out_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -467,7 +467,7 @@ def completely_out_shot(shot: anim.shot, animation: anim.animation, scene: anim.
     Runners Colors
 
     Runners farther outside
-    of the zone are green.
+    of the zone are also green.
     '''
     if runner.runners_count > 3:
         r = runner.runnings[-3]
@@ -562,7 +562,7 @@ def all_runners_on_timeline_shot(shot: anim.shot, animation: anim.animation, sce
         if runner.lonely.speed:
             animator.animate_value([0., runner.lonely.speed], duration, runner.lonely.anim_lap_fraction())
     if solver.has_more_runner_intervals():
-        animation.add_next_shots(anim.anim_description._create_shot(all_runners_on_timeline_shot))
+        animation.add_next_shots(anim.anim_description.create_shot(all_runners_on_timeline_shot))
 
 def final_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     '''

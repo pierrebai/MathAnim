@@ -43,13 +43,13 @@ class points(anim.points):
         self.top = anim.point(0., 0.)
 
         def _create_label(number: str):
-            return anim.create_scaling_sans_text(number, anim.point(0., 0.), self.text_height)
+            return anim.create_scaling_sans_text(number, anim.point(0., 0.), self.text_height, True)
 
         self.element_size = anim.maximum_size(anim.deep_map(_create_label, self.texts_spread))
 
-        row_offset = anim.static_point(-self.element_size.x(), self.element_size.y() * 1.5)
-        col_offset = anim.static_point(self.element_size.x() * 1.1, 0.)
-        self.points_spread = anim.create_spread_of_points(self.triangle_spread, self.top, row_offset, col_offset)
+        self.row_offset = anim.static_point(-self.element_size.x(), self.element_size.y() * 1.5)
+        self.col_offset = anim.static_point(self.element_size.x(), 0.)
+        self.points_spread = anim.create_spread_of_points(self.triangle_spread, self.top, self.row_offset, self.col_offset)
 
         self.numbers_spread = anim.deep_filter(number_filter, self.texts_spread, self.triangle_spread)
         self.plusses_spread = anim.deep_filter(not_number_filter, self.texts_spread, self.triangle_spread)
@@ -73,12 +73,18 @@ class geometries(anim.geometries):
         super().__init__()
 
         def _create_label(number: str, pt: anim.point):
-            return anim.create_scaling_sans_text(number, pt, pts.text_height).center_on(pt)
+            return anim.create_scaling_sans_text(number, pt, pts.text_height, True).center_on(pt).set_position_is_center()
 
         self.numbers_spread = anim.deep_map(_create_label, pts.numbers_spread, pts.numbers_point_spread)
         self.plusses_spread = anim.deep_map(_create_label, pts.plusses_spread, pts.plusses_point_spread)
         self.highlight = anim.center_rectangle(pts.highlight_corner, pts.element_size * 1.2).fill(anim.no_color).outline(anim.red).thickness(15.)
+        self.etc = _create_label('etc.', anim.point(0., pts.row_offset.y() * pts.rows))
         self.background_rect = self.create_background_rect(pts)
+
+    def reset(self):
+        super().reset()
+        for number in anim.flatten(self.numbers_spread):
+            number.fill(anim.black)
 
 geo: geometries = geometries(pts)
 
@@ -90,6 +96,7 @@ geo: geometries = geometries(pts)
 actors = [
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.numbers_spread)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.plusses_spread)],
+    anim.actor('Equation', '', geo.etc),
     anim.actor('Highlight', '', geo.highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -133,6 +140,32 @@ def highlight_numbers_shot(shot: anim.shot, animation: anim.animation, scene: an
             targets.extend([anim.static_point(geo.highlight.center)] * count)
     pts.highlight_corner.set_absolute_point(targets[0])
     animator.animate_value(targets, duration * pts.rows / 2., anim.move_point(pts.highlight_corner))
+
+def etc_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Odd numbers
+    '''
+    anim.anim_hide_item(animator, quick_reveal_duration, geo.highlight)
+    anim.anim_reveal_item(animator, duration, geo.etc)
+
+def _create_sub_number_shot(numbers, plusses, color):
+    def _sub_number_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+        '''
+        Add numbers
+        '''
+        for plus in plusses:
+            anim.anim_reveal_item(animator, quick_reveal_duration, plus)
+        for number in numbers:
+            animator.animate_value([anim.black, color], quick_reveal_duration, anim.change_fill_color(number))
+    return anim.anim_description.create_shot(_sub_number_shot)
+
+def add_numbers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    '''
+    Odd numbers
+    '''
+    colors = [anim.dark_red, anim.dark_green, anim.dark_blue, anim.dark_sable]
+    shots = [_create_sub_number_shot(numbers, plusses, color)  for numbers, plusses, color in zip(geo.numbers_spread, geo.plusses_spread, colors)]
+    animation.add_next_shots(shots)
 
 
 #################################################################

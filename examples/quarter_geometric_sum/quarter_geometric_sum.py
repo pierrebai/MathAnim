@@ -60,12 +60,12 @@ right_tower_base = tower_base_points[2]
 right_tower_base_points = tower_square_base_points[2]
 
 quarter_texts = [
-    anim.create_scaling_sans_text("1/4", square.points[0], size / 4).set_opacity(0.).center_on(square)
+    anim.create_scaling_sans_text("1/4", square.points[0], size / 4, True).set_opacity(0.).center_on(square)
     for square, size in zip(central_tower_squares, square_sizes)
 ]
 
 exponent_texts = [
-    anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2).set_opacity(0.)
+    anim.create_scaling_sans_text(str(exponent+1), quarter.exponent_pos(), quarter.get_font_size() / 2, True).set_opacity(0.)
     for exponent, quarter in zip(range(1, tower_height), quarter_texts[1:])
 ]
 
@@ -78,13 +78,13 @@ quarter_with_power_texts = anim.flatten([quarter_texts[1:], exponent_texts])
 unit_square_base = anim.point(0., 0.)
 unit_square = anim.create_losange(unit_square_base, losange_height * 2).set_opacity(0.).fill(anim.orange).outline(anim.black).thickness(0.)
 unit_square.setZValue(-2.)
-unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], losange_height / 2).set_opacity(0.).center_on(unit_square)
+unit_text = anim.create_scaling_sans_text("1", unit_square.points[0], losange_height / 2, True).set_opacity(0.).center_on(unit_square)
 unit_text.setZValue(-1.)
 unit_square_and_text = [unit_square, unit_text]
 
-third_texts = [anim.create_scaling_sans_text("1/3", anim.relative_point(tip), losange_height / 4).set_opacity(0.).place_above(tip) for tip in tower_tip_points]
+third_texts = [anim.create_scaling_sans_text("1/3", anim.relative_point(tip), losange_height / 4, True).set_opacity(0.).place_above(tip) for tip in tower_tip_points]
 
-equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[1].top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6)
+equation_texts = anim.create_equation("1/3 = 1/4 + 1/4 ^ 2 + 1/4 ^ 3 + 1/4 ^ 4 + ...", anim.point(third_texts[1].top_left() + anim.static_point(-losange_height, -losange_height / 4)), losange_height / 6, True)
 
 
 #################################################################
@@ -95,7 +95,7 @@ def _reset_relative_points():
     points = anim.find_all_of_type(globals(), anim.point)
     for pt in points:
         pt.reset()
-    unit_text.set_sans_font(losange_height / 2)
+    unit_text.set_sans_font(losange_height / 2, True)
     unit_text.center_on(unit_square)
     for text, tip in zip(third_texts, tower_tip_points):
         text.place_above(tip)

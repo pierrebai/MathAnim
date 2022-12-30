@@ -40,7 +40,7 @@ class runner(anim.circle):
         self.colored = False
         self.label = None
         super().__init__(anim.radial_point(anim.origin, track_radius, anim.hpi), runner_size)
-        self.label = anim.scaling_text(f'{int(self.speed)}', self.center, label_size)
+        self.label = anim.scaling_text(f'{int(self.speed)}', self.center).set_sans_font(label_size, True)
         self.reset()
 
     def reset(self):
@@ -110,24 +110,6 @@ class runner(anim.circle):
         '''
         return lambda f : self.set_lap_fraction(f)
 
-    def is_nearest_left(self) -> bool:
-        '''
-        Returns true if this runner is the nearest runner to the left of the
-        lonely runner.
-        '''
-        if self == runner.lonely:
-            return False
-        return self == min(runner.runnings, key=lambda r: r.distance_from_lonely())
-
-    def is_nearest_right(self) -> bool:
-        '''
-        Returns true if this runner is the nearest runner to the right of the
-        lonely runner.
-        '''
-        if self == runner.lonely:
-            return False
-        return self == max(runner.runnings, key=lambda r: r.distance_from_lonely())
-
     def is_lonely(self) -> bool:
         '''
         Returns true if this runner is the lonely runner.
@@ -160,10 +142,6 @@ class runner(anim.circle):
             color = anim.blue
         elif self.is_in_lonely_zone():
             color = anim.red
-        elif self.is_nearest_left():
-            color = anim.yellow
-        elif self.is_nearest_right():
-            color = anim.yellow
         else:
             color = anim.green
         return self.fill(color)

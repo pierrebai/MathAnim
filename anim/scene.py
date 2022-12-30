@@ -68,12 +68,12 @@ class scene:
         self.scene.setItemIndexMethod(QGraphicsScene.ItemIndexMethod.NoIndex)
         self.view.set_scene(self)
 
-        self.main_title = fixed_size_text('', point(0., 0.), 36).set_sans_font(36)
+        self.main_title = fixed_size_text('', point(0., 0.), 36, True).set_sans_font(36, True)
         self.scene.addItem(self.main_title)
         self.subtitle = fixed_size_text('', point(0., 0.), 10)
         self.scene.addItem(self.subtitle)
 
-        self.title = fixed_size_text('', point(0., 0.), 24).set_sans_font(24)
+        self.title = fixed_size_text('', point(0., 0.), 24, True).set_sans_font(24, True)
         self.scene.addItem(self.title)
         self.description = fixed_size_text('', point(0., 0.), 10)
         self.scene.addItem(self.description)

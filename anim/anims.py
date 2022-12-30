@@ -3,8 +3,9 @@ from .actor import actor
 from .animator import animator
 from .geometry import *
 from .geometries import geometries
+from .maths import ondulation_serie
 from .points import points
-from .items import point, circle, item, static_point, line, polygon, rectangle
+from .items import point, circle, item, static_point, line, polygon, rectangle, scaling_text
 from . import trf
 
 from typing import List as _List, Callable as _Callable
@@ -168,8 +169,8 @@ def anim_reveal_radius(animator: animator, duration: float, item, zoom_factor: f
 #
 # Text animations
 
-def _scale_text_item(item, size) -> None:
-    item.set_font(item.get_font_name(), max(0.5, size))
+def _scale_text_item(item: scaling_text, size) -> None:
+    item.set_font(item.get_font_name(), max(0.5, size), item.font().bold())
 
 def scale_text_item(item):
     """

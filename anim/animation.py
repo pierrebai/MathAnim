@@ -264,7 +264,7 @@ class animation(QObject, named):
         Insert the given shots after the currently playing shot.
         """
         if isinstance(shots, shot):
-            self.shots.insert(self.current_shot_index, shots)
+            self.shots.insert(self.current_shot_index + 1, shots)
         else:
             for s in reversed(shots):
                 self.add_next_shots(s)

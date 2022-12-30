@@ -13,13 +13,13 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
     """
     Text graphics item that follows the scene.
     """
-    def __init__(self, label: str, pos: point, font_size: float = 10.) -> None:
+    def __init__(self, label: str, pos: point, font_size: float = 10., is_bold: bool = False) -> None:
         super().__init__(label, None)
         if isinstance(pos, relative_point):
             self.position = relative_point(pos.origin, pos.delta)
         else:
             self.position = relative_point(pos)
-        self.set_serif_font(font_size)
+        self.set_serif_font(font_size, is_bold)
         self.position.add_user(self)
         self.position_on_center = False
         self._update_geometry()
@@ -32,12 +32,13 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         self.position_on_center = on_center
         return self
 
-    def set_font(self, font_name, font_size: float) -> _QGraphicsSimpleTextItem:
+    def set_font(self, font_name, font_size: float, is_bold: bool = False) -> _QGraphicsSimpleTextItem:
         """
         Sets the font name and floating-point font size of the text.
         """
         font = _QFont(font_name)
         font.setPointSizeF(max(0.5, font_size))
+        font.setBold(is_bold)
         self.setFont(font)
         return self
 
@@ -53,17 +54,17 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         return self.font().family()
 
-    def set_serif_font(self, font_size: float = 10.) -> _QGraphicsSimpleTextItem:
+    def set_serif_font(self, font_size: float = 10., is_bold: bool = False) -> _QGraphicsSimpleTextItem:
         """
         Uses a serif font with the given floating-point font size for  the text.
         """
-        return self.set_font("Georgia", font_size)
+        return self.set_font("Georgia", font_size, is_bold)
 
-    def set_sans_font(self, font_size: float = 10.) -> _QGraphicsSimpleTextItem:
+    def set_sans_font(self, font_size: float = 10., is_bold: bool = False) -> _QGraphicsSimpleTextItem:
         """
         Uses a sans-serif font with the given floating-point font size for the text.
         """
-        return self.set_font("Trebuchet MS", font_size)
+        return self.set_font("Trebuchet MS", font_size, is_bold)
 
     def place_around(self, pt: static_point, angle_from_point: float, distance_from_point: float) -> _QGraphicsSimpleTextItem:
         """
@@ -163,11 +164,11 @@ class fixed_size_text(scaling_text):
         self.setFlag(_QGraphicsSimpleTextItem.ItemIgnoresTransformations)
         self._update_letter_size()
 
-    def set_font(self, font_name, font_size: float) -> scaling_text:
+    def set_font(self, font_name, font_size: float, is_bold: bool = False) -> scaling_text:
         """
         Sets the font name and floating-point font size of the text.
         """
-        super().set_font(font_name, font_size)
+        super().set_font(font_name, font_size, is_bold)
         return self._update_letter_size()
 
     def _update_letter_size(self) -> scaling_text:

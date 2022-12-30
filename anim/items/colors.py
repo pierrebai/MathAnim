@@ -25,6 +25,7 @@ dark_cyan     = cyan.darker(130)
 dark_gray     = gray.darker(130)
 dark_red      = red.darker(130)
 dark_purple   = purple.darker(130)
+dark_sable    = sable.darker(130)
 
 pale_blue     = blue.lighter(130); pale_blue.setAlpha(120)
 pale_red      = red.lighter(130); pale_red.setAlpha(120)

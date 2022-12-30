@@ -231,36 +231,37 @@ def transpose_lists(list_of_lists: _List[list]) -> _List[list]:
 #
 # Text
 
-def create_scaling_sans_text(label: str, pt: point, font_size: float) -> scaling_text:
+def create_scaling_sans_text(label: str, pt: point, font_size: float, is_bold: bool = False) -> scaling_text:
     new_text = scaling_text(label, pt)
-    new_text.set_sans_font(font_size)
+    new_text.set_sans_font(font_size, is_bold)
     return new_text
 
-def create_equation(equation: str, pt: point, font_size: float) -> _List[scaling_text]:
+def create_equation(equation: str, pt: point, font_size: float, is_bold: bool = False) -> _List[scaling_text]:
     parts = equation.split()
     if not parts:
         return []
 
     texts: _List[scaling_text] = []
 
-    def create_eq_text(pt: point, part: str, font_size: float, as_exponent = False) -> relative_point:
+    def create_eq_text(pt: point, part: str, as_exponent = False) -> relative_point:
         nonlocal texts
+        actual_size = font_size
         if as_exponent:
             pt = texts[-1].exponent_pos()
-            font_size /= 2
+            actual_size /= 2
         elif len(texts):
             part = ' ' + part
-        texts.append(create_scaling_sans_text(part, pt, font_size))
+        texts.append(create_scaling_sans_text(part, pt, actual_size, is_bold))
         return relative_point(pt, texts[-1].scene_rect().width(), 0.)
 
-    pt = create_eq_text(pt, parts[0], font_size)
+    pt = create_eq_text(pt, parts[0])
 
     next_as_exponent = False
     for part in parts[1:]:
         if part == '^':
             next_as_exponent = True
             continue
-        pt = create_eq_text(pt, part, font_size, next_as_exponent)
+        pt = create_eq_text(pt, part, next_as_exponent)
         next_as_exponent = False
 
     return texts

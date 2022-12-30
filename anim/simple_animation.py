@@ -69,7 +69,7 @@ class anim_description:
         return prep_shots
 
     @staticmethod
-    def _create_shot(prep):
+    def create_shot(prep):
         shot_name = "-"
         shot_description = ""
         if prep.__doc__:
@@ -82,9 +82,9 @@ class anim_description:
                 shot_description = '\n'.join(lines[first_line:])
         return shot(shot_name, shot_description, prep)
 
-    def _create_shots(self, prep_shots: _List[_Callable]):
+    def create_shots(self, prep_shots: _List[_Callable]):
         for prep in prep_shots:
-            self.shots.append(anim_description._create_shot(prep))
+            self.shots.append(anim_description.create_shot(prep))
 
     def _validate(self):
         # Validate. No options and no actors are OK.
@@ -139,7 +139,7 @@ class simple_animation(animation, anim_description):
 
         desc = anim_description()
         prep_shots = desc._scan_module(module_dict)
-        desc._create_shots(prep_shots)
+        desc.create_shots(prep_shots)
         desc._validate()
 
         def maker():
