@@ -1,6 +1,6 @@
 from .color import color
 from .pen import pen
-from .point import point
+from .point import point, static_point
 
 from PySide6.QtGui import QBrush as _QBrush
 
@@ -28,10 +28,8 @@ class item:
         """
         Centers this item on the given item.
         """
-        self_rect = self.scene_rect()
-        other_rect = other.scene_rect()
-        self_center = self_rect.center()
-        other_center = other_rect.center()
+        self_center  = self.scene_rect().center()
+        other_center = other if isinstance(other, static_point) else other.scene_rect().center()
         delta = other_center - self_center
         for pt in self.get_all_points():
             pt.set_absolute_point(pt + delta)

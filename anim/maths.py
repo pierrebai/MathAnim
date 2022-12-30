@@ -70,6 +70,12 @@ def create_triangle_spread(rows: int) -> _List[_List[spread_item]]:
     """
     return create_spread(linear_serie(1, 1, rows))
 
+def create_triangle_odd_spread(rows: int) -> _List[_List[spread_item]]:
+    """
+    Given a number of rows, create a triangular spread.
+    """
+    return create_spread(linear_serie(1, 2, rows))
+
 def create_rectangle_spread(width: int, height: int) -> _List[_List[spread_item]]:
     """
     Given a width and height, create a rectangular spread.

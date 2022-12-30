@@ -1,7 +1,8 @@
 from .items.line import line
 from .items.point import point, static_point
+from .items.item import item
 from .maths import spread_item
-from .types import deep_map
+from .types import deep_map, flatten
 
 from math import cos, sin, atan2, sqrt, pi, exp, log
 from typing import List as _List, Tuple as _Tuple, Callable as _Callable, Any as _Any
@@ -21,6 +22,27 @@ def min_max(points: _List[static_point]) -> _Tuple[static_point]:
     minY = min([pt.y() for pt in points])
     maxY = max([pt.y() for pt in points])
     return static_point(minX, minY), static_point(maxX, maxY)
+
+def select_size(items: _List[item], selector: _Callable) -> static_point:
+    """
+    Return the selected width and height among all items.
+    """
+    rects = [item.scene_rect() for item in flatten(items)]
+    return static_point(
+        selector([rect.width()  for rect in rects]),
+        selector([rect.height() for rect in rects]))
+
+def maximum_size(items: _List[item]) -> static_point:
+    """
+    Return the maximum width and height of all items.
+    """
+    return select_size(items, max)
+
+def minimum_size(items: _List[item]) -> static_point:
+    """
+    Return the maximum width and height of all items.
+    """
+    return select_size(items, min)
 
 
 #################################################################

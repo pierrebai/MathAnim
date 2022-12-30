@@ -5,10 +5,11 @@ def is_of_type(var, type) -> bool:
     Verifies if a variable is of the given type or is a list or tuple of that type
     of a list of list of that type, etc.
     """
-    if isinstance(var, list) and len(var):
-        return is_of_type(var[0], type)
-    elif isinstance(var, tuple) and len(var):
-        return is_of_type(var[0], type)
+    if ( isinstance(var, list) or isinstance(var, tuple) ) and len(var):
+        for item in var:
+            if is_of_type(item, type):
+                return True
+        return False
     else:
         return isinstance(var, type)
 
@@ -27,7 +28,7 @@ def flatten(var) -> _List[_Any]:
 
 def deep_map(mapping: _Callable, *args):
     """
-    Recurse on all lists with lists to map all non-list items.
+    Recurse on all lists of lists to map all non-list items.
     The results will have the same list-of-lists structure.
     Also support tuples.
     """
@@ -36,10 +37,24 @@ def deep_map(mapping: _Callable, *args):
     if isinstance(args[0], list):
         return [deep_map(mapping, *items) for items in zip(*args)]
     elif isinstance(args[0], tuple):
-        return [deep_map(mapping, *items) for items in zip(*args)]
+        return tuple([deep_map(mapping, *items) for items in zip(*args)])
     else:
         return mapping(*args)
 
+def deep_filter(filtering: _Callable, *args):
+    """
+    Recurse on all lists of lists to filter all non-list items.
+    The results will have the same list-of-lists structure.
+    Also support tuples.
+    """
+    if not args:
+        return None
+    if isinstance(args[0], list):
+        return list(filter(lambda x: x is not None, [deep_filter(filtering, *items) for items in zip(*args)]))
+    elif isinstance(args[0], tuple):
+        return tuple(filter(lambda x: x is not None, [deep_filter(filtering, *items) for items in zip(*args)]))
+    else:
+        return filtering(*args)
 
 def find_all_of_type(module_dict: _Dict[str, _Any], type, ignore_private: bool = True) -> list:
     """
