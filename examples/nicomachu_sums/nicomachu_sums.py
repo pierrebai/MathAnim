@@ -38,7 +38,7 @@ class points(anim.points):
         self.rows = 4
 
         self.triangle_spread = anim.create_triangle_odd_spread(self.rows)
-        self.texts_spread = anim.deep_map(lambda item: str(item.index * 2 + 1) if is_number(item) else '+', self.triangle_spread)
+        self.texts_spread = anim.deep_map(lambda item: str(item.row * 2 + item.column + 1) if is_number(item) else '+', self.triangle_spread)
 
         self.top = anim.point(0., 0.)
 
@@ -57,7 +57,7 @@ class points(anim.points):
         self.numbers_point_spread = anim.deep_filter(number_filter, self.points_spread, self.triangle_spread)
         self.plusses_point_spread = anim.deep_filter(not_number_filter, self.points_spread, self.triangle_spread)
 
-        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset * 2
+        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset
 
         self.cube_eqs_point  = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
         self.power_eqs_point = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
@@ -87,10 +87,16 @@ class geometries(anim.geometries):
         self.highlight = anim.center_rectangle(pts.highlight_corner, pts.element_size * 1.2).fill(anim.no_color).outline(anim.red).thickness(15.)
         self.etc = _create_label('etc.', anim.point(0., pts.row_offset.y() * pts.rows))
 
-        self.cube_eqs  = [self._create_colored_eq(f'= {i ** 3}', pt, pts.text_height, i-1) for i, pt in enumerate(pts.cube_eqs_point,  1)]
-        self.power_eqs = [self._create_colored_eq(f'= {i}³',     pt, pts.text_height, i-1) for i, pt in enumerate(pts.power_eqs_point, 1)]
+        self.cube_eqs  = [self._create_colored_eq(f' = {i ** 3}', pt, pts.text_height, i-1) for i, pt in enumerate(pts.cube_eqs_point,  1)]
+        self.power_eqs = [self._create_colored_eq(f' = {i}³',     pt, pts.text_height, i-1) for i, pt in enumerate(pts.power_eqs_point, 1)]
 
-        self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(1., 0.1))
+        why_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
+        self.here_is_why = anim.create_sans_bold_text('Here\nis\nwhy', why_point, pts.text_height * 1.5)
+
+        proof_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
+        self.proof = anim.create_sans_bold_text('The\ncubes\nsquare\ntriangle\nproof', proof_point, pts.text_height)
+
+        self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
     @staticmethod
     def _create_colored_eq(label: str, pt: anim.point, font_size: float, which_color: int):
@@ -116,7 +122,9 @@ actors = [
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.plusses_spread)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.cube_eqs)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.power_eqs)],
-    anim.actor('Equation', '', geo.etc),
+    anim.actor('Explanation', '', geo.etc),
+    anim.actor('Explanation', '', geo.here_is_why),
+    anim.actor('Explanation', '', geo.proof),
     anim.actor('Highlight', '', geo.highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -140,6 +148,7 @@ def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator)
 # Shots
 
 def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    #geo.background_rect.set_opacity(1.)
     def reveal(item: anim.scaling_text):
         anim.anim_reveal_item(animator, duration, item)
     anim.deep_map(reveal, geo.numbers_spread)
@@ -159,40 +168,44 @@ def etc_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, anim
     anim.anim_hide_item(animator, quick_reveal_duration, geo.highlight)
     anim.anim_reveal_item(animator, duration, geo.etc)
 
-def _create_sub_number_shot(numbers, plusses, color):
+def _create_add_number_shot(numbers, plusses, color):
     def _sub_number_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for plus in plusses:
             anim.anim_reveal_item(animator, quick_reveal_duration, plus)
         for number in numbers:
-            animator.animate_value([anim.black, color], quick_reveal_duration, anim.change_fill_color(number))
+            animator.animate_value([anim.black] + [color] * 3, short_duration, anim.change_fill_color(number))
     return anim.anim_description.create_shot(_sub_number_shot)
 
 def add_numbers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    shots = [_create_sub_number_shot(numbers, plusses, color)  for numbers, plusses, color in zip(geo.numbers_spread, geo.plusses_spread, colors)]
+    shots = [_create_add_number_shot(numbers, plusses, color)  for numbers, plusses, color in zip(geo.numbers_spread, geo.plusses_spread, colors)]
     animation.add_next_shots(shots)
 
 def _create_cube_shot(cube_eq: _List[anim.scaling_text], pt: anim.point):
     def _cube_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for item in cube_eq:
             anim.anim_reveal_item(animator, quick_reveal_duration, item)
-        animator.animate_value([anim.static_point(pt + anim.point(300., 0.)), anim.static_point(pt)], short_duration, anim.move_point(pt))
+        from_pt = anim.static_point(pt + anim.point(300., 0.))
+        dest_pt = anim.static_point(pt)
+        animator.animate_value([from_pt, dest_pt, dest_pt], short_duration, anim.move_point(pt))
     return anim.anim_description.create_shot(_cube_shot)
 
 def _create_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _List[anim.scaling_text], pt: anim.point):
     def _power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for item in power_eq:
             anim.anim_reveal_item(animator, quick_reveal_duration, item)
-        dest_x = cube_eq[-1].scene_rect().topRight().x()
-        animator.animate_value([anim.static_point(pt + anim.point(300., 0.)), anim.static_point(dest_x, pt.original_point.y())], short_duration, anim.move_point(pt))
+        from_pt = anim.static_point(pt + anim.point(300., 0.))
+        dest_x  = cube_eq[-1].scene_rect().topRight().x()
+        dest_pt = anim.static_point(dest_x, pt.original_point.y())
+        animator.animate_value([from_pt, dest_pt, dest_pt], short_duration, anim.move_point(pt))
     return anim.anim_description.create_shot(_power_shot)
 
 def _create_replace_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _List[anim.scaling_text], pt: anim.point):
     def _power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for item in cube_eq:
             anim.anim_hide_item(animator, quick_reveal_duration, item)
-        for item in power_eq:
-            anim.anim_reveal_item(animator, quick_reveal_duration, item)
-        animator.animate_value([anim.static_point(pt), anim.static_point(pt.original_point)], short_duration, anim.move_point(pt))
+        from_pt = anim.static_point(pt)
+        dest_pt = anim.static_point(pt.original_point)
+        animator.animate_value([from_pt, dest_pt, dest_pt], short_duration, anim.move_point(pt))
     return anim.anim_description.create_shot(_power_shot)
 
 def show_cubes_and_powers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -201,6 +214,18 @@ def show_cubes_and_powers_shot(shot: anim.shot, animation: anim.animation, scene
     replace_shots = [_create_replace_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
     for cube, power, replace in zip(reversed(cubes_shot), reversed(powers_shot), reversed(replace_shots)):
         animation.add_next_shots([cube, power, replace])
+
+def etc_power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    anim.anim_ondulate_text_size(animator, duration, geo.etc)
+
+def here_is_why_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    anim.anim_reveal_item(animator, duration, geo.here_is_why)
+    anim.anim_ondulate_text_size(animator, short_duration, geo.here_is_why, 1.3)
+
+def proof_name_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    anim.anim_hide_item(animator, short_duration, geo.here_is_why)
+    anim.anim_reveal_item(animator, duration, geo.proof)
+    anim.anim_ondulate_text_size(animator, short_duration, geo.proof, 1.3)
 
 
 #################################################################

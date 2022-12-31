@@ -144,6 +144,24 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         delta = corner - self.position
         return relative_point(self.position, delta)
 
+    def middle_right(self):
+        """
+        Retrieves the middle-right of the text.
+        """
+        rect = self.scene_rect()
+        corner = (rect.topRight() + rect.bottomRight()) / 2.
+        delta = corner - self.position
+        return relative_point(self.position, delta)
+
+    def middle_left(self):
+        """
+        Retrieves the middle-left of the text.
+        """
+        rect = self.scene_rect()
+        corner = (rect.topLeft() + rect.bottomLeft()) / 2.
+        delta = corner - self.position
+        return relative_point(self.position, delta)
+
     def get_all_points(self) -> _List[point]:
         """
         Retrieve all animatable points in the item.

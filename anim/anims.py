@@ -152,7 +152,7 @@ def anim_reveal_thickness(animator: animator, duration: float, item, zoom_factor
 
 def anim_ondulate_radius(animator: animator, duration: float, item, zoom_factor: float = 2.):
     """
-    Adds an animation to reveal the item and ondulate its radius in the given duration.
+    Adds an animation to ondulate the radius of an item in the given duration.
     """
     if isinstance(item, actor):
         item = item.item
@@ -169,10 +169,10 @@ def anim_reveal_radius(animator: animator, duration: float, item, zoom_factor: f
 #
 # Text animations
 
-def _scale_text_item(item: scaling_text, size) -> None:
+def _scale_text_item(item: scaling_text, size: float) -> None:
     item.set_font(item.get_font_name(), max(0.5, size), item.font().bold())
 
-def scale_text_item(item):
+def scale_text_item(item: scaling_text):
     """
     Returns a function that sets the font size of the actor or item.
     The returned function only takes the font size as parameter.
@@ -180,6 +180,14 @@ def scale_text_item(item):
     if isinstance(item, actor):
         item = item.item
     return lambda size: _scale_text_item(item, size) if item else None
+
+def anim_ondulate_text_size(animator: animator, duration: float, item: scaling_text, zoom_factor: float = 2.):
+    """
+    Adds an animation to ondulate a text item size for the given duration.
+    """
+    if isinstance(item, actor):
+        item = item.item
+    animator.animate_value(ondulation_serie(item.get_font_size(), zoom_factor, 10), duration, scale_text_item(item))
 
 def center_text_item_on(item, other):
     """

@@ -1,5 +1,5 @@
 from .types import find_all_of_type
-from .items import item, point, static_point, rectangle, gray, no_color
+from .items import item, point, static_point, rectangle, gray, no_color, static_rectangle
 from .points import points
 from .geometry import min_max
 
@@ -22,9 +22,15 @@ class geometries:
             for pt in it.get_all_points():
                 pt.reset()
 
-    @staticmethod
-    def create_background_rect(pts: points, min_margin = static_point(0.1, 0.1), max_margin = static_point(0.1, 0.1)):
-        min_pt, max_pt = min_max(pts.get_all_points())
+    def create_background_rect(self, pts: points, min_margin = static_point(0.1, 0.1), max_margin = static_point(0.1, 0.1)):
+        rect: static_rectangle = None
+        for it in find_all_of_type(self.__dict__, item):
+            it_rect: static_rectangle = it.scene_rect()
+            if rect is None:
+                rect = it_rect
+            else:
+                rect = rect.united(it_rect)
+        min_pt, max_pt = rect.topLeft(), rect.bottomRight()
         delta = max_pt - min_pt
         delta = max(delta.x(), delta.y())
         p1 = point(min_pt - static_point(delta * min_margin.x(), delta * min_margin.y()))
