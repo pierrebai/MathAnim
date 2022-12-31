@@ -26,6 +26,16 @@ def flatten(var) -> _List[_Any]:
         items.append(var)
     return items
 
+def last_of(var: _List[_Any]) -> _Any:
+    """
+    Return the last element of a list of lists of lists...
+    """
+    if not var:
+        return None
+    if isinstance(var, list) or isinstance(var, tuple):
+        return last_of(var[-1])
+    return var
+    
 def deep_map(mapping: _Callable, *args):
     """
     Recurse on all lists of lists to map all non-list items.

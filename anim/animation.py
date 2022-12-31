@@ -156,7 +156,7 @@ class animation(QObject, named):
         state when the animation was stopped, possibly before
         all shots were played.
         """
-        pass
+        self.shots = [shot for shot in self.shots if not shot.generated]
 
     def option_changed(self, scene: scene, animator: animator, option: option) -> None:
         """
@@ -264,6 +264,7 @@ class animation(QObject, named):
         Insert the given shots after the currently playing shot.
         """
         if isinstance(shots, shot):
+            shots.generated = True
             self.shots.insert(self.current_shot_index + 1, shots)
         else:
             for s in reversed(shots):

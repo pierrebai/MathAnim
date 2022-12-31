@@ -21,16 +21,34 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
             self.position = relative_point(pos)
         self.set_serif_font(font_size, is_bold)
         self.position.add_user(self)
-        self.position_on_center = False
+        self.alignment = static_point(0., 0.)
         self._update_geometry()
 
-    def set_position_is_center(self, on_center = True) -> _QGraphicsSimpleTextItem:
+    def set_alignment(self, alignment: static_point) -> _QGraphicsSimpleTextItem:
         """
-        Sets that the position is the position of the center of the text.
-        Otherwise, the position is the top-left.
+        Sets how the width and height of the text affects the position.
+        Defaults to top-left.
+
+        For example:
+            - 0., 0.    -> top-left
+            - 1/2, 1/2  -> center
+            - 0., 1./2  -> left-center
+            - 1., 1.    -> bottom-right
         """
-        self.position_on_center = on_center
+        self.alignment = alignment
         return self
+
+    def align_on_center(self):
+        """
+        Align the text on its center.
+        """
+        return self.set_alignment(static_point(0.5, 0.5))
+
+    def align_on_left(self):
+        """
+        Align the text on its left.
+        """
+        return self.set_alignment(static_point(0., 0.5))
 
     def set_font(self, font_name, font_size: float, is_bold: bool = False) -> _QGraphicsSimpleTextItem:
         """
@@ -142,11 +160,8 @@ class scaling_text(_QGraphicsSimpleTextItem, item):
         """
         Updates the text position after the point moved.
         """
-
-        if self.position_on_center:
-            new_pos = self.position - static_point(self.scene_rect().width() / 2., self.scene_rect().height() / 2.)
-        else:
-            new_pos = self.position
+        rect = self.scene_rect()
+        new_pos = self.position - static_point(rect.width() * self.alignment.x(), rect.height() * self.alignment.y())
         if new_pos != self.scenePos():
             self.prepareGeometryChange()
             self.setPos(new_pos)

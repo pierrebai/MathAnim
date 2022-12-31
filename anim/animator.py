@@ -86,15 +86,33 @@ class animator(QObject):
         """
         if not values:
             return
+        count = len(values)
+        if count >= 2:
+            timed_values = [(i / float(count - 1), values[i]) for i in range(count)]
+        else:
+            timed_values[0., values[0]]
+        self.animate_timed_value(timed_values, duration, on_changed, on_finished)
+
+    def animate_timed_value(self, values: _List, duration: float, on_changed = None, on_finished = None) -> None:
+        """
+        Animate the given scene item value.
+
+        A value will be animated from the start_value to the end_value over
+        the given animation duration, in seconds.
+        
+        The given optional on_changed callback is called every time the value changes during the animation.
+        The given optional on_finished is called when the animation ends.
+
+        When all animations that were added are done, the current animation shot_ended function is called.
+        """
+        if not values:
+            return
 
         anim = QVariantAnimation()
 
-        count = len(values)
-        if count < 2:
-            anim.setStartValue(values[0])
-            anim.setEndValue(values[0])
-        else:
-            anim.setKeyValues([(i / float(count - 1), values[i]) for i in range(count)])
+        anim.setStartValue(values[0][1])
+        anim.setEndValue(values[-1][1])
+        anim.setKeyValues(values)
         if on_changed:
             connect_auto_signal(anim, anim.valueChanged, on_changed)
         self.animate(anim, duration, on_finished)

@@ -132,7 +132,8 @@ class geometries(anim.geometries):
         self.half_lonely_zone.thickness(0.).outline(anim.no_color).fill(anim.red)
 
         lonely_zone_label_pos = anim.point(anim.center_of(self.half_lonely_zone.get_all_points()))
-        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos).set_sans_font(pts.lonely_zone_label_size, True).set_position_is_center()
+        self.lonely_zone_label = anim.scaling_text(f'1 / {count}', lonely_zone_label_pos)
+        self.lonely_zone_label.set_sans_font(pts.lonely_zone_label_size, True).align_on_center()
         self.lonely_zone_label.center_on(self.half_lonely_zone)
 
     def _order_items(self):
