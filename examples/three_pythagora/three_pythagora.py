@@ -105,7 +105,7 @@ class geometries(anim.geometries):
 
     @staticmethod
     def _create_tri_label(label: str, pos: anim.point, font_size: float = label_size) -> anim.scaling_text:
-        return anim.create_scaling_sans_text(label, pos, font_size, True).fill(anim.black)
+        return anim.create_sans_bold_text(label, pos, font_size).fill(anim.black)
 
     @staticmethod
     def _create_tri_side_label(tri: anim.polygon, s1: int, s2: int, label: str, offset: anim.static_point) -> anim.scaling_text:

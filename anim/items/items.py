@@ -12,7 +12,8 @@ from ..geometry import pi, hpi, tau
 from .. import trf
 
 import math
-from typing import List as _List, Tuple as _Tuple
+from re import compile as _re_compile
+from typing import List as _List, Tuple as _Tuple, Callable as _Callable
 
 """
 Helpers to create various kind of scene items.
@@ -231,12 +232,26 @@ def transpose_lists(list_of_lists: _List[list]) -> _List[list]:
 #
 # Text
 
-def create_scaling_sans_text(label: str, pt: point, font_size: float, is_bold: bool = False) -> scaling_text:
+def create_sans_text(label: str, pt: point, font_size: float, is_bold: bool = False) -> scaling_text:
     new_text = scaling_text(label, pt)
     new_text.set_sans_font(font_size, is_bold)
     return new_text
 
-def create_equation(equation: str, pt: point, font_size: float, is_bold: bool = False) -> _List[scaling_text]:
+def create_sans_bold_text(label: str, pt: point, font_size: float) -> scaling_text:
+    new_text = scaling_text(label, pt)
+    new_text.set_sans_font(font_size, True)
+    return new_text
+
+def create_colored_numbers_creator(number_color: color, text_creator: _Callable = create_sans_bold_text):
+    number_re = _re_compile('\s*[0-9]+\s*')
+    def colored_text_creator(label: str, pt: point, font_size: float) -> scaling_text:
+        text = text_creator(label, pt, font_size)
+        if number_re.match(label):
+            text.fill(number_color)
+        return text
+    return colored_text_creator
+
+def create_equation(equation: str, pt: point, font_size: float, text_creator: _Callable = create_sans_bold_text) -> _List[scaling_text]:
     parts = equation.split()
     if not parts:
         return []
@@ -251,7 +266,7 @@ def create_equation(equation: str, pt: point, font_size: float, is_bold: bool = 
             actual_size /= 2
         elif len(texts):
             part = ' ' + part
-        texts.append(create_scaling_sans_text(part, pt, actual_size, is_bold))
+        texts.append(text_creator(part, pt, actual_size))
         return relative_point(pt, texts[-1].scene_rect().width(), 0.)
 
     pt = create_eq_text(pt, parts[0])
