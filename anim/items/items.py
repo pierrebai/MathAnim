@@ -69,11 +69,6 @@ def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blu
 
 #################################################################
 #
-# Points Series
-
-
-#################################################################
-#
 # Simple Geometries
 
 def create_circle(center: point, radius: float) -> circle:
@@ -216,17 +211,6 @@ def create_circles_on_centers(centers: _List[point], radius: float) -> _List[cir
     """
     return [circle(center, radius) for center in centers]
 
-def transpose_lists(list_of_lists: _List[list]) -> _List[list]:
-    """
-    Creates a list of lists by assembling every ith elements of the input lists together in the ith output list.
-    This assumes all input lists contain the same number of elements.
-    """
-    if not list_of_lists:
-        return []
-    outer_count = len(list_of_lists)
-    inner_count = len(list_of_lists[0])
-    return [[list_of_lists[outer][inner] for outer in range(outer_count)] for inner in range(inner_count)]
-    
 
 #################################################################
 #

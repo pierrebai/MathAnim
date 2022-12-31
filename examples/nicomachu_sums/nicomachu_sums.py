@@ -211,9 +211,8 @@ def _create_replace_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _Lis
 def show_cubes_and_powers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     cubes_shot = [_create_cube_shot(cube, pt) for cube, pt in zip(geo.cube_eqs, pts.cube_eqs_point)]
     powers_shot = [_create_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
-    replace_shots = [_create_replace_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
-    for cube, power, replace in zip(reversed(cubes_shot), reversed(powers_shot), reversed(replace_shots)):
-        animation.add_next_shots([cube, power, replace])
+    replaces_shot = [_create_replace_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
+    animation.add_next_shots(anim.interleave_lists([cubes_shot, powers_shot, replaces_shot]))
 
 def etc_power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     anim.anim_ondulate_text_size(animator, duration, geo.etc)
