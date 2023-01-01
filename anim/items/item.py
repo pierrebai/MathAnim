@@ -24,6 +24,9 @@ class item:
         """
         return []
 
+    def scene_rect(self):
+        pass
+
     def center_on(self, other):
         """
         Centers this item on the given item.

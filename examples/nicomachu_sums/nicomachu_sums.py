@@ -35,6 +35,8 @@ class points(anim.points):
     def __init__(self):
         super().__init__()
         self.text_height = 60.
+        self.cube_radius = 60.
+
         self.rows = 4
 
         self.triangle_spread = anim.create_triangle_odd_spread(self.rows)
@@ -96,6 +98,9 @@ class geometries(anim.geometries):
         proof_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
         self.proof = anim.create_sans_bold_text('The\ncubes\nsquare\ntriangle\nproof', proof_point, pts.text_height)
 
+        cubes_points = [anim.point(x, -100.) for x in anim.linear_serie(-200., 150., 4)]
+        self.cubes = [anim.create_cube(pt, pts.cube_radius, color, 0.6) for pt, color in zip(cubes_points, colors)]
+
         self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
     @staticmethod
@@ -125,6 +130,7 @@ actors = [
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
     anim.actor('Explanation', '', geo.proof),
+    [anim.actor('Cube', '', cube) for cube in geo.cubes],
     anim.actor('Highlight', '', geo.highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -225,6 +231,10 @@ def proof_name_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     anim.anim_hide_item(animator, short_duration, geo.here_is_why)
     anim.anim_reveal_item(animator, duration, geo.proof)
     anim.anim_ondulate_text_size(animator, short_duration, geo.proof, 1.3)
+
+def show_cubes_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    for cube in geo.cubes:
+        anim.anim_reveal_item(animator, duration, cube)
 
 
 #################################################################

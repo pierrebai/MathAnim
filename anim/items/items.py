@@ -8,8 +8,10 @@ from .text import scaling_text, fixed_size_text
 from .item import item
 from .pen import pen
 from .colors import *
-from ..geometry import pi, hpi, tau
-from .. import trf
+from .group import group
+from ..geometry import pi, hpi, tau, two_points_convex_sum, four_points_angle, two_points_angle
+from ..trf import *
+from ..maths import *
 
 import math
 from re import compile as _re_compile
@@ -57,7 +59,7 @@ def create_arrow(origin: point, rotation_angle, fill_color: color = black) -> po
     """
     Create an arrow with the given rotation angle, in radians.
     """
-    poly_points = [relative_point(origin, trf.rotate_around_origin(pt, rotation_angle)) for pt in _arrow_points]
+    poly_points = [relative_point(origin, rotate_around_origin(pt, rotation_angle)) for pt in _arrow_points]
     return polygon(poly_points).outline(no_color).fill(fill_color)
 
 def create_pointing_arrow(tail: point, head: point, fill_color: color = pale_blue) -> line:
@@ -131,7 +133,7 @@ def create_multi_polygons(lists_of_points: _List[_List[point]]) -> _List[polygon
     """
     Creates multiple polygons from a list of lists of points.
     """
-    return [create_polygon(points) for points in lists_of_points]
+    return map(create_polygon, lists_of_points)
 
 
 def create_polygon(pts: _List[point]) -> polygon:
@@ -139,6 +141,39 @@ def create_polygon(pts: _List[point]) -> polygon:
     Create a dynamic polygo, outlined in dark gray.
     """
     return polygon(pts).outline(dark_gray).thickness(line_width)
+
+
+#################################################################
+#
+# Cubes
+
+def create_cube(center: point, radius: float, fill_color: color = green, squash: float = 0.) -> group:
+    cube_center = static_point(0., 0.)
+
+    angle_ratio  = 1. - squash
+    radius_ratio = 1. - squash / 2.
+
+    p1 = cube_center + static_point(0., radius)
+    p2 = p1 + rotate_around_origin(static_point(radius, 0.), -tau * angle_ratio / 12.)
+    p3 = static_point(p2.x(), p2.y() - radius)
+
+    center_angle = four_points_angle(cube_center, p1, cube_center, p3)
+    top_angle = two_points_angle(cube_center, p3)
+    delta = rotate_around_origin(static_point(radius * radius_ratio, 0.), top_angle + (tau - center_angle) / 2.)
+
+    p4 = p3 + delta
+    p6 = p1 + delta
+    p5 = static_point(p6.x(), p6.y() - radius)
+
+    cube_center = relative_point(center, cube_center)
+    hexagon_pts = [p1, p2, p3, p4, p5, p6, p1]
+    hexagon_pts = [relative_point(center, pt) for pt in hexagon_pts]
+
+    polys_pts = [hexagon_pts[i*2:i*2+3] + [cube_center] for i in range(3)]
+    colors = [fill_color.lighter(130), fill_color, fill_color.darker(130)]
+    polys = [polygon(pts).fill(color).outline(black) for pts, color in zip(polys_pts, colors)]
+    return group(polys)
+
 
 #################################################################
 #
@@ -151,8 +186,8 @@ def create_roll_circle_in_circle_points(inner_radius: float, outer_radius: float
     inner_center = static_point(outer_radius - inner_radius, 0.)
     dot = static_point(inner_radius * inner_radius_ratio, 0.)
     return [relative_point(
-        point(trf.rotate_around_origin(inner_center, center_angle)),
-        trf.rotate_around_origin(dot, perim_angle))
+        point(rotate_around_origin(inner_center, center_angle)),
+        rotate_around_origin(dot, perim_angle))
         for center_angle, perim_angle in zip(center_angles, perim_angles)]
 
 def create_roll_circle_in_circle_angles(inner_radius: float, outer_radius: float, rotation_count: float) -> _Tuple[float, float]:
