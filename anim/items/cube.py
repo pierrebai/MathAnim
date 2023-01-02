@@ -62,6 +62,12 @@ class cube(group):
         super().__init__(polys)
         self.fill(green)
 
+    def get_all_points(self):
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.position] + super().get_all_points()
+
     def fill(self, fill_color: color):
         """
         Sets the color used to fill the item.
@@ -89,10 +95,6 @@ class cube_of_cubes(group):
         """
         Create a rectangular prism. If the sizes is a single value, then a cube is made.
         """
-        dx, dy, dz = static_point(0., 0.), static_point(0., 0.), static_point(0., 0.)
-        order = 0.
-        x_cubes = []
-
         if isinstance(sizes, int):
             sizes = [sizes]
         elif not sizes:
@@ -101,22 +103,47 @@ class cube_of_cubes(group):
             sizes.append(sizes[-1])
         sizes = [max(size, 1) for size in sizes[0:3]]
 
+        self.sizes = sizes
+        self.position = center
+
+        dx, dy, dz = static_point(0., 0.), static_point(0., 0.), static_point(0., 0.)
+
+        x_cubes = []
         for x in range(sizes[0]):
             y_cubes = []
             for y in range(sizes[1]):
                 z_cubes = []
                 for z in range(sizes[2]):
                     cube_center = relative_point(center, dx * x + dy * y + dz * z)
-                    new_cube = cube(cube_center, radius, squash).set_z_order(order)
+                    new_cube = cube(cube_center, radius, squash)
                     z_cubes.append(new_cube)
-                    if not order:
+                    if dx.x() == 0 and dx.y() == 0:
                         dx, dy, dz = new_cube.get_deltas()
-                    order -= 1.
                 y_cubes.append(z_cubes)
             x_cubes.append(y_cubes)
         self.cubes = x_cubes
-        self.sizes = sizes
+
         super().__init__(flatten(x_cubes))
+        self.reset()
+
+    def reset(self):
+        """
+        Reset the item to its initial state.
+        """
+        order = 0.
+        for x in range(self.sizes[0]):
+            for y in range(self.sizes[1]):
+                for z in range(self.sizes[2]):
+                    cube = self.cubes[x][y][z]
+                    cube.set_z_order(order)
+                    order -= 1.
+        return super().reset()
+
+    def get_all_points(self):
+        """
+        Retrieve all animatable points in the item.
+        """
+        return [self.position] + super().get_all_points()
 
     def get_deltas(self) -> _List[static_point]:
         """

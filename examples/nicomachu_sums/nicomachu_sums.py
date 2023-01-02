@@ -2,6 +2,7 @@ import anim
 
 from typing import List as _List
 from math import factorial
+from itertools import product
 
 #################################################################
 #
@@ -128,7 +129,7 @@ actors = [
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
     anim.actor('Explanation', '', geo.proof),
-    [anim.actor('Cube', '', cube) for cube in anim.flatten(geo.cubes)],
+    [[anim.actor('Cube', '', cube) for cube in cube_of_cubes.sub_items] for cube_of_cubes in geo.cubes],
     anim.actor('Highlight', '', geo.highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -259,10 +260,10 @@ def first_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
         z_count = len(z_slices)
         for z, slice in enumerate(z_slices):
             for cube in anim.flatten(slice):
-                for pt in cube.get_all_points():
-                    from_pt = anim.static_point(pt)
-                    dest_pt = anim.static_point(from_pt - (z_count - z - 1) * dz)
-                    animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+                pt = cube.position
+                from_pt = anim.static_point(pt)
+                dest_pt = anim.static_point(from_pt - (z_count - z - 1) * dz)
+                animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
 
 def second_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     dx, dy, _ = anim.last_of(geo.cubes).get_deltas()
@@ -276,10 +277,50 @@ def second_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
                 delta = anim.static_point(0., 0.)
                 delta += dx / 3. * (-1. if x < count // 2 else 1.)
                 delta += dy / 3. * (-1. if y < count // 2 else 1.)
-                for pt in y_cube.get_all_points():
-                    from_pt = anim.static_point(pt)
-                    dest_pt = anim.static_point(from_pt + delta)
-                    animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+                pt = y_cube.position
+                from_pt = anim.static_point(pt)
+                dest_pt = anim.static_point(from_pt + delta)
+                animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+
+def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    # Format: (from cube #, from 3D coordinates, 2D slice, destination coordinates)
+    # 3D coordinates are in cube coordinates, but destinations are with the origin
+    # at the small cube.
+    destinations = [
+        (0, (0, 0, 0), (1, 1), (0, 0)),
+        (1, (0, 0, 0), (1, 1), (0, 2)),
+        (1, (0, 1, 0), (1, 1), (0, 1)),
+        (1, (1, 0, 0), (1, 1), (2, 0)),
+        (1, (1, 1, 0), (1, 1), (1, 0)),
+        (1, (0, 0, 1), (2, 2), (1, 2)),
+        (2, (0, 0, 0), (3, 3), (0, 5)),
+        (2, (0, 0, 1), (3, 3), (3, 5)),
+        (2, (0, 0, 2), (3, 3), (3, 2)),
+        (3, (0, 0, 0), (2, 2), (0, 9)),
+        (3, (0, 2, 0), (2, 2), (0, 7)),
+        (3, (2, 0, 0), (2, 2), (6, 1)),
+        (3, (2, 2, 0), (2, 2), (8, 1)),
+        (3, (0, 0, 1), (4, 4), (2, 9)),
+        (3, (0, 0, 2), (4, 4), (6, 9)),
+        (3, (0, 0, 3), (4, 4), (6, 5)),
+    ]
+    dx, dy, _ = geo.cubes[0].get_deltas()
+    base_dest = anim.static_point(anim.first_of(geo.cubes[0].cubes).position)
+    for cube, cube_coord, slice, dest_coord in destinations:
+        cube_of_cubes = geo.cubes[cube]
+        cube_z = cube_coord[2]
+        for cube_x, cube_y in product(range(slice[0]), range(slice[1])):
+            dest_x = dest_coord[0] + cube_x
+            dest_y = dest_coord[1] - cube_y
+
+            cube = cube_of_cubes.cubes[cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
+
+            move_pt = cube.position
+            from_pt = anim.static_point(move_pt)
+            dest_pt = base_dest + dx * dest_x - dy * dest_y
+
+            animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(move_pt))
+            cube.set_z_order(dest_y + 10. * (10 - dest_x))
 
 
 #################################################################

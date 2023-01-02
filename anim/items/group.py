@@ -19,6 +19,14 @@ class group(_Group, item):
         super().__init__(None)
         self.set_items(sub_items)
 
+    def reset(self):
+        """
+        Reset the item to its initial state.
+        """
+        for i in self.sub_items:
+            i.reset()
+        return super().reset()
+
     def set_items(self, sub_items: _List[item]) -> item:
         for i in self.sub_items:
             self.removeFromGroup(i)

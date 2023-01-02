@@ -13,6 +13,15 @@ class item:
     def __init__(self, _) -> None:
         pass
 
+    def reset(self):
+        """
+        Reset the item to its initial state.
+        """
+        self.set_opacity(0.)
+        for pt in self.get_all_points():
+            pt.reset()
+        return self
+
 
     ########################################################################
     #

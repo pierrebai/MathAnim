@@ -17,10 +17,7 @@ class geometries:
 
     def reset(self):
         for it in find_all_of_type(self.__dict__, item):
-            if self.reset_opacities:
-                it.set_opacity(0.)
-            for pt in it.get_all_points():
-                pt.reset()
+            it.reset()
 
     def create_background_rect(self, pts: points, min_margin = static_point(0.1, 0.1), max_margin = static_point(0.1, 0.1)):
         rect: static_rectangle = None
