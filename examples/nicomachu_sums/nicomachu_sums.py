@@ -282,11 +282,15 @@ def second_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.sc
                 dest_pt = anim.static_point(from_pt + delta)
                 animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
 
-def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    # Format: (from cube #, from 3D coordinates, 2D slice, destination coordinates)
-    # 3D coordinates are in cube coordinates, but destinations are with the origin
-    # at the small cube.
-    destinations = [
+def _get_square_destinations():
+    """
+    Destination to deconstruct the cube of cubes into a square.
+
+    Format: (from cube #, from 3D coordinates, 2D slice, destination coordinates)
+            3D coordinates are in cube coordinates, but destinations coordinates
+            are with the origin at the small 1x1x1 red cube.
+    """
+    return [
         (0, (0, 0, 0), (1, 1), (0, 0)),
         (1, (0, 0, 0), (1, 1), (0, 2)),
         (1, (0, 1, 0), (1, 1), (0, 1)),
@@ -304,7 +308,10 @@ def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene,
         (3, (0, 0, 2), (4, 4), (6, 9)),
         (3, (0, 0, 3), (4, 4), (6, 5)),
     ]
-    dx, dy, _ = geo.cubes[0].get_deltas()
+
+def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    destinations = _get_square_destinations()
+    dx, dy, dz = geo.cubes[0].get_deltas()
     base_dest = anim.static_point(anim.first_of(geo.cubes[0].cubes).position)
     for cube, cube_coord, slice, dest_coord in destinations:
         cube_of_cubes = geo.cubes[cube]
@@ -321,6 +328,45 @@ def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene,
 
             animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(move_pt))
             cube.set_z_order(dest_y + 10. * (10 - dest_x))
+
+    for which, power_eq in enumerate(geo.power_eqs):
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(base_dest - dz * 4 + (which -1) * 3 * dx)
+        power_eq[1].set_opacity(1.) # TODO remove when in full demonstration mode.
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+
+
+def make_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    destinations = _get_square_destinations()
+    base_dest = anim.static_point(0, -300.)
+    dx, dy = anim.static_point(50., 50.), anim.static_point(-50., 50.)
+    for cube, cube_coord, slice, dest_coord in destinations:
+        cube_of_cubes = geo.cubes[cube]
+        cube_z = cube_coord[2]
+        for cube_x, cube_y in product(range(slice[0]), range(slice[1])):
+            dest_x = dest_coord[0] + cube_x
+            dest_y = dest_coord[1] - cube_y
+
+            cube = cube_of_cubes.cubes[cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
+            top_square = cube.sub_items[0]
+
+            tip_position = anim.static_point(base_dest + dest_x * dx + dest_y * dy)
+            square_deltas = [ [0, 0], [1, 0], [1, 1], [0, 1] ]
+            for move_pt, delta in zip(top_square.points, square_deltas):
+                from_pt = anim.static_point(move_pt)
+                dest_pt = tip_position + dx * delta[0] + dy * delta[1]
+                animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(move_pt))
+            animator.animate_value([0., 5.], short_duration, anim.change_thickness(top_square))
+
+            for square in cube.sub_items[1:]:
+                anim.anim_hide_item(animator, quick_reveal_duration, square)
+
+    eq_offsets = [0, 2, 4, 7]
+    for power_eq, offset in zip(geo.power_eqs, eq_offsets):
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(base_dest + anim.static_point(40., -40.) + offset * dx)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+        
 
 
 #################################################################
