@@ -94,10 +94,10 @@ class geometries(anim.geometries):
         self._order_items()
 
     def _order_items(self):
-        self.main_triangle.setZValue(1.)
-        self.right_angle.setZValue(2.)
+        self.main_triangle.set_z_order(1.)
+        self.right_angle.set_z_order(2.)
         for label in anim.find_all_of_type(self.__dict__, anim.scaling_text):
-            label.setZValue(3.)
+            label.set_z_order(3.)
 
     @staticmethod
     def _relative_mid_point(points: _List[anim.point]) -> anim.selected_point:

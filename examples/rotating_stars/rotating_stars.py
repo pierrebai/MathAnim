@@ -95,11 +95,11 @@ class geometries(anim.geometries):
 
     def _set_z_orders(self):
         for c in self.inner_circles:
-            c.setZValue(-1)
+            c.set_z_order(-1)
 
         for ds in self.inner_dots:
             for d in ds:
-                d.setZValue(1)
+                d.set_z_order(1)
 
 geo: geometries = None
 

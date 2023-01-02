@@ -129,5 +129,14 @@ class group(_Group, item):
         Verifies if the item is shown.
         """
         if self.sub_items:
-            self.sub_items[0].shown
+            return self.sub_items[0].shown
         return False
+
+    def set_z_order(self, order: float) -> item:
+        """
+        Set drawing priority, higher order is on top.
+        """
+        super().set_z_order(order)
+        for i in self.sub_items:
+            i.set_z_order(order)
+        return self

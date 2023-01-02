@@ -35,7 +35,7 @@ class points(anim.points):
     def __init__(self):
         super().__init__()
         self.text_height = 60.
-        self.cube_radius = 60.
+        self.cube_radius = 40.
 
         self.rows = 4
 
@@ -59,7 +59,7 @@ class points(anim.points):
         self.numbers_point_spread = anim.deep_filter(number_filter, self.points_spread, self.triangle_spread)
         self.plusses_point_spread = anim.deep_filter(not_number_filter, self.points_spread, self.triangle_spread)
 
-        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset
+        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset * 2
 
         self.cube_eqs_point  = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
         self.power_eqs_point = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
@@ -76,8 +76,6 @@ pts: points = points()
 colors = [anim.dark_red, anim.dark_green, anim.dark_blue, anim.dark_sable]
 
 class geometries(anim.geometries):
-    label_size = 50.
-
     def __init__(self, pts: points):
         super().__init__()
 
@@ -98,8 +96,8 @@ class geometries(anim.geometries):
         proof_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
         self.proof = anim.create_sans_bold_text('The\ncubes\nsquare\ntriangle\nproof', proof_point, pts.text_height)
 
-        cubes_points = [anim.point(x, -100.) for x in anim.linear_serie(-200., 150., 4)]
-        self.cubes = [anim.create_cube(pt, pts.cube_radius, color, 0.6) for pt, color in zip(cubes_points, colors)]
+        cubes_points = [anim.point(x, 100.) for x in [-400., -250., -50., 200.]]
+        self.cubes = [anim.create_cube_of_cubes(size, pt, pts.cube_radius, color, 0.6) for size, pt, color in zip(range(1, 5), cubes_points, colors)]
 
         self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
@@ -130,7 +128,7 @@ actors = [
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
     anim.actor('Explanation', '', geo.proof),
-    [anim.actor('Cube', '', cube) for cube in geo.cubes],
+    [anim.actor('Cube', '', cube) for cube in anim.flatten(geo.cubes)],
     anim.actor('Highlight', '', geo.highlight),
     anim.actor('Background', '', geo.background_rect),
 ]
@@ -205,7 +203,7 @@ def _create_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _List[anim.s
         animator.animate_value([from_pt, dest_pt, dest_pt], short_duration, anim.move_point(pt))
     return anim.anim_description.create_shot(_power_shot)
 
-def _create_replace_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _List[anim.scaling_text], pt: anim.point):
+def _create_replace_power_shot(cube_eq: _List[anim.scaling_text], pt: anim.point):
     def _power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
         for item in cube_eq:
             anim.anim_hide_item(animator, quick_reveal_duration, item)
@@ -217,7 +215,7 @@ def _create_replace_power_shot(cube_eq: _List[anim.scaling_text], power_eq: _Lis
 def show_cubes_and_powers_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     cubes_shot = [_create_cube_shot(cube, pt) for cube, pt in zip(geo.cube_eqs, pts.cube_eqs_point)]
     powers_shot = [_create_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
-    replaces_shot = [_create_replace_power_shot(cube, power, pt) for cube, power, pt in zip(geo.cube_eqs, geo.power_eqs, pts.power_eqs_point)]
+    replaces_shot = [_create_replace_power_shot(cube, pt) for cube, pt in zip(geo.cube_eqs, pts.power_eqs_point)]
     animation.add_next_shots(anim.interleave_lists([cubes_shot, powers_shot, replaces_shot]))
 
 def etc_power_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
@@ -233,8 +231,57 @@ def proof_name_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     anim.anim_ondulate_text_size(animator, short_duration, geo.proof, 1.3)
 
 def show_cubes_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    for cube in geo.cubes:
+    anim.anim_hide_item(animator, quick_reveal_duration, geo.proof)
+    anim.anim_hide_item(animator, quick_reveal_duration, geo.etc)
+    for label in anim.flatten(geo.numbers_spread):
+        anim.anim_hide_item(animator, quick_reveal_duration, label)
+    for label in anim.flatten(geo.plusses_spread):
+        anim.anim_hide_item(animator, quick_reveal_duration, label)
+
+    _, dy, dz = anim.get_cube_deltas(anim.last_of(geo.cubes))
+    which_cubes = [0, 1, 1, 1]
+    for which_cube, power_eq, cubes in zip(which_cubes, geo.power_eqs, geo.cubes):
+        anim.anim_hide_item(animator, quick_reveal_duration, power_eq[0])
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(cubes[which_cube][-1][0].sub_items[0].points[-1] + dy * 2. - dz * 2.)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+    for cube in anim.flatten(geo.cubes):
         anim.anim_reveal_item(animator, duration, cube)
+
+def first_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    _, _, dz = anim.get_cube_deltas(anim.last_of(geo.cubes))
+    for which, power_eq in enumerate(geo.power_eqs):
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(from_pt - which * dz)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+    for cubes in geo.cubes:
+        count = len(cubes)
+        for x_cubes in cubes:
+            for y_cubes in x_cubes:
+                for z, z_cube in enumerate(y_cubes):
+                    for pt in z_cube.get_all_points():
+                        from_pt = anim.static_point(pt)
+                        dest_pt = anim.static_point(from_pt - (count - z - 1) * dz)
+                        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+
+def second_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    dx, dy, _ = anim.get_cube_deltas(anim.last_of(geo.cubes))
+    for cubes in geo.cubes:
+        count = len(cubes)
+        if count % 2:
+            continue
+        for x, x_cubes in enumerate(cubes):
+            for y, y_cubes in enumerate(x_cubes):
+                for z, z_cube in enumerate(y_cubes):
+                    if z:
+                        continue
+                    delta = anim.static_point(0., 0.)
+                    delta += dx / 3. * (-1. if x < count // 2 else 1.)
+                    delta += dy / 3. * (-1. if y < count // 2 else 1.)
+                    for pt in z_cube.get_all_points():
+                        from_pt = anim.static_point(pt)
+                        dest_pt = anim.static_point(from_pt + delta)
+                        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
 
 
 #################################################################

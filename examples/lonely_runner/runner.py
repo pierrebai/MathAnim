@@ -63,12 +63,12 @@ class runner(anim.circle):
         else:
             return fraction
 
-    def setZValue(self, z: float) -> anim.circle:
+    def set_z_order(self, z: float) -> anim.circle:
         '''
         Sets the Z-order of drawing, higher Z are on top.
         '''
-        super().setZValue(z)
-        self.label.setZValue(z + 0.1)
+        super().set_z_order(z)
+        self.label.set_z_order(z + 0.1)
         return self
 
     def set_opacity(self, opacity) -> anim.circle:

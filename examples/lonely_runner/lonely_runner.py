@@ -138,11 +138,11 @@ class geometries(anim.geometries):
 
     def _order_items(self):
         for i, r in enumerate(runner.runners):
-            r.setZValue(i)
-        runner.lonely.setZValue(2000.)
-        self.lonely_zone.setZValue(-3.)
-        self.lonely_zone_label.setZValue(-1.)
-        self.half_lonely_zone.setZValue(-2.)
+            r.set_z_order(i)
+        runner.lonely.set_z_order(2000.)
+        self.lonely_zone.set_z_order(-3.)
+        self.lonely_zone_label.set_z_order(-1.)
+        self.half_lonely_zone.set_z_order(-2.)
 
 geo: geometries = None
 
@@ -172,8 +172,8 @@ class timeline_geometries:
 
         self.solution_label = anim.scaling_text('', self.timeline.p1).set_sans_font(pts.timeline_label_size)
 
-        self.timeline.setZValue(2.)
-        self.solution_label.setZValue(3.)
+        self.timeline.set_z_order(2.)
+        self.solution_label.set_z_order(3.)
 
     def animate_runner_intervals(self, runner_allowed_time_intervals: _List[_List[float]], animator: anim.animator):
         self._remove_graphs(self.last_runner_intervals_graphs)

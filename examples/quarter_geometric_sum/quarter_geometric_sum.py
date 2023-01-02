@@ -77,9 +77,9 @@ quarter_with_power_texts = anim.flatten([quarter_texts[1:], exponent_texts])
 
 unit_square_base = anim.point(0., 0.)
 unit_square = anim.create_losange(unit_square_base, losange_height * 2).set_opacity(0.).fill(anim.orange).outline(anim.black).thickness(0.)
-unit_square.setZValue(-2.)
+unit_square.set_z_order(-2.)
 unit_text = anim.create_sans_bold_text("1", unit_square.points[0], losange_height / 2).set_opacity(0.).center_on(unit_square)
-unit_text.setZValue(-1.)
+unit_text.set_z_order(-1.)
 unit_square_and_text = [unit_square, unit_text]
 
 third_texts = [anim.create_sans_bold_text("1/3", anim.relative_point(tip), losange_height / 4).set_opacity(0.).place_above(tip) for tip in tower_tip_points]

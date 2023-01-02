@@ -107,3 +107,10 @@ class item:
         Verifies if the item is shown.
         """
         return self.isVisible()
+
+    def set_z_order(self, order: float):
+        """
+        Set drawing priority, higher order is on top.
+        """
+        self.setZValue(order)
+        return self

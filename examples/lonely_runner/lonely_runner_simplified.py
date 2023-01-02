@@ -53,9 +53,9 @@ class lonely_runner(runner):
         pt2 = anim.relative_radial_point(self.center, 0., -lonely_angle)
         self.interval_arc = anim.partial_circle(self.center.origin, self.center.radius, pt1, pt2).fill(anim.pale_blue).outline(anim.no_color)
 
-    def setZValue(self, z: float) -> None:
-        self.interval_arc.setZValue(-2.)
-        return super().setZValue(z)
+    def set_z_order(self, z: float) -> None:
+        self.interval_arc.set_z_order(-2.)
+        return super().set_z_order(z)
 
     def is_lonely(self) -> bool:
         closest = min([self.distance_from(r) for r in lonely_runner.runners if r != self])
@@ -85,7 +85,7 @@ def _gen_runners():
     lonely_runner.create_runners(runners_speeds(), lonely_runner_index(), runner_radius, track_radius)
     for r in lonely_runner.runners:
         r.set_colored(True)
-        r.setZValue(2.)
+        r.set_z_order(2.)
 
 
 #################################################################

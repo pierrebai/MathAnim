@@ -174,6 +174,35 @@ def create_cube(center: point, radius: float, fill_color: color = green, squash:
     polys = [polygon(pts).fill(color).outline(black) for pts, color in zip(polys_pts, colors)]
     return group(polys)
 
+def get_cube_deltas(cube) -> _List[static_point]:
+    """
+    Retrieve the delta movements to adjoin another identical cube to this cube
+    when moving in the 3D x, y and z directions.
+    """
+    dx = cube.sub_items[0].points[1] - cube.sub_items[0].points[0]
+    dy = cube.sub_items[1].points[2] - cube.sub_items[1].points[-1]
+    dz = cube.sub_items[0].points[0] - cube.sub_items[0].points[-1]
+    return [dx, dy, dz]
+
+def create_cube_of_cubes(size: int, center: point, radius: float, fill_color: color = green, squash: float = 0.):
+    dx, dy, dz = static_point(0., 0.), static_point(0., 0.), static_point(0., 0.)
+    order = 0.
+    x_cubes = []
+    for x in range(size):
+        y_cubes = []
+        for y in range(size):
+            z_cubes = []
+            for z in range(size):
+                cube_center = relative_point(center, dx * x + dy * y + dz * z)
+                new_cube = create_cube(cube_center, radius, fill_color, squash).set_z_order(order)
+                z_cubes.append(new_cube)
+                if not order:
+                    dx, dy, dz = get_cube_deltas(new_cube)
+                order -= 1.
+            y_cubes.append(z_cubes)
+        x_cubes.append(y_cubes)
+    return x_cubes
+
 
 #################################################################
 #

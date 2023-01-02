@@ -1,4 +1,18 @@
+from .items.group import group
+
 from typing import Dict as _Dict, Any as _Any, List as _List, Callable as _Callable
+from collections.abc import Iterable as _Iterable
+
+
+def _is_finite_iterable(var) -> bool:
+    """
+    Verifies if something is iterable but not a string.
+    The reason to avoid strings is that iteraing over a string
+    produces strings, which causes infinite recursion when trying
+    to process all iterable recursively. Other container do not
+    contain containers infinitely nested like strings.
+    """
+    return isinstance(var, _Iterable) and not isinstance(var, str)
 
 
 #################################################################
@@ -10,7 +24,7 @@ def is_of_type(var, type) -> bool:
     Verifies if a variable is of the given type or is a list or tuple of that type
     of a list of list of that type, etc.
     """
-    if ( isinstance(var, list) or isinstance(var, tuple) ) and len(var):
+    if _is_finite_iterable(var):
         for item in var:
             if is_of_type(item, type):
                 return True
@@ -43,23 +57,29 @@ def flatten(var) -> _List[_Any]:
     until what we have is a simple flat list.
     """
     items = []
-    if isinstance(var, list) or isinstance(var, tuple):
+    if _is_finite_iterable(var):
         for item in var:
             items.extend(flatten(item))
     else:
         items.append(var)
     return items
 
+def first_of(var: _List[_Any]) -> _Any:
+    """
+    Return the first non-list element of a list of lists of lists...
+    """
+    if _is_finite_iterable(var):
+        return first_of(var[0])
+    return var
+
 def last_of(var: _List[_Any]) -> _Any:
     """
-    Return the last element of a list of lists of lists...
+    Return the last non-list element of a list of lists of lists...
     """
-    if not var:
-        return None
-    if isinstance(var, list) or isinstance(var, tuple):
+    if _is_finite_iterable(var):
         return last_of(var[-1])
     return var
-    
+
 def transpose_lists(list_of_lists: _List[list]) -> _List[list]:
     """
     Creates a list of lists by assembling every ith elements of the input lists together in the ith output list.
@@ -97,10 +117,9 @@ def deep_map(mapping: _Callable, *args):
     """
     if not args:
         return None
-    if isinstance(args[0], list):
-        return [deep_map(mapping, *items) for items in zip(*args)]
-    elif isinstance(args[0], tuple):
-        return tuple([deep_map(mapping, *items) for items in zip(*args)])
+    if _is_finite_iterable(args[0]):
+        t = type(args[0])
+        return t([deep_map(mapping, *items) for items in zip(*args)])
     else:
         return mapping(*args)
 
@@ -112,10 +131,9 @@ def deep_filter(filtering: _Callable, *args):
     """
     if not args:
         return None
-    if isinstance(args[0], list):
-        return list(filter(lambda x: x is not None, [deep_filter(filtering, *items) for items in zip(*args)]))
-    elif isinstance(args[0], tuple):
-        return tuple(filter(lambda x: x is not None, [deep_filter(filtering, *items) for items in zip(*args)]))
+    if _is_finite_iterable(args[0]):
+        t = type(args[0])
+        return t(filter(lambda x: x is not None, [deep_filter(filtering, *items) for items in zip(*args)]))
     else:
         return filtering(*args)
 
