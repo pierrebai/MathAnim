@@ -1,4 +1,4 @@
-from .types import find_all_of_type
+from .algorithms import find_all_of_type
 from .items import item, point, static_point, rectangle, gray, no_color, static_rectangle
 from .points import points
 from .geometry import min_max

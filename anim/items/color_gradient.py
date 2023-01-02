@@ -1,5 +1,5 @@
 from .color import color
-from ..types import find_all_of_type
+from ..algorithms import find_all_of_type
 
 from typing import List as _List
 from math import floor as _floor

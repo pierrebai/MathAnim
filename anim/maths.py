@@ -1,5 +1,5 @@
 from .trf import pi, hpi, tau
-from .types import deep_map
+from .algorithms import deep_map
 
 from math import sin, exp, log
 from typing import List as _List, Callable as _Callable, Any as _Any

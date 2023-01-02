@@ -2,7 +2,7 @@ from .items.line import line
 from .items.point import point, static_point
 from .items.item import item
 from .maths import spread_item
-from .types import deep_map, flatten
+from .algorithms import deep_map, flatten
 
 from math import cos, sin, atan2, sqrt, pi, exp, log
 from typing import List as _List, Tuple as _Tuple, Callable as _Callable, Any as _Any

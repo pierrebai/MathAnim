@@ -97,7 +97,7 @@ class geometries(anim.geometries):
         self.proof = anim.create_sans_bold_text('The\ncubes\nsquare\ntriangle\nproof', proof_point, pts.text_height)
 
         cubes_points = [anim.point(x, 100.) for x in [-400., -250., -50., 200.]]
-        self.cubes = [anim.create_cube_of_cubes(size, pt, pts.cube_radius, color, 0.6) for size, pt, color in zip(range(1, 5), cubes_points, colors)]
+        self.cubes = [anim.cube_of_cubes(size, pt, pts.cube_radius, 0.6).fill(color) for size, pt, color in zip(range(1, 5), cubes_points, colors)]
 
         self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
@@ -238,50 +238,48 @@ def show_cubes_shot(shot: anim.shot, animation: anim.animation, scene: anim.scen
     for label in anim.flatten(geo.plusses_spread):
         anim.anim_hide_item(animator, quick_reveal_duration, label)
 
-    _, dy, dz = anim.get_cube_deltas(anim.last_of(geo.cubes))
+    _, dy, dz = anim.last_of(geo.cubes).get_deltas()
     which_cubes = [0, 1, 1, 1]
-    for which_cube, power_eq, cubes in zip(which_cubes, geo.power_eqs, geo.cubes):
+    for which_cube, power_eq, cube in zip(which_cubes, geo.power_eqs, geo.cubes):
         anim.anim_hide_item(animator, quick_reveal_duration, power_eq[0])
         from_pt = anim.static_point(power_eq[1].position)
-        dest_pt = anim.static_point(cubes[which_cube][-1][0].sub_items[0].points[-1] + dy * 2. - dz * 2.)
+        dest_pt = anim.static_point(cube.cubes[which_cube][-1][0].sub_items[0].points[-1] + dy * 2. - dz * 2.)
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
     for cube in anim.flatten(geo.cubes):
         anim.anim_reveal_item(animator, duration, cube)
 
 def first_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    _, _, dz = anim.get_cube_deltas(anim.last_of(geo.cubes))
+    _, _, dz = anim.last_of(geo.cubes).get_deltas()
     for which, power_eq in enumerate(geo.power_eqs):
         from_pt = anim.static_point(power_eq[1].position)
         dest_pt = anim.static_point(from_pt - which * dz)
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
-    for cubes in geo.cubes:
-        count = len(cubes)
-        for x_cubes in cubes:
-            for y_cubes in x_cubes:
-                for z, z_cube in enumerate(y_cubes):
-                    for pt in z_cube.get_all_points():
-                        from_pt = anim.static_point(pt)
-                        dest_pt = anim.static_point(from_pt - (count - z - 1) * dz)
-                        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+    for cube in geo.cubes:
+        z_slices = cube.get_z_slices()
+        z_count = len(z_slices)
+        for z, slice in enumerate(z_slices):
+            for cube in anim.flatten(slice):
+                for pt in cube.get_all_points():
+                    from_pt = anim.static_point(pt)
+                    dest_pt = anim.static_point(from_pt - (z_count - z - 1) * dz)
+                    animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
 
 def second_split_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    dx, dy, _ = anim.get_cube_deltas(anim.last_of(geo.cubes))
-    for cubes in geo.cubes:
-        count = len(cubes)
+    dx, dy, _ = anim.last_of(geo.cubes).get_deltas()
+    for cube in geo.cubes:
+        count = len(cube.cubes)
         if count % 2:
             continue
-        for x, x_cubes in enumerate(cubes):
-            for y, y_cubes in enumerate(x_cubes):
-                for z, z_cube in enumerate(y_cubes):
-                    if z:
-                        continue
-                    delta = anim.static_point(0., 0.)
-                    delta += dx / 3. * (-1. if x < count // 2 else 1.)
-                    delta += dy / 3. * (-1. if y < count // 2 else 1.)
-                    for pt in z_cube.get_all_points():
-                        from_pt = anim.static_point(pt)
-                        dest_pt = anim.static_point(from_pt + delta)
-                        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
+        z_slice = cube.get_z_slices()[0]
+        for x, x_cubes in enumerate(z_slice):
+            for y, y_cube in enumerate(x_cubes):
+                delta = anim.static_point(0., 0.)
+                delta += dx / 3. * (-1. if x < count // 2 else 1.)
+                delta += dy / 3. * (-1. if y < count // 2 else 1.)
+                for pt in y_cube.get_all_points():
+                    from_pt = anim.static_point(pt)
+                    dest_pt = anim.static_point(from_pt + delta)
+                    animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(pt))
 
 
 #################################################################

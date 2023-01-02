@@ -1,4 +1,5 @@
 from .circle import circle, radius_circle, diameter_circle, partial_circle
+from .cube import cube, cube_of_cubes
 from .line import line
 from .polygon import polygon
 from .rectangle import rectangle, center_rectangle, static_rectangle
@@ -9,7 +10,7 @@ from .item import item
 from .pen import pen
 from .colors import *
 from .group import group
-from ..geometry import pi, hpi, tau, two_points_convex_sum, four_points_angle, two_points_angle
+from ..geometry import pi, hpi, tau
 from ..trf import *
 from ..maths import *
 
@@ -146,62 +147,6 @@ def create_polygon(pts: _List[point]) -> polygon:
 #################################################################
 #
 # Cubes
-
-def create_cube(center: point, radius: float, fill_color: color = green, squash: float = 0.) -> group:
-    cube_center = static_point(0., 0.)
-
-    angle_ratio  = 1. - squash
-    radius_ratio = 1. - squash / 2.
-
-    p1 = cube_center + static_point(0., radius)
-    p2 = p1 + rotate_around_origin(static_point(radius, 0.), -tau * angle_ratio / 12.)
-    p3 = static_point(p2.x(), p2.y() - radius)
-
-    center_angle = four_points_angle(cube_center, p1, cube_center, p3)
-    top_angle = two_points_angle(cube_center, p3)
-    delta = rotate_around_origin(static_point(radius * radius_ratio, 0.), top_angle + (tau - center_angle) / 2.)
-
-    p4 = p3 + delta
-    p6 = p1 + delta
-    p5 = static_point(p6.x(), p6.y() - radius)
-
-    cube_center = relative_point(center, cube_center)
-    hexagon_pts = [p1, p2, p3, p4, p5, p6, p1]
-    hexagon_pts = [relative_point(center, pt) for pt in hexagon_pts]
-
-    polys_pts = [hexagon_pts[i*2:i*2+3] + [cube_center] for i in range(3)]
-    colors = [fill_color.lighter(130), fill_color, fill_color.darker(130)]
-    polys = [polygon(pts).fill(color).outline(black) for pts, color in zip(polys_pts, colors)]
-    return group(polys)
-
-def get_cube_deltas(cube) -> _List[static_point]:
-    """
-    Retrieve the delta movements to adjoin another identical cube to this cube
-    when moving in the 3D x, y and z directions.
-    """
-    dx = cube.sub_items[0].points[1] - cube.sub_items[0].points[0]
-    dy = cube.sub_items[1].points[2] - cube.sub_items[1].points[-1]
-    dz = cube.sub_items[0].points[0] - cube.sub_items[0].points[-1]
-    return [dx, dy, dz]
-
-def create_cube_of_cubes(size: int, center: point, radius: float, fill_color: color = green, squash: float = 0.):
-    dx, dy, dz = static_point(0., 0.), static_point(0., 0.), static_point(0., 0.)
-    order = 0.
-    x_cubes = []
-    for x in range(size):
-        y_cubes = []
-        for y in range(size):
-            z_cubes = []
-            for z in range(size):
-                cube_center = relative_point(center, dx * x + dy * y + dz * z)
-                new_cube = create_cube(cube_center, radius, fill_color, squash).set_z_order(order)
-                z_cubes.append(new_cube)
-                if not order:
-                    dx, dy, dz = get_cube_deltas(new_cube)
-                order -= 1.
-            y_cubes.append(z_cubes)
-        x_cubes.append(y_cubes)
-    return x_cubes
 
 
 #################################################################

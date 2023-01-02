@@ -1,3 +1,4 @@
+from .algorithms import *
 from .animator import animator
 from .actor import actor
 from .animation import animation
@@ -8,7 +9,6 @@ from .view import view
 from .shot import shot
 from .items import *
 from .anims import *
-from .types import *
 from . import ui
 from . import trf
 from .geometry import *

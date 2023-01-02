@@ -1,5 +1,3 @@
-from .items.group import group
-
 from typing import Dict as _Dict, Any as _Any, List as _List, Callable as _Callable
 from collections.abc import Iterable as _Iterable
 

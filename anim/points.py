@@ -1,4 +1,4 @@
-from .types import find_all_of_type
+from .algorithms import find_all_of_type
 from .items import point
 
 class points:

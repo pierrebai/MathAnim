@@ -4,7 +4,7 @@ from .animator import animator
 from .options import option
 from .scene import scene
 from .shot import shot
-from .types import is_of_type
+from .algorithms import is_of_type
 
 from typing import Dict as _Dict, Any as _Any, List as _List, Tuple as _Tuple, Callable as _Callable
 
