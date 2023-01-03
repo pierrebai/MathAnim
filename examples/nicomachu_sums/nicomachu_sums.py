@@ -2,7 +2,7 @@ import anim
 
 from typing import List as _List
 from math import factorial
-from itertools import product
+from itertools import product, count
 
 #################################################################
 #
@@ -41,7 +41,8 @@ class points(anim.points):
         self.rows = 4
 
         self.triangle_spread = anim.create_triangle_odd_spread(self.rows)
-        self.texts_spread = anim.deep_map(lambda item: str(item.row * 2 + item.column + 1) if is_number(item) else '+', self.triangle_spread)
+        counter = count(1, 2)
+        self.texts_spread = anim.deep_map(lambda item: str(next(counter)) if is_number(item) else '+', self.triangle_spread)
 
         self.top = anim.point(0., 0.)
 
@@ -108,7 +109,7 @@ class geometries(anim.geometries):
 
         self.right_rects = [anim.rectangle(anim.point(0., 0.), anim.point(1., 1)).fill(color).outline(anim.no_color) for color in colors]
 
-        self.right_limit = anim.rectangle(anim.point(0., 0.), anim.point(1400, 10.))
+        self.right_limit = anim.rectangle(anim.point(-600., 0.), anim.point(1400, 10.))
 
         self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
@@ -136,12 +137,16 @@ actors = [
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.plusses_spread)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.cube_eqs)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.power_eqs)],
-    [anim.actor('Equation', '', rect) for rect in geo.right_rects],
+
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
     anim.actor('Explanation', '', geo.proof),
+
     [[anim.actor('Cube', '', cube) for cube in cube_of_cubes.sub_items] for cube_of_cubes in geo.cubes],
+
     anim.actor('Highlight', '', geo.highlight),
+    [anim.actor('Highlight', '', rect) for rect in geo.right_rects],
+
     anim.actor('Background', '', geo.background_rect),
 ]
 
@@ -407,7 +412,7 @@ def make_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
         dest_pt = anim.static_point(pts.square_tip_point + anim.static_point(60., 40.) + offset * 2 * dx)
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
         
-def prepare_to_add_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+def push_total_right_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     min_pt, max_pt = anim.min_max(anim.flatten([top_side.get_all_points() for top_side in anim.flatten(geo.top_sides[-1])]))
     rect_distance = 50.
     rect_width = 30.
@@ -434,6 +439,51 @@ def prepare_to_add_shot(shot: anim.shot, animation: anim.animation, scene: anim.
         dest_pt = anim.static_point(max_pt.x() + eq_distance, from_pt.y())
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
         
+def count_squares_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    destinations = _get_square_destinations()
+    min_max_pts = {}
+    for which_cube, cube_coord, slice, dest_coord in destinations:
+        cube_z = cube_coord[2]
+        for cube_x, cube_y in product(range(slice[0]), range(slice[1])):
+            dest_x = dest_coord[0] + cube_x
+            dest_y = dest_coord[1] - cube_y
+            max_dest = max(dest_x, dest_y)
+            extra_x = (max_dest - dest_y) if dest_y < max_dest else 0
+            extra_y = (max_dest - dest_x) if dest_x < max_dest else 0
+            top_side = geo.top_sides[which_cube][cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
+            key = max(dest_x + extra_x, dest_y + extra_y) // 2
+            new_points = top_side.get_all_points()
+            if key in min_max_pts:
+                min_max_pts[key] = anim.min_max(min_max_pts[key] + tuple(new_points))
+            else:
+                min_max_pts[key] = anim.min_max(new_points)
+
+    for row, number in enumerate(anim.flatten(geo.numbers_spread)):
+        min_pt, max_pt = min_max_pts[row]
+        number.position.set_absolute_point(anim.point(min_pt.x() - 100., min_pt.y() + pts.text_height / 2.))
+        anim.anim_reveal_item(animator, duration, number)
+
+def reassemble_equations_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    for eq, pt in zip(geo.power_eqs, pts.power_eqs_point):
+        anim.anim_reveal_item(animator, short_duration, eq[0])
+        label = eq[1]
+        from_pt = anim.static_point(label.position)
+        dest_pt = anim.static_point(pt + anim.point(40., 0.))
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(label.position))
+    for label in anim.flatten(geo.numbers_spread):
+        from_pt = anim.static_point(label.position)
+        dest_pt = anim.static_point(label.position.original_point)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(label.position))
+    for label in anim.flatten(geo.plusses_spread):
+        anim.anim_reveal_item(animator, duration, label)
+        from_pt = anim.static_point(label.position)
+        dest_pt = anim.static_point(label.position.original_point)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(label.position))
+    for top_sides in geo.top_sides:
+        for top_side in anim.flatten(top_sides):
+            anim.anim_hide_item(animator, short_duration, top_side)
+    for rect in anim.flatten(geo.right_rects):
+            anim.anim_hide_item(animator, short_duration, rect)
 
 
 #################################################################
