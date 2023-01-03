@@ -26,6 +26,18 @@ def rotate_point_around(moved_point: point, center: point):
     org_point = static_point(moved_point)
     return lambda angle: _rotate_point_around(moved_point, org_point, center, angle)
 
+def _rotate_absolute_point_around(moved_point: point, original_pos: static_point, center: point, angle: float) -> None:
+    moved_point.set_absolute_point(trf.rotate_around(original_pos, center, angle))
+
+def rotate_absolute_point_around(moved_point: point, center: point):
+    """
+    Creates a function that will rotates a point around another point
+    by setting its absolute position.
+    The returned function only takes the angle in radians as parameter.
+    """
+    org_point = static_point(moved_point)
+    return lambda angle: _rotate_absolute_point_around(moved_point, org_point, center, angle)
+
 def _rotate_relative_point_around(moved_point: point, center: point, angle: float) -> None:
     moved_point.set_point(trf.rotate_around(moved_point.original_delta, center, angle))
 

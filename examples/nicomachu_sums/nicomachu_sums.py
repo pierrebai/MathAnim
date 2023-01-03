@@ -67,6 +67,9 @@ class points(anim.points):
         
         self.highlight_corner = anim.relative_point(self.top, anim.point(0., self.text_height * -3.))
 
+        self.square_deltas = anim.static_point(50., 50.), anim.static_point(-50., 50.)
+        self.square_tip_point = anim.static_point(500., -300.)
+
 pts: points = points()
 
 
@@ -100,6 +103,13 @@ class geometries(anim.geometries):
         cubes_points = [anim.point(x, 100.) for x in [-400., -250., -50., 200.]]
         self.cubes = [anim.cube_of_cubes(size, pt, pts.cube_radius, 0.6).fill(color) for size, pt, color in zip(range(1, 5), cubes_points, colors)]
 
+        self.top_sides   = [anim.deep_map(lambda cube: cube.sub_items[0],  cube_of_cubes.cubes) for cube_of_cubes in self.cubes]
+        self.other_sides = [anim.deep_map(lambda cube: cube.sub_items[1:], cube_of_cubes.cubes) for cube_of_cubes in self.cubes]
+
+        self.right_rects = [anim.rectangle(anim.point(0., 0.), anim.point(1., 1)).fill(color).outline(anim.no_color) for color in colors]
+
+        self.right_limit = anim.rectangle(anim.point(0., 0.), anim.point(1400, 10.))
+
         self.background_rect = self.create_background_rect(pts, anim.static_point(0.1, 0.1), anim.static_point(0.1, 0.1))
 
     @staticmethod
@@ -126,6 +136,7 @@ actors = [
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.plusses_spread)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.cube_eqs)],
     [anim.actor('Equation', '', text) for text in anim.flatten(geo.power_eqs)],
+    [anim.actor('Equation', '', rect) for rect in geo.right_rects],
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
     anim.actor('Explanation', '', geo.proof),
@@ -338,33 +349,89 @@ def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene,
 
 def make_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     destinations = _get_square_destinations()
-    base_dest = anim.static_point(0, -300.)
-    dx, dy = anim.static_point(50., 50.), anim.static_point(-50., 50.)
-    for cube, cube_coord, slice, dest_coord in destinations:
-        cube_of_cubes = geo.cubes[cube]
+    dx, dy = pts.square_deltas
+    for which_cube, cube_coord, slice, dest_coord in destinations:
+        top_sides   = geo.top_sides[which_cube]
+        other_sides = geo.other_sides[which_cube]
+
         cube_z = cube_coord[2]
         for cube_x, cube_y in product(range(slice[0]), range(slice[1])):
             dest_x = dest_coord[0] + cube_x
             dest_y = dest_coord[1] - cube_y
 
-            cube = cube_of_cubes.cubes[cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
-            top_square = cube.sub_items[0]
+            top_side = top_sides[cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
 
-            tip_position = anim.static_point(base_dest + dest_x * dx + dest_y * dy)
+            tip_position = anim.static_point(pts.square_tip_point + dest_x * dx + dest_y * dy)
             square_deltas = [ [0, 0], [1, 0], [1, 1], [0, 1] ]
-            for move_pt, delta in zip(top_square.points, square_deltas):
+            for move_pt, delta in zip(top_side.points, square_deltas):
                 from_pt = anim.static_point(move_pt)
                 dest_pt = tip_position + dx * delta[0] + dy * delta[1]
                 animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(move_pt))
-            animator.animate_value([0., 5.], short_duration, anim.change_thickness(top_square))
+            animator.animate_value([0., 5.], short_duration, anim.change_thickness(top_side))
 
-            for square in cube.sub_items[1:]:
-                anim.anim_hide_item(animator, quick_reveal_duration, square)
+            hidden_sides = other_sides[cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
+            for side in hidden_sides:
+                anim.anim_hide_item(animator, quick_reveal_duration, side)
 
     eq_offsets = [0, 2, 4, 7]
     for power_eq, offset in zip(geo.power_eqs, eq_offsets):
         from_pt = anim.static_point(power_eq[1].position)
-        dest_pt = anim.static_point(base_dest + anim.static_point(40., -40.) + offset * dx)
+        dest_pt = anim.static_point(pts.square_tip_point + anim.static_point(40., 0.) + offset * dx)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+        
+def make_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    destinations = _get_square_destinations()
+    dx, dy = pts.square_deltas
+    for which_cube, cube_coord, slice, dest_coord in destinations:
+        cube_z = cube_coord[2]
+        for cube_x, cube_y in product(range(slice[0]), range(slice[1])):
+            dest_x = dest_coord[0] + cube_x
+            dest_y = dest_coord[1] - cube_y
+
+            max_dest = max(dest_x, dest_y)
+            extra_x = (max_dest - dest_y) if dest_y < max_dest else 0
+            extra_y = (max_dest - dest_x) if dest_x < max_dest else 0
+            tip_position = anim.static_point(pts.square_tip_point + (dest_x + extra_x) * dx + (dest_y + extra_y) * dy)
+            square_deltas = [ [0, 0], [1, 0], [1, 1], [0, 1] ]
+
+            top_side = geo.top_sides[which_cube][cube_coord[0] + cube_x][cube_coord[1] + cube_y][cube_z]
+            for move_pt, delta in zip(top_side.points, square_deltas):
+                from_pt = anim.static_point(move_pt)
+                dest_pt = tip_position + dx * delta[0] + dy * delta[1]
+                animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(move_pt))
+            animator.animate_value([0., 5.], short_duration, anim.change_thickness(top_side))
+
+    eq_offsets = [0, 1, 3, 6]
+    for power_eq, offset in zip(geo.power_eqs, eq_offsets):
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(pts.square_tip_point + anim.static_point(60., 40.) + offset * 2 * dx)
+        animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
+        
+def prepare_to_add_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    min_pt, max_pt = anim.min_max(anim.flatten([top_side.get_all_points() for top_side in anim.flatten(geo.top_sides[-1])]))
+    rect_distance = 50.
+    rect_width = 30.
+    rect_spacing = 10.
+    eq_distance = 100.
+
+    for top_sides, right_rect in zip(geo.top_sides, geo.right_rects):
+        for top_side in anim.flatten(top_sides):
+            center = anim.center_of(top_side.points)
+            for move_pt  in top_side.points:
+                animator.animate_value([0., anim.qpi], duration, anim.rotate_absolute_point_around(move_pt, center))
+
+        cube_min_pt, cube_max_pt = anim.min_max(anim.flatten([top_side.get_all_points() for top_side in anim.flatten(top_sides)]))
+
+        right_rect.p1.set_absolute_point(anim.point(max_pt.x() + rect_distance,              cube_min_pt.y() + rect_spacing))
+        right_rect.p2.set_absolute_point(anim.point(max_pt.x() + rect_distance + rect_width, cube_min_pt.y() + rect_spacing * 2))
+        anim.anim_reveal_item(animator, quick_reveal_duration, right_rect)
+        from_pt = anim.static_point(right_rect.p2)
+        dest_pt = anim.static_point(right_rect.p2.x(), cube_max_pt.y() - rect_spacing)
+        animator.animate_value([from_pt, dest_pt, dest_pt], short_duration, anim.move_absolute_point(right_rect.p2))
+
+    for power_eq in geo.power_eqs:
+        from_pt = anim.static_point(power_eq[1].position)
+        dest_pt = anim.static_point(max_pt.x() + eq_distance, from_pt.y())
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
         
 
