@@ -61,7 +61,7 @@ class points(anim.points):
         self.numbers_point_spread = anim.deep_filter(number_filter, self.points_spread, self.triangle_spread)
         self.plusses_point_spread = anim.deep_filter(not_number_filter, self.points_spread, self.triangle_spread)
 
-        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset * 2
+        last_number_point = anim.last_of(self.numbers_point_spread) + self.col_offset * 1.1
 
         self.cube_eqs_point  = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
         self.power_eqs_point = [anim.point(last_number_point.x(), pts[-1].y()) for pts in self.numbers_point_spread]
@@ -98,8 +98,12 @@ class geometries(anim.geometries):
         why_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
         self.here_is_why = anim.create_sans_bold_text('Here\nis\nwhy', why_point, pts.text_height * 1.5)
 
-        proof_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., 0.))
-        self.proof = anim.create_sans_bold_text('The\ncubes\nsquare\ntriangle\nproof', proof_point, pts.text_height)
+        proof_point = anim.relative_point(self.power_eqs[0][-1].middle_right(), anim.point(80., -150.))
+        proof_spacing = anim.point(0., pts.text_height * 1.8)
+        self.proofs = [anim.create_sans_bold_text(text, anim.point(proof_point + i * proof_spacing), pts.text_height) for i, text in enumerate('The Cubes Square Triangle Proof'.split())]
+        self.cube_proof = self.proofs[1]
+        self.square_proof = self.proofs[2]
+        self.triangle_proof = self.proofs[3]
 
         cubes_points = [anim.point(x, 100.) for x in [-400., -250., -50., 200.]]
         self.cubes = [anim.cube_of_cubes(size, pt, pts.cube_radius, 0.6).fill(color) for size, pt, color in zip(range(1, 5), cubes_points, colors)]
@@ -140,7 +144,7 @@ actors = [
 
     anim.actor('Explanation', '', geo.etc),
     anim.actor('Explanation', '', geo.here_is_why),
-    anim.actor('Explanation', '', geo.proof),
+    [anim.actor('Explanation', '', text) for text in geo.proofs],
 
     [[anim.actor('Cube', '', cube) for cube in cube_of_cubes.sub_items] for cube_of_cubes in geo.cubes],
 
@@ -242,13 +246,32 @@ def here_is_why_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
     anim.anim_reveal_item(animator, duration, geo.here_is_why)
     anim.anim_ondulate_text_size(animator, short_duration, geo.here_is_why, 1.3)
 
+def _create_proof_shot(proof: anim.scaling_text):
+    def _proof_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+        anim.anim_reveal_item(animator, duration, proof)
+        anim.anim_ondulate_text_size(animator, short_duration, proof, 1.3)
+    return anim.anim_description.create_shot(_proof_shot)
+
 def proof_name_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
     anim.anim_hide_item(animator, short_duration, geo.here_is_why)
-    anim.anim_reveal_item(animator, duration, geo.proof)
-    anim.anim_ondulate_text_size(animator, short_duration, geo.proof, 1.3)
+    shots = [_create_proof_shot(proof) for proof in geo.proofs]
+    animation.add_next_shots(shots)
+
+def _show_proof_part(hide_proof: anim.scaling_text, show_proof: anim.scaling_text, animator: anim.animator):
+    if hide_proof:
+        anim.anim_hide_item(animator, quick_reveal_duration, hide_proof)
+    if show_proof:
+        anim.anim_reveal_item(animator, quick_reveal_duration, show_proof)
+        show_proof.position.set_absolute_point(anim.static_point(-500., -300.))
+        anim.anim_ondulate_text_size(animator, short_duration, show_proof, 1.3)
 
 def show_cubes_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    anim.anim_hide_item(animator, quick_reveal_duration, geo.proof)
+    for proof in geo.proofs:
+        if proof != geo.cube_proof:
+            anim.anim_hide_item(animator, quick_reveal_duration, proof)
+
+    _show_proof_part(None, geo.cube_proof, animator)
+
     anim.anim_hide_item(animator, quick_reveal_duration, geo.etc)
     for label in anim.flatten(geo.numbers_spread):
         anim.anim_hide_item(animator, quick_reveal_duration, label)
@@ -326,6 +349,8 @@ def _get_square_destinations():
     ]
 
 def lay_down_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    _show_proof_part(geo.cube_proof, geo.square_proof, animator)
+
     destinations = _get_square_destinations()
     dx, dy, dz = geo.cubes[0].get_deltas()
     base_dest = anim.static_point(anim.first_of(geo.cubes[0].cubes).position)
@@ -385,6 +410,8 @@ def make_square_shot(shot: anim.shot, animation: anim.animation, scene: anim.sce
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
         
 def make_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    _show_proof_part(geo.square_proof, geo.triangle_proof, animator)
+
     destinations = _get_square_destinations()
     dx, dy = pts.square_deltas
     for which_cube, cube_coord, slice, dest_coord in destinations:
@@ -438,8 +465,17 @@ def push_total_right_shot(shot: anim.shot, animation: anim.animation, scene: ani
         from_pt = anim.static_point(power_eq[1].position)
         dest_pt = anim.static_point(max_pt.x() + eq_distance, from_pt.y())
         animator.animate_value([from_pt, dest_pt, dest_pt], duration, anim.move_absolute_point(power_eq[1].position))
-        
+
+def _create_sub_count_squares_shot(min_max_pts, row: int, number: anim.scaling_text):
+    def _sub_count_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+        min_pt, _ = min_max_pts[row]
+        number.position.set_absolute_point(anim.point(min_pt.x() - 100., min_pt.y() + pts.text_height / 2.))
+        anim.anim_reveal_item(animator, short_duration * 2. / (row + 2), number)
+    return anim.anim_description.create_shot(_sub_count_shot)
+
 def count_squares_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    _show_proof_part(geo.triangle_proof, geo.proofs[-1], animator)
+
     destinations = _get_square_destinations()
     min_max_pts = {}
     for which_cube, cube_coord, slice, dest_coord in destinations:
@@ -458,12 +494,14 @@ def count_squares_shot(shot: anim.shot, animation: anim.animation, scene: anim.s
             else:
                 min_max_pts[key] = anim.min_max(new_points)
 
-    for row, number in enumerate(anim.flatten(geo.numbers_spread)):
-        min_pt, max_pt = min_max_pts[row]
-        number.position.set_absolute_point(anim.point(min_pt.x() - 100., min_pt.y() + pts.text_height / 2.))
-        anim.anim_reveal_item(animator, duration, number)
+    shots = [_create_sub_count_squares_shot(min_max_pts, row, number) for row, number in enumerate(anim.flatten(geo.numbers_spread))]
+    animation.add_next_shots(shots)
 
 def reassemble_equations_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    for proof in geo.proofs:
+        proof.position.reset()
+        anim.anim_reveal_item(animator, short_duration, proof)
+
     for eq, pt in zip(geo.power_eqs, pts.power_eqs_point):
         anim.anim_reveal_item(animator, short_duration, eq[0])
         label = eq[1]
