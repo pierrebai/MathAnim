@@ -122,6 +122,7 @@ def generate_actors(animation: anim.animation, scene: anim.scene):
 # Prepare animation
 
 def prepare_playing(animation: anim.animation, scene: anim.scene, animator: anim.animator):
+    pts.reset()
     geo.reset()
 
 

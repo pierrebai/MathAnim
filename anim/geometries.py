@@ -11,13 +11,14 @@ class geometries:
     easily reset all opacities to zero and all geometries' points to their
     starting positions when the animation is reset.
     """
-    def __init__(self, reset_opacities = True):
-        self.reset_opacities = reset_opacities
+    def __init__(self, reset_items = True):
+        self.reset_items = reset_items
         return super().__init__()
 
     def reset(self):
-        for it in find_all_of_type(self.__dict__, item):
-            it.reset()
+        if self.reset_items:
+            for it in find_all_of_type(self.__dict__, item):
+                it.reset()
 
     def create_background_rect(self, pts: points, min_margin = static_point(0.1, 0.1), max_margin = static_point(0.1, 0.1)):
         rect: static_rectangle = None

@@ -13,6 +13,7 @@ description = 'Mathologer video: https://www.youtube.com/watch?v=WY5X_3q80WY'
 loop = False
 reset_on_change = False
 has_pointing_arrow = False
+auto_framing = False
 
 duration = 2.
 short_duration = duration / 2.
@@ -44,7 +45,7 @@ class points(anim.points):
         counter = count(1, 2)
         self.texts_spread = anim.deep_map(lambda item: str(next(counter)) if is_number(item) else '+', self.triangle_spread)
 
-        self.top = anim.point(0., 0.)
+        self.top = anim.point(-10., 0.)
 
         def _create_label(number: str):
             return anim.create_sans_bold_text(number, anim.point(0., 0.), self.text_height)
@@ -69,7 +70,7 @@ class points(anim.points):
         self.highlight_corner = anim.relative_point(self.top, anim.point(0., self.text_height * -3.))
 
         self.square_deltas = anim.static_point(50., 50.), anim.static_point(-50., 50.)
-        self.square_tip_point = anim.static_point(500., -300.)
+        self.square_tip_point = anim.static_point(420., -300.)
 
 pts: points = points()
 
@@ -173,7 +174,7 @@ def reset(animation: anim.animation, scene: anim.scene, animator: anim.animator)
 # Shots
 
 def show_triangle_shot(shot: anim.shot, animation: anim.animation, scene: anim.scene, animator: anim.animator):
-    #geo.background_rect.set_opacity(1.)
+    geo.background_rect.set_opacity(1.)
     def reveal(item: anim.scaling_text):
         anim.anim_reveal_item(animator, duration, item)
     anim.deep_map(reveal, geo.numbers_spread)

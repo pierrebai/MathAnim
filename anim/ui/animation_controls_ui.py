@@ -59,7 +59,7 @@ def _connect_animation_controls_ui(animation: animation, scene: scene, animator:
 
     def on_zoom_changed(value: float):
         scene.view.zoom = float(value) / 10.
-        scene.ensure_all_contents_fit()
+        scene.view.fit_rectangle(scene.scene.sceneRect())
     connect_auto_signal(layout.zoom_box, layout.zoom_box.valueChanged, on_zoom_changed)
 
 

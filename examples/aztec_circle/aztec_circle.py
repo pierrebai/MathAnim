@@ -21,6 +21,7 @@ class aztec_circle(anim.animation):
         
         self.loop = True
         self.reset_on_change = False
+        self.auto_framing = False
 
         self.scene: anim.scene = None
         self.animator: anim.animator = None

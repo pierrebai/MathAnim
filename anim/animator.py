@@ -171,7 +171,6 @@ class animator(QObject):
         self.current_scene = scene
         self.current_animation = animation
         shot.prepare(animation, scene, self)
-        scene.ensure_all_contents_fit()
 
         self.anim_group.start()
         self.check_all_anims_done()

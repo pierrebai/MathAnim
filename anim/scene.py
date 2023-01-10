@@ -93,7 +93,6 @@ class scene:
         """
         self.main_title.setText(title)
         self.view.preserve_transform()
-        self.ensure_all_contents_fit()
 
     def set_subtitle(self, title: str) -> None:
         """
@@ -101,7 +100,6 @@ class scene:
         """
         self.subtitle.setText(title)
         self.view.preserve_transform()
-        self.ensure_all_contents_fit()
 
     def set_shot_title(self, title: str) -> None:
         """
@@ -109,7 +107,6 @@ class scene:
         """
         self.title.setText(title)
         self.view.preserve_transform()
-        self.ensure_all_contents_fit()
 
     def set_shot_description(self, description: str) -> None:
         """
@@ -117,7 +114,6 @@ class scene:
         """
         self.description.setText(description)
         self.view.preserve_transform()
-        self.ensure_all_contents_fit()
 
 
     ########################################################################

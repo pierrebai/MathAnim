@@ -18,6 +18,8 @@ class anim_description:
         self.loop: bool = False
         self.reset_on_change: bool = True
         self.has_pointing_arrow: bool = True
+        self.auto_framing = True
+        self.frame_on_start = True
         self.shots: _List[shot] = []
         self.actors: _List[actor] = []
         self.options: _List[option] = []
@@ -45,6 +47,10 @@ class anim_description:
                 self.reset_on_change = var
             elif var_name == 'has_pointing_arrow':
                 self.has_pointing_arrow = var
+            elif var_name == 'frame_on_start':
+                self.frame_on_start = var
+            elif var_name == 'auto_framing':
+                self.auto_framing = var
             elif var_name == 'generate_actors':
                 self.custom_generate_actors = var
             elif var_name == 'generate_shots':
@@ -122,6 +128,7 @@ class simple_animation(animation, anim_description):
             - loop: if the animation should loop when reaching the last shot. Defaults to False.
             - reset_on_change: should the animation reset when options change. Defaults to True.
             - has_pointing_arrow: does the animation uses the pointing arrow. Default to True.
+            - auto_framing: frame all contents at the start of each shot.
             - *_shot: the anim-preparation function of a shot, a shot will be created with the first
                       line of the function doc as the name and the rest as its description.
             - Variables that are instances of the shot class.
@@ -151,6 +158,8 @@ class simple_animation(animation, anim_description):
         self.loop = desc.loop
         self.reset_on_change = desc.reset_on_change
         self.has_pointing_arrow = desc.has_pointing_arrow
+        self.auto_framing = desc.auto_framing
+        self.frame_on_start = desc.frame_on_start
         self.custom_shots = desc.shots
         self.custom_actors = desc.actors
         self.custom_generate_actors = desc.custom_generate_actors

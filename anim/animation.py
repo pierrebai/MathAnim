@@ -78,6 +78,8 @@ class animation(QObject, named):
 
         self.loop = False
         self.reset_on_change = True
+        self.auto_framing = True
+        self.frame_on_start = True
 
     on_shot_changed = Signal(scene, animator, shot)
 
@@ -109,7 +111,8 @@ class animation(QObject, named):
         self.generate_actors(scene)
         self.apply_shown_to_actors(shown_by_names)
         self.generate_shots()
-        scene.ensure_all_contents_fit()
+        if self.auto_framing or self.frame_on_start:
+            scene.ensure_all_contents_fit()
 
         if was_last:
             self.current_shot_index = len(self.shots) - 1
@@ -391,16 +394,23 @@ class animation(QObject, named):
         if not self.playing:
             self.playing = True
 
+        force_framing = False
+
         self.current_shot_index = max(0, self.current_shot_index) % len(self.shots)
         if not self.current_shot_index:
             self.prepare_playing(scene, animator)
+            force_framing = self.frame_on_start
 
         current_shot = self.shots[self.current_shot_index]
         scene.set_main_title(self.name)
         scene.set_subtitle(self.description)
         scene.set_shot_title(current_shot.name)
         scene.set_shot_description(current_shot.description)
+        if force_framing or self.auto_framing:
+            scene.ensure_all_contents_fit()
         animator.play(current_shot, self, scene)
+        if force_framing or self.auto_framing:
+            scene.ensure_all_contents_fit()
         self.on_shot_changed.emit(scene, animator, current_shot)
 
     def stop(self, scene: scene, animator: animator) -> None:
